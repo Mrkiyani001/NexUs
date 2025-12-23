@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Home Feed - Social Network</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔥</text></svg>">
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3b82f6",
+                        "primary-hover": "#2563eb",
+                        "accent-purple": "#8b5cf6",
+                        "accent-pink": "#ec4899",
+                        "background-dark": "#0f111a",
+                        "surface-dark": "#161b27",
+                        "glass-border": "rgba(255, 255, 255, 0.08)",
+                        "glass-border-light": "rgba(255, 255, 255, 0.12)",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.75rem",
+                        "xl": "1rem",
+                        "2xl": "1.5rem",
+                        "3xl": "2rem",
+                        "full": "9999px"
+                    },
+                    animation: {
+                        'blob': 'blob 10s infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'like-bounce': 'likeBounce 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        likeBounce: {
+                            '0%': { transform: 'scale(1)' },
+                            '50%': { transform: 'scale(1.3)' },
+                            '100%': { transform: 'scale(1)' },
+                        }
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0f111a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #2a303c;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b4254;
+        }
+
+        .glass-card {
+            background: linear-gradient(145deg, rgba(28, 32, 45, 0.6) 0%, rgba(20, 24, 34, 0.8) 100%);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-nav {
+            background: rgba(15, 17, 26, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .glass-nav-mobile {
+            background: rgba(15, 17, 26, 0.95);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .input-glass {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .input-glass:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .text-gradient-primary {
+            background: linear-gradient(135deg, #60a5fa 0%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn-icon-hover {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-icon-hover::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: currentColor;
+            opacity: 0.1;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s ease, height 0.3s ease;
+        }
+
+        .btn-icon-hover:hover::after {
+            width: 150%;
+            height: 150%;
+        }
+
+        .action-btn {
+            @apply flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-300 text-slate-400 font-medium text-sm;
+        }
+
+        .action-btn:hover {
+            @apply bg-white/5 text-slate-200;
+        }
+
+        .action-btn.active {
+            @apply text-red-500 bg-red-500/10;
+        }
+
+        .action-btn i {
+            @apply transition-transform duration-300;
+        }
+
+        .action-btn:hover i {
+            @apply scale-110;
+        }
+
+        .img-zoom-container {
+            overflow: hidden;
+        }
+
+        .img-zoom {
+            transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .img-zoom-container:hover .img-zoom {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body
+    class="font-display bg-background-dark text-slate-200 min-h-screen relative overflow-x-hidden antialiased selection:bg-primary/30 selection:text-white flex flex-col">
+    <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div
+            class="absolute top-[-10%] left-[10%] w-[50vw] h-[50vw] bg-primary/10 rounded-full blur-[120px] animate-blob mix-blend-screen opacity-40">
+        </div>
+        <div
+            class="absolute top-[10%] right-[-10%] w-[40vw] h-[40vw] bg-accent-purple/10 rounded-full blur-[130px] animate-blob animation-delay-2000 mix-blend-screen opacity-40">
+        </div>
+        <div
+            class="absolute bottom-[-20%] left-[30%] w-[45vw] h-[45vw] bg-accent-pink/5 rounded-full blur-[100px] animate-blob animation-delay-4000 mix-blend-screen opacity-30">
+        </div>
+    </div>
+    <header class="glass-nav fixed top-0 w-full z-50 h-[70px] md:h-[80px] flex items-center justify-between px-4 md:px-8 transition-all duration-300">
+        <div class="flex items-center gap-3 cursor-pointer group select-none min-w-fit">
+            <div
+                class="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center text-white shadow-lg shadow-primary/20 group-hover:shadow-primary/40 group-hover:scale-105 transition-all duration-300">
+                <span class="material-symbols-outlined text-[22px] md:text-[26px]">token</span>
+            </div>
+            <div class="flex flex-col">
+                <span class="text-lg md:text-xl font-bold tracking-tight text-white leading-none">Social</span>
+                <span
+                    class="text-[9px] md:text-[10px] font-semibold text-slate-500 uppercase tracking-widest leading-none mt-1 hidden sm:block">Dashboard</span>
+            </div>
+        </div>
+        <nav
+            class="hidden md:flex items-center gap-1 lg:gap-2 absolute left-1/2 -translate-x-1/2">
+            <a class="relative flex items-center gap-2 px-4 lg:px-6 py-2.5 rounded-full bg-gradient-to-r from-primary/10 to-blue-600/10 border border-primary/20 text-primary font-semibold transition-all group shadow-[0_0_15px_rgba(59,130,246,0.15)]"
+                href="#">
+                <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">home</span>
+                <span class="hidden lg:inline">Home</span>
+            </a>
+            <a class="flex items-center gap-2 px-3 lg:px-4 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
+                href="#">
+                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">explore</span>
+                <span class="hidden lg:block font-medium">Explore</span>
+            </a>
+            <a class="flex items-center gap-2 px-3 lg:px-4 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group relative"
+                href="#">
+                <div class="relative">
+                    <span
+                        class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">notifications</span>
+                    <span
+                        class="absolute top-0.5 right-0.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-[#0f111a] animate-pulse"></span>
+                </div>
+                <span class="hidden lg:block font-medium">Notifications</span>
+            </a>
+            <a class="flex items-center gap-2 px-3 lg:px-4 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
+                href="#">
+                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">mail</span>
+                <span class="hidden lg:block font-medium">Messages</span>
+            </a>
+        </nav>
+        <div
+            class="flex items-center gap-3 md:gap-4 min-w-fit justify-end flex-1 md:flex-none">
+            <div
+                class="relative group hidden sm:block w-48 lg:w-64 transition-all focus-within:w-64 lg:focus-within:w-80">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span
+                        class="material-symbols-outlined text-slate-500 text-[20px] group-focus-within:text-primary transition-colors">search</span>
+                </div>
+                <input id="search-input"
+                    class="input-glass w-full rounded-full h-10 pl-10 pr-12 text-white placeholder:text-slate-500 focus:outline-none text-sm font-medium bg-white/5 border-transparent focus:bg-white/10 focus:border-primary/50 transition-all"
+                    placeholder="Search..." type="text" />
+                <div class="absolute inset-y-0 right-3 flex items-center">
+                    <kbd
+                        class="hidden group-focus-within:inline-flex h-5 select-none items-center gap-1 rounded border border-glass-border bg-white/5 px-1.5 font-mono text-[10px] font-medium text-slate-400">
+                        <span class="text-xs">⌘</span>K
+                    </kbd>
+                </div>
+            </div>
+            <button class="sm:hidden w-9 h-9 rounded-full hover:bg-white/5 flex items-center justify-center text-slate-300 transition-colors">
+                <span class="material-symbols-outlined text-[20px]">search</span>
+            </button>
+            <div class="w-px h-8 bg-glass-border mx-1 hidden md:block"></div>
+            <button id="logout-btn" class="text-slate-500 hover:text-red-400 transition-colors mr-2 cursor-pointer hidden md:block" title="Logout">
+                <span class="material-symbols-outlined">logout</span>
+            </button>
+            <div class="flex items-center gap-3 pl-1 cursor-pointer group/profile" onclick="window.location.href='profile.html'">
+                <div class="relative">
+                    <div
+                        class="w-9 h-9 md:w-10 md:h-10 rounded-full p-[2px] bg-gradient-to-tr from-primary to-accent-purple group-hover/profile:shadow-lg group-hover/profile:shadow-primary/20 transition-all duration-300">
+                        <img id="header-user-avatar" alt="Profile"
+                            class="w-full h-full rounded-full border-2 border-[#101522] object-cover"
+                            src="https://ui-avatars.com/api/?name=User&background=random" />
+                    </div>
+                    <div
+                        class="absolute bottom-0 right-0 w-2.5 h-2.5 md:w-3 md:h-3 bg-green-500 border-2 border-[#101522] rounded-full">
+                    </div>
+                </div>
+                <span
+                    class="material-symbols-outlined text-slate-500 text-sm hidden md:block group-hover/profile:text-white transition-colors">expand_more</span>
+            </div>
+        </div>
+    </header>
+    <div class="md:hidden glass-nav-mobile fixed bottom-0 left-0 w-full z-50 h-[65px] flex items-center justify-around px-2">
+        <a class="flex flex-col items-center justify-center gap-1 p-2 w-16 text-primary" href="#">
+            <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">home</span>
+            <span class="text-[10px] font-medium">Home</span>
+        </a>
+        <a class="flex flex-col items-center justify-center gap-1 p-2 w-16 text-slate-400 hover:text-white transition-colors" href="#">
+            <span class="material-symbols-outlined text-[24px]">explore</span>
+            <span class="text-[10px] font-medium">Explore</span>
+        </a>
+        <a class="flex flex-col items-center justify-center gap-1 p-2 w-16 text-slate-400 hover:text-white transition-colors relative" href="#">
+            <div class="relative">
+                <span class="material-symbols-outlined text-[24px]">notifications</span>
+                <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-[#161b27]"></span>
+            </div>
+            <span class="text-[10px] font-medium">Alerts</span>
+        </a>
+        <a class="flex flex-col items-center justify-center gap-1 p-2 w-16 text-slate-400 hover:text-white transition-colors" href="#">
+            <span class="material-symbols-outlined text-[24px]">mail</span>
+            <span class="text-[10px] font-medium">Chats</span>
+        </a>
+    </div>
+    <main class="pt-[90px] md:pt-[110px] pb-20 px-4 flex justify-center w-full">
+        <div class="w-full max-w-[640px] space-y-8">
+            <!-- Create Post Card -->
+            <div class="glass-card rounded-2xl relative group/create transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 z-20">
+                <!-- Top Gradient Line -->
+                <div class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-primary/60 to-transparent opacity-50 group-hover/create:opacity-100 transition-opacity"></div>
+                
+                <div class="p-4 sm:p-5">
+                    <div class="flex gap-4">
+                        <img id="create-post-avatar" alt="Current User"
+                            class="w-10 h-10 rounded-full object-cover border-2 border-background-dark ring-2 ring-white/5 shadow-md"
+                            src="https://ui-avatars.com/api/?name=User&background=random" />
+                        
+                        <div class="flex-1 space-y-3">
+                             <!-- Editor Box -->
+                            <div class="w-full bg-surface-dark/60 rounded-xl border border-white/5 hover:border-white/10 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/50 transition-all duration-300 overflow-hidden relative">
+                                <!-- Title removed from UI, will auto-generate -->
+                                <textarea id="create-post-content"
+                                    class="w-full bg-transparent px-4 py-3 text-sm text-slate-200 placeholder:text-slate-500/70 focus:outline-none resize-none min-h-[60px] leading-relaxed scrollbar-hide"
+                                    placeholder="Write something..."></textarea>
+                                
+                                <!-- Typing Indicator / Focus line (optional visual flair) -->
+                                <div class="absolute bottom-0 left-0 h-[1px] w-0 bg-primary transition-all duration-500 group-focus-within/create:w-full"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview Area -->
+                <div id="image-preview-container" class="hidden px-5 pb-3 grid grid-cols-2 gap-2"></div>
+
+                <!-- Emoji Picker Container -->
+                <div id="emoji-picker" class="hidden absolute top-full right-4 mt-2 w-64 glass-card rounded-xl p-3 z-50 grid grid-cols-6 gap-2 max-h-48 overflow-y-auto shadow-2xl border border-white/10">
+                    <!-- Emojis will be injected here -->
+                </div>
+
+                <!-- Footer Toolbar -->
+                <div class="bg-white/5 px-4 py-2.5 flex items-center justify-between border-t border-white/5 backdrop-blur-sm">
+                    <div class="flex items-center gap-1 relative">
+                        <button onclick="document.getElementById('post-image-input').click()"
+                            class="p-2 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-emerald-400/10 transition-all flex items-center gap-2 group/btn relative overflow-hidden"
+                            title="Add Photo">
+                            <span class="material-symbols-outlined text-[20px] group-hover/btn:scale-110 transition-transform">image</span>
+                        </button>
+                        <input type="file" id="post-image-input" class="hidden" multiple accept="image/*,video/*">
+                        
+                        <button onclick="document.getElementById('post-file-input').click()"
+                            class="p-2 rounded-lg text-slate-400 hover:text-blue-400 hover:bg-blue-400/10 transition-all flex items-center gap-2 group/btn"
+                            title="Attach File">
+                            <span class="material-symbols-outlined text-[20px] group-hover/btn:scale-110 transition-transform">attach_file</span>
+                        </button>
+                        <input type="file" id="post-file-input" class="hidden" multiple accept=".pdf,.doc,.docx,.txt">
+                        
+                        <button id="emoji-btn" onclick="toggleEmojiPicker(event)"
+                            class="p-2 rounded-lg text-slate-400 hover:text-pink-400 hover:bg-pink-400/10 transition-all flex items-center gap-2 group/btn relative"
+                            title="Add Emoji">
+                            <span class="material-symbols-outlined text-[20px] group-hover/btn:scale-110 transition-transform">sentiment_satisfied</span>
+                        </button>
+
+                        <!-- Emoji Picker (Moved inside relative container) -->
+                        <div id="emoji-picker" class="hidden absolute top-12 left-0 w-64 glass-card rounded-xl p-3 z-50 grid grid-cols-6 gap-2 max-h-48 overflow-y-auto shadow-2xl border border-white/10 bg-[#161b27]">
+                            <!-- Emojis -->
+                        </div>
+                    </div>
+
+                    <button id="create-post-btn"
+                        class="px-5 py-1.5 bg-gradient-to-r from-primary to-blue-600 hover:from-blue-500 hover:to-blue-700 text-white text-xs font-bold rounded-full shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 group/submit">
+                        <span>Post</span>
+                        <span class="material-symbols-outlined text-[14px] group-hover/submit:translate-x-1 transition-transform">send</span>
+                    </button>
+                </div>
+            </div>
+
+            <script>
+                // Emojis List
+                const emojis = [
+                    '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇',
+                    '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', 'yz',
+                    '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞',
+                    '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺',
+                    '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶',
+                    '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥',
+                    '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧', '😮', '😲',
+                    '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷',
+                    '🤒', '🤕', '🤑', '🤠', '😈', '👿', '👹', '👺', '🤡', '💩',
+                    '👻', '💀', '☠️', '👽', '👾', '🤖', '🎃', '😺', '😸', '😹',
+                    '👋', '🤚', 'Bk', '🖖', '👌', '🤏', '✌️', '🤞', '🤟', '🤘',
+                    '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊',
+                    '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️',
+                    '💅', '🤳', '💪', '🦾', '🦵', '🦿', '🦶', '👂', '🦻', '👃',
+                    '🧠', '🫀', '🫁', '🦷', '🦴', '👀', '👁️', '👅', '👄', '💋',
+                    '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔',
+                    '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️',
+                    '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐',
+                    '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑',
+                    '♒', '♓', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴', '📳', '🈶', '🈚',
+                    '🈸', '🈺', '🈷️', '✴️', '🆚', '💮', '🉐', '㊙️', '㊗️', '🈴', '🈵',
+                    '🈹', '🈲', '🅰️', '🅱️', '🆎', '🆑', '🅾️', '🆘', '❌', '⭕', '🛑',
+                    '⛔', '📛', '🚫', '💯', '💢', '♨️', '🚷', '🚯', '🚳', '🚱', '🔞',
+                    '📵', '🚭', '❗', '❕', '❓', '❔', '‼️', '⁉️', '🔅', '🔆', '〽️',
+                    '⚠️', '🚸', '🔱', '⚜️', '🔰', '♻️', '✅', '🈯', '💹', '❇️', '✳️',
+                    '❎', '🌐', '🍆', '🍑', '🍓', '🍒', '🥑', '🍔', '🍕', '🌭'
+                ];
+
+                const emojiPicker = document.getElementById('emoji-picker');
+                // const titleInput = document.getElementById('create-post-title'); // Removed
+                const contentInput = document.getElementById('create-post-content');
+                let lastFocusedInput = contentInput;
+
+                contentInput.addEventListener('focus', () => lastFocusedInput = contentInput);
+
+                // Initialize Picker
+                emojis.forEach(emoji => {
+                    const span = document.createElement('span');
+                    span.textContent = emoji;
+                    span.className = 'cursor-pointer hover:bg-white/10 rounded p-1 text-center transition-colors text-xl select-none';
+                    span.onclick = (e) => {
+                         e.stopPropagation();
+                         insertAtCursor(lastFocusedInput, emoji);
+                    };
+                    emojiPicker.appendChild(span);
+                });
+
+                function toggleEmojiPicker(event) {
+                    if(event) event.stopPropagation();
+                    emojiPicker.classList.toggle('hidden');
+                }
+
+                // Close picker when clicking outside
+                document.addEventListener('click', (e) => {
+                    const btn = document.getElementById('emoji-btn');
+                    if (!emojiPicker.contains(e.target) && !btn.contains(e.target)) {
+                        emojiPicker.classList.add('hidden');
+                    }
+                });
+
+                function insertAtCursor(input, text) {
+                    const start = input.selectionStart;
+                    const end = input.selectionEnd;
+                    const value = input.value;
+                    input.value = value.substring(0, start) + text + value.substring(end);
+                    input.selectionStart = input.selectionEnd = start + text.length;
+                    input.focus();
+                }
+            </script>
+            <!-- Dynamic Search Results -->
+            <div id="search-results-container" class="hidden glass-card rounded-xl p-4 mb-4"></div>
+            <!-- Posts Feed -->
+            <div id="posts-container" class="space-y-8">
+                <div class="flex justify-center py-12">
+                    <div class="relative w-10 h-10">
+                        <div class="absolute inset-0 border-4 border-white/10 rounded-full"></div>
+                        <div
+                            class="absolute inset-0 border-4 border-primary rounded-full border-t-transparent animate-spin">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <!-- Toast Notification -->
+    <div id="toast-container" class="fixed bottom-20 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Mobile Navigation Bar (fixed bottom) -->
+    <nav class="glass-nav-mobile fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around h-16 md:hidden">
+        <a class="relative flex flex-1 justify-center items-center gap-2 px-2 py-2.5 rounded-full bg-gradient-to-r from-primary/10 to-blue-600/10 border border-primary/20 text-primary font-semibold transition-all group shadow-[0_0_15px_rgba(59,130,246,0.15)]"
+            href="#">
+            <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">home</span>
+        </a>
+        <a class="flex flex-1 justify-center items-center gap-2 px-2 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
+            href="#">
+            <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">explore</span>
+        </a>
+        <a class="flex flex-1 justify-center items-center gap-2 px-2 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group relative"
+            href="#">
+            <div class="relative">
+                <span
+                    class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">notifications</span>
+                <span
+                    class="absolute top-0.5 right-0.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-[#0f111a] animate-pulse"></span>
+            </div>
+        </a>
+        <a class="flex flex-1 justify-center items-center gap-2 px-2 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
+            href="#">
+            <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">mail</span>
+        </a>
+    </nav>
+    <script>
+        // Toast Function
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            // Icon selection
+            let icon = 'check_circle';
+            let bgClass = 'bg-background-dark/90 border-primary/50';
+            let textClass = 'text-primary';
+            
+            if (type === 'error') {
+                icon = 'error';
+                bgClass = 'bg-background-dark/90 border-red-500/50';
+                textClass = 'text-red-500';
+            }
+
+            toast.className = `flex items-center gap-3 px-4 py-3 rounded-xl border ${bgClass} shadow-2xl backdrop-blur-md transform translate-x-full transition-all duration-300 pointer-events-auto min-w-[300px]`;
+            toast.innerHTML = `
+                <span class="material-symbols-outlined ${textClass}">${icon}</span>
+                <p class="text-sm font-medium text-white">${message}</p>
+            `;
+
+            container.appendChild(toast);
+
+            // Animate In
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-x-full');
+            });
+
+            // Remove after 4s
+            setTimeout(() => {
+                toast.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 4000);
+        }
+
+        const API_BASE_URL = 'http://127.0.0.1:8000/api';
+        const PUBLIC_URL = 'http://127.0.0.1:8000';
+        const token = localStorage.getItem('auth_token');
+        const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+        if (!token) window.location.href = 'login.html';
+        // Header Init
+        if (userData.name) {
+            document.getElementById('header-user-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}&background=random`;
+            document.getElementById('create-post-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}&background=random`;
+        }
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_data');
+            window.location.href = 'login.html';
+        });
+
+        // Post Creation
+        const postImageInput = document.getElementById('post-image-input');
+        const postFileInput = document.getElementById('post-file-input');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+        let selectedFiles = [];
+
+        function handleFileSelect(e) {
+            const files = Array.from(e.target.files);
+            selectedFiles = [...selectedFiles, ...files];
+            imagePreviewContainer.innerHTML = '';
+            if (selectedFiles.length > 0) imagePreviewContainer.classList.remove('hidden');
+            selectedFiles.forEach(file => {
+                const div = document.createElement('div');
+                div.className = 'relative h-32 rounded-lg overflow-hidden border border-glass-border bg-white/5 flex items-center justify-center';
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        div.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    div.innerHTML = ` <div class="flex flex-col items-center text-slate-400"> <span class="material-symbols-outlined text-3xl">description</span> <span class="text-xs mt-1 px-2 text-center truncate w-full">${file.name}</span> </div>`;
+                }
+                imagePreviewContainer.appendChild(div);
+            });
+        }
+        postImageInput.addEventListener('change', handleFileSelect);
+        postFileInput.addEventListener('change', handleFileSelect);
+
+        document.getElementById('create-post-btn').addEventListener('click', async () => {
+            const content = document.getElementById('create-post-content').value;
+            const btn = document.getElementById('create-post-btn');
+            if (!content && selectedFiles.length === 0) return;
+            btn.disabled = true;
+            btn.textContent = 'Posting...';
+            
+            // Auto-generate title from first few words of content
+            const generatedTitle = "New Post"; 
+            
+            const formData = new FormData();
+            formData.append('title', generatedTitle);
+            formData.append('body', content);
+            selectedFiles.forEach(file => formData.append('attachments[]', file));
+            try {
+                const response = await fetch(`${API_BASE_URL}/create_post`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('create-post-content').value = '';
+                    // Title input removed, so no value to clear
+                    imagePreviewContainer.innerHTML = '';
+                    imagePreviewContainer.classList.add('hidden');
+                    selectedFiles = [];
+                    
+                    // Show success message
+                    showToast('Post created! It is under moderation.');
+                    
+                    loadPosts(); // Refresh
+                } else {
+                    showToast('Error: ' + data.message, 'error');
+                }
+            } catch (e) {
+                console.error(e);
+            } finally {
+                btn.textContent = 'Post';
+                btn.disabled = false;
+            }
+        });
+
+        // Search
+        const searchInput = document.getElementById('search-input');
+        const searchResults = document.getElementById('search-results-container');
+        let searchTimeout;
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            const query = e.target.value.trim();
+            if (query.length === 0) {
+                searchResults.classList.add('hidden');
+                return;
+            }
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/search_user`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            search: query
+                        })
+                    });
+                    const data = await response.json();
+                    searchResults.innerHTML = '';
+                    searchResults.classList.remove('hidden');
+                    const users = data.data && data.data.items ? data.data.items : [];
+                    if (users.length > 0) {
+                        users.forEach(user => {
+                            const div = document.createElement('div');
+                            div.className = 'flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors';
+                            div.onclick = () => window.location.href = `profile.html?id=${user.id}`;
+                            div.innerHTML = ` <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}" class="w-8 h-8 rounded-full"> <span class="text-white text-sm font-medium">${user.name}</span> `;
+                            searchResults.appendChild(div);
+                        });
+                    } else {
+                        searchResults.innerHTML = '<div class="text-slate-500 text-sm p-2">No users found.</div>';
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+            }, 300);
+        });
+
+        // Load Posts
+        async function loadPosts() {
+            const postsContainer = document.getElementById('posts-container');
+            
+            // Check for cached data from loading screen
+            const cachedData = localStorage.getItem('cached_posts');
+            if (cachedData) {
+                try {
+                    const data = JSON.parse(cachedData);
+                    renderPosts(data, postsContainer);
+                    localStorage.removeItem('cached_posts');
+                    // We can optionally fetch fresh data silently here if we want to update it
+                    return; 
+                } catch (e) {
+                    console.error('Error parsing cache', e);
+                    localStorage.removeItem('cached_posts');
+                }
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/get_all_posts?limit=50`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+                const data = await response.json();
+                renderPosts(data, postsContainer);
+            } catch (e) {
+                console.error(e);
+                postsContainer.innerHTML = '<div class="text-center text-slate-500 py-10">Failed to load posts.</div>';
+            }
+        }
+
+        function renderPosts(data, container) {
+            container.innerHTML = '';
+            const posts = data.data && data.data.items ? data.data.items : [];
+
+            if (posts.length > 0) {
+                posts.forEach(post => {
+                    container.insertAdjacentHTML('beforeend', createPostHTML(post));
+                });
+            } else {
+                container.innerHTML = '<div class="text-center text-slate-500 py-10">No posts yet. Be the first!</div>';
+            }
+        }
+
+        function createPostHTML(post) {
+            const user = post.user || {
+                name: 'Unknown',
+                id: 0
+            };
+            const safeName = user.name || 'Unknown';
+            const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(safeName)}&background=random`;
+            const timeAgo = new Date(post.created_at).toLocaleDateString();
+            
+            // Check if liked (from backend)
+            // withExists returns boolean true/false or 1/0
+            const isLiked = !!post.is_liked; 
+            
+            // Style Logic
+            // Liked: Pink text + Filled Heart
+            // Unliked: Slate text + Outlined Heart
+            const likeColorClass = isLiked ? 'text-pink-500' : 'text-slate-400';
+            const likeFill = isLiked ? 1 : 0;
+            const likeAnimation = isLiked ? '' : ''; // Optional initial class
+
+            let mediaHTML = '';
+            if (post.attachments && post.attachments.length > 0) {
+                const files = Array.isArray(post.attachments) ? post.attachments : [];
+                if (files.length > 0) {
+                    const file = files[0];
+                    let src = '';
+                    if (typeof file === 'object' && file.file_path) src = `${PUBLIC_URL}/${file.file_path}`;
+                    else if (typeof file === 'string') src = `${PUBLIC_URL}/posts/${file}`;
+                    if (src) {
+                        mediaHTML = ` <div class="mt-4 rounded-2xl overflow-hidden border border-glass-border"> <img class="w-full object-cover max-h-[400px]" src="${src}"> </div>`;
+                    }
+                }
+            }
+            
+            // Safeguard body to avoid 'undefined' text
+            const safeBody = post.body || '';
+            const likeCount = post.like_count || 0;
+            const commentCount = post.comments_count || 0;
+
+            return ` <article class="glass-card rounded-3xl p-0 overflow-hidden group/post transition-transform duration-300 hover:translate-y-[-2px]"> 
+            <div class="p-6"> 
+                <!-- Header --> 
+                <div class="flex items-start justify-between mb-4"> 
+                    <div class="flex items-center gap-3"> 
+                        <div onclick="window.location.href='profile.html?id=${user.id}'" class="relative cursor-pointer"> 
+                            <img class="w-12 h-12 rounded-full object-cover border-2 border-glass-border hover:border-primary transition-colors" src="${avatarUrl}"/> 
+                        </div> 
+                        <div> 
+                            <h3 onclick="window.location.href='profile.html?id=${user.id}'" class="font-bold text-white hover:text-primary transition-colors cursor-pointer text-base">${safeName}</h3> 
+                            <div class="flex items-center text-xs text-slate-400 font-medium mt-0.5"> 
+                                <span>@user${user.id}</span> <span class="mx-1.5 opacity-50">•</span> <span>${timeAgo}</span> 
+                            </div> 
+                        </div> 
+                    </div> 
+                </div> 
+                <!-- Content --> 
+                <div class="mb-4 cursor-pointer" onclick="window.location.href='post-detail-veiw.html?id=${post.id}'"> 
+                    <p class="text-slate-300 leading-relaxed text-[15px]">${safeBody}</p> 
+                    ${mediaHTML} 
+                </div> 
+                <!-- Footer / Actions --> 
+                <div class="mt-4 pt-4 border-t border-glass-border flex items-center justify-between"> 
+                    <div class="flex gap-4"> 
+                        <div class="flex items-center gap-1">
+                            <button id="like-btn-${post.id}" onclick="likePost(${post.id}, this)" class="flex items-center gap-2 ${likeColorClass} hover:text-pink-500 transition-colors group/like"> 
+                                <span class="material-symbols-outlined text-[22px] transition-transform group-active/like:scale-75" style="font-variation-settings: 'FILL' ${likeFill};">favorite</span> 
+                                <span class="text-xs font-medium">Like</span> 
+                            </button> 
+                             <span onclick="openLikersModal(${post.id})" class="text-xs text-slate-400 font-medium hover:text-white cursor-pointer ml-1">${likeCount > 0 ? likeCount : ''}</span>
+                        </div>
+                        
+                        <div class="flex items-center gap-1">
+                            <button onclick="toggleCommentSection(${post.id})" class="flex items-center gap-2 text-slate-400 hover:text-blue-500 transition-colors"> 
+                                <span class="material-symbols-outlined text-[20px]">chat_bubble</span> 
+                                <span class="text-xs font-medium">Comment</span> 
+                            </button> 
+                            <span class="text-xs text-slate-400 font-medium ml-1">${commentCount > 0 ? commentCount : ''}</span>
+                        </div>
+                    </div> 
+                </div> 
+            </div> 
+            
+            <!-- Inline Comment Section (Hidden by default) -->
+            <div id="comment-section-${post.id}" class="hidden px-6 pb-6 pt-2 border-t border-glass-border/50 bg-black/20">
+                <!-- Fetched Comments List -->
+                <div id="comment-list-${post.id}" class="flex flex-col gap-3 mb-4 max-h-60 overflow-y-auto custom-scrollbar"></div>
+
+                <div class="flex gap-3 items-start animate-fade-in-down">
+                     <!-- Current User Avatar (Mini) -->
+                     <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name || 'Me')}&background=random" class="w-8 h-8 rounded-full border border-glass-border mt-1">
+                     <!-- Input Area -->
+                     <div class="flex-1">
+                        <textarea id="comment-input-${post.id}" class="w-full bg-white/5 border border-glass-border rounded-xl p-3 text-sm text-slate-300 focus:outline-none focus:border-primary/50 transition-all resize-none h-20 placeholder:text-slate-500" placeholder="Write a comment..."></textarea>
+                        <div class="flex justify-end mt-2">
+                             <button onclick="submitComment(${post.id})" class="px-4 py-1.5 bg-primary text-white text-xs font-bold rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-1">
+                                <span>Post</span>
+                                <span class="material-symbols-outlined text-[14px]">send</span>
+                             </button>
+                        </div>
+                     </div>
+                </div>
+            </div>
+            </article> `;
+        }
+        
+        async function toggleCommentSection(postId) {
+            const section = document.getElementById(`comment-section-${postId}`);
+            const list = document.getElementById(`comment-list-${postId}`);
+            
+            section.classList.toggle('hidden');
+            
+            if(!section.classList.contains('hidden')) {
+                // Focus input
+                 setTimeout(() => {
+                    const input = document.getElementById(`comment-input-${postId}`);
+                    if(input) input.focus();
+                 }, 50);
+                 
+                 // Fetch comments
+                 list.innerHTML = '<div class="text-xs text-slate-400 text-center py-2">Loading comments...</div>';
+                 
+                 try {
+                     const response = await fetch(`${API_BASE_URL}/get_comment`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ post_id: postId, limit: 20 })
+                     });
+                     const data = await response.json();
+                     
+                     if(data.success && data.data && data.data.items.length > 0) {
+                         list.innerHTML = data.data.items.map(comment => {
+                             const user = comment.user || { name: 'Unknown', id: 0 };
+                             const isLiked = comment.is_liked || false;
+                             const likeCount = comment.like_count || 0;
+                             const likeColorClass = isLiked ? 'text-pink-500' : 'text-slate-400';
+                             const likeFill = isLiked ? 1 : 0;
+
+                             // Render Replies
+                             let repliesHTML = '';
+                             if(comment.replies && comment.replies.length > 0) {
+                                 repliesHTML = '<div class="mt-2 pl-8 flex flex-col gap-2 border-l-2 border-glass-border/30 ml-2">';
+                                 repliesHTML += comment.replies.map(reply => {
+                                     const replyUser = reply.creator || { name: 'Unknown', id: 0 };
+                                     const replyIsLiked = reply.is_liked || false;
+                                     const replyLikeCount = reply.like_count || 0;
+                                     const rLikeColor = replyIsLiked ? 'text-pink-500' : 'text-slate-400';
+                                     const rLikeFill = replyIsLiked ? 1 : 0;
+                                     
+                                     return `
+                                        <div class="flex gap-3 items-start animate-fade-in-down group/reply">
+                                            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(replyUser.name)}&background=random" class="w-6 h-6 rounded-full border border-glass-border cursor-pointer" onclick="window.location.href='profile.html?id=${replyUser.id}'">
+                                            <div class="flex-1">
+                                                <div class="bg-white/5 rounded-xl p-2 px-3 border border-glass-border/30">
+                                                    <div class="flex justify-between items-start mb-0.5">
+                                                        <h4 class="font-bold text-white text-[11px] cursor-pointer hover:underline" onclick="window.location.href='profile.html?id=${replyUser.id}'">${replyUser.name}</h4>
+                                                        <span class="text-[9px] text-slate-500">${new Date(reply.created_at).toLocaleDateString()}</span>
+                                                    </div>
+                                                    <p class="text-slate-300 text-xs whitespace-pre-wrap">${reply.reply}</p>
+                                                </div>
+                                                <div class="flex items-center gap-3 mt-1 ml-2">
+                                                    <button onclick="likeReply(${reply.id}, this)" class="flex items-center gap-1 text-[10px] font-medium ${rLikeColor} hover:text-pink-500 transition-colors">
+                                                        <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' ${rLikeFill}">favorite</span>
+                                                        <span>${replyLikeCount > 0 ? replyLikeCount : 'Like'}</span>
+                                                    </button>
+                                                    <button onclick="toggleReplyInput(${comment.id}, '@${replyUser.name} ')" class="flex items-center gap-1 text-[10px] font-medium text-slate-400 hover:text-white transition-colors">
+                                                        <span class="material-symbols-outlined text-[14px]">reply</span>
+                                                        <span>Reply</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                     `;
+                                 }).join('');
+                                 repliesHTML += '</div>';
+                             }
+
+                             return `
+                                <div class="flex gap-3 items-start animate-fade-in-down group/comment">
+                                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random" class="w-8 h-8 rounded-full border border-glass-border cursor-pointer" onclick="window.location.href='profile.html?id=${user.id}'">
+                                    <div class="flex-1">
+                                        <div class="bg-white/5 rounded-xl p-3 border border-glass-border/30">
+                                            <div class="flex justify-between items-start mb-1">
+                                                <h4 class="font-bold text-white text-xs cursor-pointer hover:underline" onclick="window.location.href='profile.html?id=${user.id}'">${user.name}</h4>
+                                                <span class="text-[10px] text-slate-500">${new Date(comment.created_at).toLocaleDateString()}</span>
+                                            </div>
+                                            <p class="text-slate-300 text-sm whitespace-pre-wrap">${comment.comment}</p>
+                                        </div>
+                                        
+                                        <!-- Actions -->
+                                        <div class="flex items-center gap-4 mt-1 ml-2">
+                                            <button onclick="likeComment(${comment.id}, this)" class="flex items-center gap-1 text-xs font-medium ${likeColorClass} hover:text-pink-500 transition-colors">
+                                                <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' ${likeFill}">favorite</span>
+                                                <span>${likeCount > 0 ? likeCount : 'Like'}</span>
+                                            </button>
+                                            <button onclick="toggleReplyInput(${comment.id})" class="flex items-center gap-1 text-xs font-medium text-slate-400 hover:text-white transition-colors">
+                                                <span class="material-symbols-outlined text-[16px]">reply</span>
+                                                <span>Reply</span>
+                                            </button>
+                                        </div>
+
+                                        <!-- Nested Replies -->
+                                        ${repliesHTML}
+
+                                        <!-- Reply Input -->
+                                        <div id="reply-box-${comment.id}" class="hidden mt-2 flex gap-2 items-start ml-2">
+                                             <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name || 'Me')}&background=random" class="w-6 h-6 rounded-full border border-glass-border mt-1">
+                                             <div class="flex-1">
+                                                <textarea id="reply-input-${comment.id}" class="w-full bg-white/5 border border-glass-border rounded-lg p-2 text-xs text-slate-300 focus:outline-none focus:border-primary/50 transition-all resize-none h-16 placeholder:text-slate-500" placeholder="Write a reply..."></textarea>
+                                                <div class="flex justify-end mt-1">
+                                                     <button onclick="submitReply(${comment.id})" class="px-3 py-1 bg-primary text-white text-[10px] font-bold rounded-md hover:bg-blue-600 transition-colors">Pop Reply</button>
+                                                </div>
+                                             </div>
+                                        </div>
+                                    </div>
+                                </div>
+                             `;
+                         }).join('');
+                     } else {
+                         list.innerHTML = '<div class="text-xs text-slate-500 text-center py-2">No comments yet.</div>';
+                     }
+                 } catch(e) {
+                     console.error(e);
+                     list.innerHTML = '<div class="text-xs text-red-400 text-center py-2">Failed to load comments.</div>';
+                 }
+            }
+        }
+        
+        // --- Comment Actions ---
+
+        function toggleReplyInput(commentId, mention = '') {
+            const box = document.getElementById(`reply-box-${commentId}`);
+            const input = document.getElementById(`reply-input-${commentId}`);
+            
+            box.classList.remove('hidden');
+            
+            if(mention) {
+                input.value = mention;
+            }
+            
+            setTimeout(() => {
+                input.focus();
+                // Move cursor to end if mentioning
+                if(mention) input.setSelectionRange(input.value.length, input.value.length);
+            }, 50);
+        }
+
+        async function likeComment(commentId, btn) {
+            const icon = btn.querySelector('.material-symbols-outlined');
+            const bgClass = btn.classList.contains('text-pink-500');
+            const countSpan = btn.querySelector('span:last-child');
+            let count = parseInt(countSpan.innerText) || 0;
+
+            // Optimistic Update
+            if (bgClass) {
+                btn.classList.remove('text-pink-500');
+                btn.classList.add('text-slate-400');
+                icon.style.fontVariationSettings = "'FILL' 0";
+                count = Math.max(0, count - 1);
+            } else {
+                btn.classList.add('text-pink-500');
+                btn.classList.remove('text-slate-400');
+                icon.style.fontVariationSettings = "'FILL' 1";
+                count++;
+            }
+            countSpan.innerText = count > 0 ? count : 'Like';
+
+            try {
+                await fetch(`${API_BASE_URL}/add_reaction_to_comment`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ comment_id: commentId, type: 1 })
+                });
+            } catch (e) {
+                console.error(e); // Silent fail or revert
+            }
+        }
+
+        async function likeReply(replyId, btn) {
+            const icon = btn.querySelector('.material-symbols-outlined');
+            const bgClass = btn.classList.contains('text-pink-500');
+            const countSpan = btn.querySelector('span:last-child');
+            let count = parseInt(countSpan.innerText) || 0;
+
+            // Optimistic Update
+            if (bgClass) {
+                btn.classList.remove('text-pink-500');
+                btn.classList.add('text-slate-400');
+                icon.style.fontVariationSettings = "'FILL' 0";
+                count = Math.max(0, count - 1);
+            } else {
+                btn.classList.add('text-pink-500');
+                btn.classList.remove('text-slate-400');
+                icon.style.fontVariationSettings = "'FILL' 1";
+                count++;
+            }
+            countSpan.innerText = count > 0 ? count : 'Like';
+            
+            try {
+                await fetch(`${API_BASE_URL}/add_reaction_to_comment_reply`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ comment_reply_id: replyId, type: 1 })
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function submitReply(commentId) {
+            const input = document.getElementById(`reply-input-${commentId}`);
+            const content = input.value.trim();
+            if(!content) return;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/create_comment_reply`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ comment_id: commentId, reply: content })
+                });
+                const data = await response.json();
+                if(response.status === 200 || response.status === 202) {
+                     input.value = '';
+                     toggleReplyInput(commentId);
+                     showToast('Reply posted! ↩️');
+                } else {
+                     showToast(data.message || 'Failed to reply', 'error');
+                }
+            } catch(e) {
+                 console.error(e);
+                 showToast('Error replying', 'error');
+            }
+        }
+        
+        async function submitComment(postId) {
+             const input = document.getElementById(`comment-input-${postId}`);
+             const content = input.value.trim();
+             if(!content) return;
+
+             try {
+                 const response = await fetch(`${API_BASE_URL}/create_comment`, {
+                     method: 'POST',
+                     headers: {
+                          'Authorization': `Bearer ${token}`,
+                          'Content-Type': 'application/json'
+                     },
+                     body: JSON.stringify({
+                         post_id: postId,
+                         comment: content
+                     })
+                 });
+                 
+                 const data = await response.json();
+                 
+                 if(data.success) {
+                     input.value = '';
+                     showToast('Comment posted! 💬');
+                     toggleCommentSection(postId); // Close on success
+                     loadPosts(); // Reload to update counts
+                 } else {
+                     showToast(data.message || 'Failed to post comment', 'error');
+                 }
+             } catch(e) {
+                 console.error(e);
+                 showToast('Error posting comment', 'error');
+             }
+        }
+
+        async function likePost(id, btn) {
+            // Optimistic Toggle logic
+            const icon = btn.querySelector('.material-symbols-outlined');
+            const isLiked = btn.classList.contains('text-pink-500');
+            const countSpan = btn.nextElementSibling;
+            let currentCount = parseInt(countSpan.innerText) || 0;
+            
+            if (isLiked) {
+                // Unlike: Remove Pink, go back to Slate, Emtpy Heart
+                btn.classList.remove('text-pink-500');
+                btn.classList.add('text-slate-400');
+                icon.style.fontVariationSettings = "'FILL' 0";
+                if(currentCount > 0) countSpan.innerText = currentCount - 1 || '';
+            } else {
+                // Like: Add Pink, Filled Heart, Animation
+                btn.classList.remove('text-slate-400');
+                btn.classList.add('text-pink-500');
+                icon.style.fontVariationSettings = "'FILL' 1";
+                countSpan.innerText = currentCount + 1;
+                
+                // Animation
+                icon.classList.add('animate-like-bounce');
+                setTimeout(() => icon.classList.remove('animate-like-bounce'), 500);
+            }
+
+            try {
+                // Backend toggle (sending 1 matches existing 1 -> delete, else create)
+                await fetch(`${API_BASE_URL}/add_reaction_to_post`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        post_id: id,
+                        type: 1 
+                    })
+                });
+            } catch (e) {
+                console.error(e);
+                // Revert visual state on error
+                if(isLiked) {
+                    // Was liked, we tried to unlike but failed -> make it liked again
+                     btn.classList.add('text-pink-500');
+                     btn.classList.remove('text-slate-400');
+                     icon.style.fontVariationSettings = "'FILL' 1";
+                     countSpan.innerText = currentCount;
+                } else {
+                    // Was unliked, tried to like but failed -> make it unliked again
+                     btn.classList.remove('text-pink-500');
+                     btn.classList.add('text-slate-400');
+                     icon.style.fontVariationSettings = "'FILL' 0";
+                     countSpan.innerText = currentCount;
+                }
+            }
+        }
+        
+        let likersModalOpen = false;
+        async function openLikersModal(postId) {
+             const modal = document.getElementById('likers-modal');
+             const list = document.getElementById('likers-list');
+             modal.classList.remove('hidden');
+             setTimeout(() => modal.firstElementChild.classList.remove('scale-95', 'opacity-0'), 10);
+             likersModalOpen = true;
+             
+             list.innerHTML = '<div class="flex justify-center py-8"><div class="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div></div>';
+
+             try {
+                const response = await fetch(`${API_BASE_URL}/get_post_reactions`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ post_id: postId })
+                });
+                const data = await response.json();
+                
+                if(data.success && data.data && data.data.items.length > 0) {
+                     list.innerHTML = data.data.items.map(user => {
+                        if(!user) return '';
+                        return `
+                        <div class="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors cursor-pointer" onclick="window.location.href='profile.html?id=${user.id}'">
+                            <div class="flex items-center gap-3">
+                                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=random" class="w-10 h-10 rounded-full border border-glass-border">
+                                <div>
+                                    <h4 class="font-bold text-white text-sm">${user.name || 'Unknown User'}</h4>
+                                    <p class="text-xs text-slate-400">@user${user.id}</p>
+                                </div>
+                            </div>
+                        </div>
+                     `}).join('');
+                } else {
+                    list.innerHTML = '<div class="text-center text-slate-500 py-8">No likes yet.</div>';
+                }
+             } catch(e) {
+                 console.error(e);
+                 list.innerHTML = '<div class="text-center text-red-400 py-8">Failed to load.</div>';
+             }
+        }
+
+        function closeLikersModal() {
+            const modal = document.getElementById('likers-modal');
+            modal.firstElementChild.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 200);
+            likersModalOpen = false;
+        }
+    </script>
+    
+    <!-- Likers Modal -->
+    <div id="likers-modal" class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center hidden p-4">
+        <div class="glass-panel w-full max-w-sm rounded-2xl transform transition-all duration-300 scale-95 opacity-0 flex flex-col max-h-[80vh]">
+            <div class="p-4 border-b border-glass-border flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-white text-lg">Likes</h3>
+                <button onclick="closeLikersModal()" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-slate-400">close</span>
+                </button>
+            </div>
+            <div id="likers-list" class="p-2 overflow-y-auto custom-scrollbar flex-1">
+                 <!-- Content via JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('likers-modal').addEventListener('click', (e) => {
+             if(e.target === document.getElementById('likers-modal')) closeLikersModal();
+        });
+
+        loadPosts();
+    </script>
+</body>
+</html>

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Admin Settings - Social Platform</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#215bed",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101522",
+                        "surface-dark": "#1a1f2e",
+                        "surface-glass": "rgba(30, 35, 50, 0.7)",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px" },
+                    backdropBlur: {
+                        xs: '2px',
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #111318;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #282d39;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b4254;
+        }
+
+        .glass-panel {
+            background: rgba(30, 35, 50, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .glass-sidebar {
+            background: rgba(16, 21, 34, 0.95);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .input-dark {
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.2s;
+        }
+
+        .input-dark:focus {
+            border-color: #215bed;
+            box-shadow: 0 0 0 2px rgba(33, 91, 237, 0.2);
+            outline: none;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #68D391;
+        }
+
+        .toggle-checkbox:checked+.toggle-label {
+            background-color: #68D391;
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-[#111318] dark:text-white font-display overflow-hidden">
+    <div class="flex h-screen w-full relative">
+        <div class="fixed top-0 left-0 w-full h-full pointer-events-none z-0 overflow-hidden">
+            <div
+                class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px] opacity-40 mix-blend-screen">
+            </div>
+            <div
+                class="absolute bottom-[-10%] right-[-5%] w-[30%] h-[30%] bg-purple-600/20 rounded-full blur-[100px] opacity-30 mix-blend-screen">
+            </div>
+        </div>
+        <aside
+            class="w-64 flex-shrink-0 glass-sidebar z-20 flex flex-col justify-between transition-all duration-300 hidden md:flex h-full">
+            <div class="flex flex-col gap-6 p-4">
+                <div class="flex gap-3 items-center pb-6 border-b border-white/5">
+                    <div class="bg-center bg-no-repeat bg-cover rounded-full size-10 ring-2 ring-primary/50"
+                        data-alt="User profile avatar showing a minimalist abstract face"
+                        style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA8B5e8hVR_G8smfO_KaoW7olbBAOJRHvUG0DqTtKWO3W2WYhpTm0wf6Laz6txF9T1sH7C-nfTfqXikb1b_qvKaOzCG9Q0SaLlLBDbGjZy6Hxmg8cpexlq9SeAS_BQqqBBpZimAJKkZ1mnjwfrQpdoLu_3B2fnMYijceMrDImTf0Vy5A-hdHFikuL3UQXx3M-M5GUc1CcGBcQScgXu9p8bevHHZbt-nj_PvskhytVdQ-NMeRYpsF_rbSsNJUrLyBx48gz_QP3ztYSM");'>
+                    </div>
+                    <div class="flex flex-col">
+                        <h1 class="text-white text-sm font-bold leading-tight">Admin Console</h1>
+                        <p class="text-white/50 text-xs font-medium">Super Admin</p>
+                    </div>
+                </div>
+                <nav class="flex flex-col gap-2">
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/60 hover:text-white hover:bg-white/5 transition-colors group"
+                        href="#">
+                        <span
+                            class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">dashboard</span>
+                        <span class="text-sm font-medium">Dashboard</span>
+                    </a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/60 hover:text-white hover:bg-white/5 transition-colors group"
+                        href="#">
+                        <span
+                            class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">group</span>
+                        <span class="text-sm font-medium">Users</span>
+                    </a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/60 hover:text-white hover:bg-white/5 transition-colors group"
+                        href="#">
+                        <span
+                            class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">article</span>
+                        <span class="text-sm font-medium">Content</span>
+                    </a>
+                    <div
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 border border-primary/20 text-white relative overflow-hidden">
+                        <div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+                        <span class="material-symbols-outlined text-[20px] text-primary fill-1">settings</span>
+                        <span class="text-sm font-bold text-primary">Settings</span>
+                    </div>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/60 hover:text-white hover:bg-white/5 transition-colors group"
+                        href="#">
+                        <span
+                            class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">analytics</span>
+                        <span class="text-sm font-medium">Analytics</span>
+                    </a>
+                </nav>
+            </div>
+            <div class="p-4 border-t border-white/5">
+                <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors"
+                    href="#">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                    <span class="text-sm font-medium">Sign Out</span>
+                </a>
+            </div>
+        </aside>
+        <main class="flex-1 flex flex-col h-full relative z-10 overflow-hidden">
+            <div
+                class="md:hidden flex items-center justify-between p-4 glass-panel border-b-0 border-r-0 border-l-0 rounded-none">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">admin_panel_settings</span>
+                    <span class="font-bold text-white">Admin</span>
+                </div>
+                <button class="text-white">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 md:p-8 lg:px-12 scroll-smooth">
+                <div class="max-w-5xl mx-auto flex flex-col gap-8 pb-20">
+                    <div class="flex flex-col gap-4">
+                        <div class="flex items-center gap-2 text-sm">
+                            <a class="text-white/40 hover:text-primary transition-colors" href="#">Dashboard</a>
+                            <span class="text-white/20">/</span>
+                            <span class="text-white font-medium">Settings</span>
+                        </div>
+                        <div class="flex justify-between items-end flex-wrap gap-4">
+                            <div class="flex flex-col gap-1">
+                                <h1 class="text-3xl md:text-4xl font-black text-white tracking-tight">Platform Settings
+                                </h1>
+                                <p class="text-white/50 text-base">Configure general options, contact details, social
+                                    links, and account security.</p>
+                            </div>
+                            <button
+                                class="flex items-center gap-2 bg-primary hover:bg-blue-600 text-white px-5 py-2.5 rounded-lg font-medium shadow-lg shadow-primary/20 transition-all active:scale-95">
+                                <span class="material-symbols-outlined text-[20px]">save</span>
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+                    <div class="sticky top-0 z-30 pt-2 -mt-2 bg-background-dark/80 backdrop-blur-md">
+                        <div class="flex overflow-x-auto no-scrollbar border-b border-white/10 gap-8">
+                            <button
+                                class="flex items-center gap-2 pb-3 border-b-2 border-primary text-white font-medium whitespace-nowrap px-1">
+                                <span class="material-symbols-outlined text-[20px]">tune</span>
+                                General
+                            </button>
+                            <button
+                                class="flex items-center gap-2 pb-3 border-b-2 border-transparent text-white/50 hover:text-white font-medium whitespace-nowrap px-1 transition-colors">
+                                <span class="material-symbols-outlined text-[20px]">contact_support</span>
+                                Contact
+                            </button>
+                            <button
+                                class="flex items-center gap-2 pb-3 border-b-2 border-transparent text-white/50 hover:text-white font-medium whitespace-nowrap px-1 transition-colors">
+                                <span class="material-symbols-outlined text-[20px]">share</span>
+                                Social Media
+                            </button>
+                            <button
+                                class="flex items-center gap-2 pb-3 border-b-2 border-transparent text-white/50 hover:text-white font-medium whitespace-nowrap px-1 transition-colors">
+                                <span class="material-symbols-outlined text-[20px]">manage_accounts</span>
+                                Account
+                            </button>
+                        </div>
+                    </div>
+                    <section class="flex flex-col gap-6">
+                        <div class="glass-panel p-6 md:p-8 rounded-xl shadow-2xl">
+                            <div class="flex flex-col gap-6">
+                                <div class="flex flex-col gap-1 border-b border-white/5 pb-4">
+                                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-primary">branding_watermark</span>
+                                        General Settings
+                                    </h3>
+                                    <p class="text-sm text-white/40">Manage your platform's main identity and display
+                                        options.</p>
+                                </div>
+                                <div class="grid grid-cols-1 gap-6">
+                                    <div class="flex flex-col gap-2">
+                                        <label class="text-sm font-medium text-white/80">Website Name</label>
+                                        <input
+                                            class="w-full rounded-lg px-4 py-3 input-dark placeholder-white/20 text-sm"
+                                            type="text" value="SocialNexus" />
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        <div class="flex flex-col gap-2">
+                                            <label class="text-sm font-medium text-white/80">Website Logo</label>
+                                            <div
+                                                class="flex-1 border-2 border-dashed border-white/10 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] transition-colors flex flex-col items-center justify-center p-6 gap-3 cursor-pointer group min-h-[160px]">
+                                                <div
+                                                    class="size-12 rounded-full bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                                    <span
+                                                        class="material-symbols-outlined text-2xl text-primary">image</span>
+                                                </div>
+                                                <div class="text-center">
+                                                    <p class="text-sm font-medium text-white">Upload Logo</p>
+                                                    <p class="text-xs text-white/40 mt-1">PNG, JPG (max. 2MB)</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="flex flex-col gap-2">
+                                            <label class="text-sm font-medium text-white/80">Favicon</label>
+                                            <div
+                                                class="flex-1 border-2 border-dashed border-white/10 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] transition-colors flex flex-col items-center justify-center p-6 gap-3 cursor-pointer group min-h-[160px]">
+                                                <div
+                                                    class="size-12 rounded-full bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                                    <span
+                                                        class="material-symbols-outlined text-2xl text-primary">token</span>
+                                                </div>
+                                                <div class="text-center">
+                                                    <p class="text-sm font-medium text-white">Upload Favicon</p>
+                                                    <p class="text-xs text-white/40 mt-1">ICO, PNG (32x32)</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col gap-2">
+                                        <label class="text-sm font-medium text-white/80">Footer Text</label>
+                                        <textarea
+                                            class="w-full rounded-lg px-4 py-3 input-dark placeholder-white/20 text-sm min-h-[100px]"
+                                            placeholder="© 2024 SocialNexus. All rights reserved."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="flex flex-col gap-6">
+                        <div class="glass-panel p-6 md:p-8 rounded-xl shadow-2xl">
+                            <div class="flex flex-col gap-6">
+                                <div class="flex flex-col gap-1 border-b border-white/5 pb-4">
+                                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-primary">call</span>
+                                        Contact Information
+                                    </h3>
+                                    <p class="text-sm text-white/40">Public contact details displayed on the website.
+                                    </p>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="flex flex-col gap-2">
+                                        <label class="text-sm font-medium text-white/80">Phone Number</label>
+                                        <div class="relative">
+                                            <span
+                                                class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-[20px]">phone</span>
+                                            <input
+                                                class="w-full rounded-lg pl-10 pr-4 py-3 input-dark placeholder-white/20 text-sm"
+                                                placeholder="+1 (555) 000-0000" type="tel" />
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col gap-2">
+                                        <label class="text-sm font-medium text-white/80">WhatsApp Number</label>
+                                        <div class="relative">
+                                            <span
+                                                class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-[20px]">chat</span>
+                                            <input
+                                                class="w-full rounded-lg pl-10 pr-4 py-3 input-dark placeholder-white/20 text-sm"
+                                                placeholder="+1 (555) 000-0000" type="tel" />
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col gap-2 md:col-span-2">
+                                        <label class="text-sm font-medium text-white/80">Email Address</label>
+                                        <div class="relative">
+                                            <span
+                                                class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-[20px]">mail</span>
+                                            <input
+                                                class="w-full rounded-lg pl-10 pr-4 py-3 input-dark placeholder-white/20 text-sm"
+                                                type="email" value="contact@socialnexus.io" />
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col gap-2 md:col-span-2">
+                                        <label class="text-sm font-medium text-white/80">Office Address</label>
+                                        <div class="relative">
+                                            <span
+                                                class="material-symbols-outlined absolute left-3 top-4 text-white/30 text-[20px]">location_on</span>
+                                            <textarea
+                                                class="w-full rounded-lg pl-10 pr-4 py-3 input-dark placeholder-white/20 text-sm min-h-[80px]"
+                                                placeholder="123 Innovation Dr, Tech City, CA"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="flex flex-col gap-6">
+                        <div class="glass-panel p-6 md:p-8 rounded-xl shadow-2xl">
+                            <div class="flex flex-col gap-6">
+                                <div class="flex flex-col gap-1 border-b border-white/5 pb-4">
+                                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-primary">public</span>
+                                        Social Media Links
+                                    </h3>
+                                    <p class="text-sm text-white/40">Connect your platform's social identities.</p>
+                                </div>
+                                <div class="flex flex-col gap-4">
+                                    <div class="flex flex-col gap-2">
+                                        <label class="text-sm font-medium text-white/80">Facebook URL</label>
+                                        <div
+                                            class="flex rounded-lg overflow-hidden border border-white/10 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
+                                            <div
+                                                class="bg-white/[0.05] px-4 flex items-center justify-center border-r border-white/10">
+                                                <span class="font-bold text-white/60">f</span>
+                                            </div>
+                                            <input
+                                                class="w-full bg-transparent px-4 py-3 text-white placeholder-white/20 outline-none text-sm"
+                                                placeholder="https://facebook.com/yourpage" type="url" />
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col gap-2">
+                                        <label class="text-sm font-medium text-white/80">Instagram URL</label>
+                                        <div
+                                            class="flex rounded-lg overflow-hidden border border-white/10 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
+                                            <div
+                                                class="bg-white/[0.05] px-3 flex items-center justify-center border-r border-white/10">
+                                                <div
+                                                    class="w-5 h-5 rounded-md border-2 border-white/60 flex items-center justify-center">
+                                                    <div class="w-2 h-2 rounded-full border border-white/60"></div>
+                                                </div>
+                                            </div>
+                                            <input
+                                                class="w-full bg-transparent px-4 py-3 text-white placeholder-white/20 outline-none text-sm"
+                                                placeholder="https://instagram.com/yourhandle" type="url" />
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col gap-2">
+                                        <label class="text-sm font-medium text-white/80">Twitter / X URL</label>
+                                        <div
+                                            class="flex rounded-lg overflow-hidden border border-white/10 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
+                                            <div
+                                                class="bg-white/[0.05] px-3.5 flex items-center justify-center border-r border-white/10">
+                                                <span class="font-bold text-white/60 text-lg">𝕏</span>
+                                            </div>
+                                            <input
+                                                class="w-full bg-transparent px-4 py-3 text-white placeholder-white/20 outline-none text-sm"
+                                                placeholder="https://x.com/yourhandle" type="url" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="flex flex-col gap-6">
+                        <div class="glass-panel p-6 md:p-8 rounded-xl shadow-2xl">
+                            <div class="flex flex-col gap-6">
+                                <div class="flex flex-col gap-1 border-b border-white/5 pb-4">
+                                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-primary">shield_person</span>
+                                        Account Settings
+                                    </h3>
+                                    <p class="text-sm text-white/40">Update your personal profile and security
+                                        credentials.</p>
+                                </div>
+                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+                                    <div class="flex flex-col gap-5">
+                                        <h4 class="text-white font-medium text-base border-b border-white/5 pb-2">
+                                            Profile Details</h4>
+                                        <div class="flex flex-col gap-4">
+                                            <div class="flex flex-col gap-2">
+                                                <label class="text-sm font-medium text-white/80">Full Name</label>
+                                                <input
+                                                    class="w-full rounded-lg px-4 py-3 input-dark placeholder-white/20 text-sm"
+                                                    type="text" value="Super Admin" />
+                                            </div>
+                                            <div class="flex flex-col gap-2">
+                                                <label class="text-sm font-medium text-white/80">Email Address</label>
+                                                <input
+                                                    class="w-full rounded-lg px-4 py-3 input-dark placeholder-white/20 text-sm"
+                                                    type="email" value="admin@socialnexus.io" />
+                                            </div>
+                                            <div class="pt-2">
+                                                <button
+                                                    class="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm text-white transition-colors">Update
+                                                    Profile</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col gap-5">
+                                        <h4 class="text-white font-medium text-base border-b border-white/5 pb-2">Change
+                                            Password</h4>
+                                        <div class="flex flex-col gap-4">
+                                            <div class="flex flex-col gap-2">
+                                                <label class="text-sm font-medium text-white/80">Current
+                                                    Password</label>
+                                                <input
+                                                    class="w-full rounded-lg px-4 py-3 input-dark placeholder-white/20 text-sm"
+                                                    type="password" />
+                                            </div>
+                                            <div class="flex flex-col gap-2">
+                                                <label class="text-sm font-medium text-white/80">New Password</label>
+                                                <input
+                                                    class="w-full rounded-lg px-4 py-3 input-dark placeholder-white/20 text-sm"
+                                                    type="password" />
+                                            </div>
+                                            <div class="flex flex-col gap-2">
+                                                <label class="text-sm font-medium text-white/80">Confirm New
+                                                    Password</label>
+                                                <input
+                                                    class="w-full rounded-lg px-4 py-3 input-dark placeholder-white/20 text-sm"
+                                                    type="password" />
+                                            </div>
+                                            <div class="pt-2">
+                                                <button
+                                                    class="px-4 py-2 bg-primary hover:bg-primary/90 rounded-lg text-sm text-white shadow-lg shadow-primary/20 transition-colors">Update
+                                                    Password</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+</body>
+
+</html>

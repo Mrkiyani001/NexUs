@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Notifications - Social Platform</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Material Symbols -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Theme Configuration -->
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#215bed",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101522", // Deep charcoal
+                        "surface-dark": "#161b26", // Slightly lighter for cards
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "2xl": "2rem", "full": "9999px" },
+                    boxShadow: {
+                        "glass": "0 8px 32px 0 rgba(0, 0, 0, 0.3)",
+                        "glow": "0 0 20px -5px rgba(33, 91, 237, 0.5)",
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #282d39;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3e4554;
+        }
+
+        .glass-panel {
+            background: rgba(22, 27, 38, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(33, 91, 237, 0.3);
+        }
+
+        .ambient-glow {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(33, 91, 237, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-hidden selection:bg-primary selection:text-white">
+    <!-- Background Ambient Effects -->
+    <div class="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        <div class="ambient-glow top-[-200px] left-[-200px]"></div>
+        <div class="ambient-glow bottom-[-200px] right-[-100px] opacity-60"
+            style="background: radial-gradient(circle, rgba(236, 72, 153, 0.1) 0%, rgba(0,0,0,0) 70%);"></div>
+    </div>
+    <div class="relative z-10 flex h-screen w-full">
+        <!-- Sidebar Navigation -->
+        <aside
+            class="hidden md:flex w-20 lg:w-72 flex-col justify-between border-r border-white/5 bg-[#101522]/80 backdrop-blur-xl h-full shrink-0">
+            <div class="flex flex-col gap-6 p-4">
+                <!-- Logo -->
+                <div class="flex items-center gap-3 px-2 lg:px-4">
+                    <div
+                        class="flex items-center justify-center size-10 rounded-xl bg-gradient-to-br from-primary to-blue-600 shadow-glow">
+                        <span class="material-symbols-outlined text-white" style="font-size: 24px;">hub</span>
+                    </div>
+                    <div class="hidden lg:flex flex-col">
+                        <h1 class="text-lg font-bold tracking-tight">Connect</h1>
+                    </div>
+                </div>
+                <!-- Nav Items -->
+                <nav class="flex flex-col gap-2">
+                    <a class="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors group"
+                        href="#">
+                        <span class="material-symbols-outlined group-hover:scale-110 transition-transform">home</span>
+                        <span class="hidden lg:block font-medium">Home</span>
+                    </a>
+                    <a class="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors group"
+                        href="#">
+                        <span
+                            class="material-symbols-outlined group-hover:scale-110 transition-transform">explore</span>
+                        <span class="hidden lg:block font-medium">Explore</span>
+                    </a>
+                    <!-- Active State -->
+                    <a class="flex items-center gap-4 px-4 py-3 rounded-xl bg-primary/10 text-primary border border-primary/20 shadow-[0_0_15px_rgba(33,91,237,0.15)]"
+                        href="#">
+                        <span class="material-symbols-outlined fill-current">notifications</span>
+                        <span class="hidden lg:block font-bold">Notifications</span>
+                        <div class="ml-auto hidden lg:flex size-2 bg-primary rounded-full animate-pulse"></div>
+                    </a>
+                    <a class="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors group"
+                        href="#">
+                        <span class="material-symbols-outlined group-hover:scale-110 transition-transform">mail</span>
+                        <span class="hidden lg:block font-medium">Messages</span>
+                        <span
+                            class="hidden lg:flex items-center justify-center h-5 px-2 text-xs font-bold bg-white/10 rounded-full ml-auto">3</span>
+                    </a>
+                    <a class="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors group"
+                        href="#">
+                        <span
+                            class="material-symbols-outlined group-hover:scale-110 transition-transform">bookmark</span>
+                        <span class="hidden lg:block font-medium">Bookmarks</span>
+                    </a>
+                    <a class="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors group"
+                        href="#">
+                        <span class="material-symbols-outlined group-hover:scale-110 transition-transform">person</span>
+                        <span class="hidden lg:block font-medium">Profile</span>
+                    </a>
+                </nav>
+            </div>
+            <!-- User Profile Bottom -->
+            <div class="p-4 border-t border-white/5">
+                <button
+                    class="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-white/5 transition-colors text-left">
+                    <div class="size-10 rounded-full bg-cover bg-center border-2 border-white/10"
+                        data-alt="Current user avatar showing a smiling person"
+                        style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBKQNrrpMhiLuxtYtGM09PokSfaEJcATqcTNzy1lYkDfcycx5prWH-dtnRjWlJU91nnbqJWcMEs4YR-uleBVlPm-3h7ot7xSpjgVCHYTlAZpwNQV1We52LX7T_2Vh_2zS-DrxjL1Lzhy-GKWNbzVH1UWd-_Wcii0-3ZEKfyMySXlFyxMIMziNWSGWqcS4LQimq3cHzzjA6Egv6KFdyHbVO7BTqnExE1JqgiUcZk62dmm4u4KDqONaP3L6u5wmNCMb8vmWKm7_ise3M');">
+                    </div>
+                    <div class="hidden lg:flex flex-col overflow-hidden">
+                        <p class="text-sm font-semibold text-white truncate">Alex Morgan</p>
+                        <p class="text-xs text-slate-400 truncate">@alexmorgan</p>
+                    </div>
+                    <span class="material-symbols-outlined text-slate-500 ml-auto hidden lg:block">more_horiz</span>
+                </button>
+            </div>
+        </aside>
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col relative overflow-hidden">
+            <!-- Mobile Header -->
+            <header
+                class="md:hidden flex items-center justify-between p-4 bg-[#101522]/90 backdrop-blur-md sticky top-0 z-50 border-b border-white/5">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="size-8 rounded-lg bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white text-sm">hub</span>
+                    </div>
+                    <h1 class="text-lg font-bold">Notifications</h1>
+                </div>
+                <button class="text-slate-400 hover:text-white">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+            </header>
+            <!-- Scrollable Feed -->
+            <div class="flex-1 overflow-y-auto w-full flex justify-center custom-scrollbar p-0 lg:p-6 lg:pb-0">
+                <div class="w-full max-w-3xl flex flex-col gap-6 pb-20">
+                    <!-- Page Header & Filters (Desktop) -->
+                    <div class="flex flex-col gap-6 px-4 pt-4 lg:px-0 lg:pt-0">
+                        <div class="flex flex-wrap items-end justify-between gap-4">
+                            <div>
+                                <h2 class="text-3xl font-black tracking-tight text-white mb-1">Notifications</h2>
+                                <p class="text-slate-400 text-sm">You have <span class="text-primary font-bold">3
+                                        unread</span> notifications today.</p>
+                            </div>
+                            <button
+                                class="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-bold text-slate-300 transition-colors border border-white/5">
+                                <span class="material-symbols-outlined text-base">done_all</span>
+                                Mark all as read
+                            </button>
+                        </div>
+                        <!-- Filter Chips -->
+                        <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+                            <button
+                                class="flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-white text-sm font-bold shadow-lg shadow-primary/25 whitespace-nowrap transition-transform active:scale-95">
+                                All
+                            </button>
+                            <button
+                                class="flex items-center gap-2 px-4 py-2 rounded-full bg-[#1e2330] border border-white/5 text-slate-300 hover:text-white hover:bg-[#252b3b] text-sm font-medium whitespace-nowrap transition-colors">
+                                <span class="w-2 h-2 rounded-full bg-primary"></span>
+                                Unread
+                            </button>
+                            <button
+                                class="flex items-center gap-2 px-4 py-2 rounded-full bg-[#1e2330] border border-white/5 text-slate-300 hover:text-white hover:bg-[#252b3b] text-sm font-medium whitespace-nowrap transition-colors">
+                                <span class="material-symbols-outlined text-base">alternate_email</span>
+                                Mentions
+                            </button>
+                            <button
+                                class="flex items-center gap-2 px-4 py-2 rounded-full bg-[#1e2330] border border-white/5 text-slate-300 hover:text-white hover:bg-[#252b3b] text-sm font-medium whitespace-nowrap transition-colors">
+                                <span class="material-symbols-outlined text-base">favorite</span>
+                                Likes
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Notification Groups -->
+                    <div class="flex flex-col gap-2">
+                        <!-- New Section -->
+                        <div
+                            class="px-4 lg:px-0 py-2 sticky top-0 bg-[#101522]/95 backdrop-blur-md z-20 flex items-center justify-between">
+                            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider">New</h3>
+                        </div>
+                        <!-- Notif Item: Unread Mention -->
+                        <div
+                            class="glass-card rounded-2xl p-4 flex gap-4 group cursor-pointer relative overflow-hidden">
+                            <!-- Unread Indicator -->
+                            <div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+                            <!-- Avatar -->
+                            <div class="relative shrink-0">
+                                <div class="size-12 rounded-full bg-cover bg-center border-2 border-white/10"
+                                    data-alt="Avatar of Sarah Jenkins"
+                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDw0xF1mKq1TPCysFC0Yiz6dIJghtMsq8XxPfcblGoEqdogy3DiJv-CprbQKQCbqXDLrmjVTs1m73ULepKDUgq7992zvpu-EUs0pqXvwoOX0Stzir5Tkbj04QIho2HLEoy1bOJDT6xYCauLyhXHfiIgE6vJpdamGjchEThDXdDepuh81zf5uR-NLtVqPZvIUq8U2Z_rNFHEmVfYDHOF6faaIMyZL3tyQYQVscqOr7yY-ngvNsbJtoBxs9iNZjFb6mtKCf9oKIjXpKU');">
+                                </div>
+                                <div
+                                    class="absolute -bottom-1 -right-1 size-6 bg-[#101522] rounded-full flex items-center justify-center">
+                                    <div class="size-4 bg-blue-500 rounded-full flex items-center justify-center">
+                                        <span
+                                            class="material-symbols-outlined text-[10px] text-white">chat_bubble</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Content -->
+                            <div class="flex flex-col flex-1 gap-1">
+                                <p class="text-white text-sm leading-snug">
+                                    <span class="font-bold hover:underline">Sarah Jenkins</span> mentioned you in a
+                                    comment:
+                                    <span class="text-slate-300">"Totally agree with @alexmorgan on this one! The design
+                                        is stunning."</span>
+                                </p>
+                                <p class="text-primary text-xs font-medium mt-1">2 minutes ago</p>
+                                <!-- Interactive Actions -->
+                                <div
+                                    class="flex gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                    <button
+                                        class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-bold text-white transition-colors">Reply</button>
+                                    <button
+                                        class="px-3 py-1.5 rounded-lg bg-transparent hover:bg-white/5 text-xs font-bold text-slate-300 transition-colors">Like</button>
+                                </div>
+                            </div>
+                            <!-- Preview Thumbnail -->
+                            <div class="hidden sm:block shrink-0">
+                                <div class="size-16 rounded-lg bg-cover bg-center opacity-80"
+                                    data-alt="Abstract gradient thumbnail of the post"
+                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAO6S-mrqNrzAfjw_7zIPc2wBROyNMtTcDloA_5BG-CusttXpVwL9pZJgzfgk00ACTaikml3Dn2qJ1UsghB9Yggmom4h_1KwzyreRGxBY7TbiS3W1SG_Ki41x3tXfkj40JMYE7AsdkcyoXOMYINM_-iQu5OtqvCKZljC7inFu35_r3e1bXU48yJgoEa3-pSGMV3VJ8IAkPRWcMcrUXD6sEJKAuXUtZLnkq2sSI8lSJZNQfKBq9TkQD2Dmg_79D_cs1AWfvf1f_BsQM');">
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Notif Item: Unread Like -->
+                        <div
+                            class="glass-card rounded-2xl p-4 flex gap-4 group cursor-pointer relative overflow-hidden">
+                            <div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+                            <div class="relative shrink-0">
+                                <div class="size-12 rounded-full bg-cover bg-center border-2 border-white/10"
+                                    data-alt="Avatar of David Chen"
+                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB1IOJ_HOamjYDpX9Bn1YmEM3ZYI4MvlfPI7gJCcTESoJ32g0uvNPx9ntqZcVrBbWI1XCtjU42HSuCYBhj1yXyWqNi0EVb1xMNWc30U5RtZPEjd4sJVfSaeZt9BWD0aEuuVVsYmkKmoUTFz9clEnJ_AGjpS0kcq51wlZy-nvhxcWg-1R7FIa-332Q7t7xvCtY4IgaFLX1CSFnMGmwXRIHS99nzjGtHtb3hCdyHjVEkHpHLlIu3s2SoqKReNhIG_Prq8n2fapjYpc80');">
+                                </div>
+                                <div
+                                    class="absolute -bottom-1 -right-1 size-6 bg-[#101522] rounded-full flex items-center justify-center">
+                                    <div class="size-4 bg-pink-500 rounded-full flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-[10px] text-white">favorite</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex flex-col flex-1 justify-center">
+                                <p class="text-white text-sm leading-snug">
+                                    <span class="font-bold hover:underline">David Chen</span> and <span
+                                        class="font-bold">14 others</span> liked your photo from Japan.
+                                </p>
+                                <p class="text-primary text-xs font-medium mt-1">15 minutes ago</p>
+                            </div>
+                            <div class="shrink-0">
+                                <div class="size-12 rounded-lg bg-cover bg-center border border-white/10"
+                                    data-alt="Photo of a temple in Kyoto" data-location="Kyoto, Japan"
+                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDPq4-J3zqB3_Z3HCQF_QRwbuAgtAA2tkKMwrpyVvWw1qWxBH6-crAXT9G4EYN8RWMkFB4ezrap9ascciNZMpD6a1lq8sBJDqulx-VDpJbMKLc7twOegsx3Ecwn7Qn935lr6iIZEjOIvzLHpTq_wxAnzOnnATzPrRMAh_MTFlZclym4Iw6IEo2txb44-hQ9NbhX2naqzEaJyTqHMJjHDWTdVMmZMMnaGCd-Lx1KFSs6DAGlCOnXWi4pND-V95n8Tf1hdpc1Ek1V_O0');">
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Notif Item: Unread Follow -->
+                        <div
+                            class="glass-card rounded-2xl p-4 flex gap-4 items-center group cursor-pointer relative overflow-hidden bg-primary/5 border-primary/20">
+                            <div class="absolute left-0 top-0 bottom-0 w-1 bg-primary shadow-[0_0_10px_#215bed]"></div>
+                            <div class="relative shrink-0">
+                                <div class="size-12 rounded-full bg-cover bg-center border-2 border-primary"
+                                    data-alt="Avatar of Design Daily"
+                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBTte8a4FKlFLCRwNQdDPMkF6Nwkb3wHKm1U6EBpfMtS0E0staRzlXBAHbnBi6OixeeDsO6G7bjUAMd6rMsvNoNelwctWB76TvC0C4oXlfGzU4ln3vqJE_5JdCq4SSmNcGonz_UKg1mv8i_CZx7hC3J04_5OWZFdXTPp4SVvMmJWyyHv4ck9MdXMMjQ16g4kuEgQUPyOQE926YxnpdeDP0xu5pj4oNxtmW_G8vUKAw38H_dxCkTEw7TbGbC3P32LjWnxkZf5LNGxfc');">
+                                </div>
+                                <div
+                                    class="absolute -bottom-1 -right-1 size-6 bg-[#101522] rounded-full flex items-center justify-center">
+                                    <div class="size-4 bg-primary rounded-full flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-[10px] text-white">person_add</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex flex-col flex-1">
+                                <p class="text-white text-sm font-medium">
+                                    <span class="font-bold hover:underline">Design Daily</span> started following you.
+                                </p>
+                                <p class="text-slate-400 text-xs mt-0.5">Creative design inspiration &amp; resources</p>
+                                <p class="text-primary text-xs font-medium mt-1">1 hour ago</p>
+                            </div>
+                            <div class="shrink-0">
+                                <button
+                                    class="px-4 py-2 rounded-lg bg-primary hover:bg-blue-600 text-white text-xs font-bold transition-all shadow-lg shadow-primary/20">
+                                    Follow Back
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Earlier Section -->
+                        <div
+                            class="px-4 lg:px-0 py-4 mt-4 sticky top-0 bg-[#101522]/0 z-20 flex items-center justify-between">
+                            <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Earlier</h3>
+                            <div class="h-px bg-white/5 flex-1 ml-4"></div>
+                        </div>
+                        <!-- Notif Item: Read Comment -->
+                        <div
+                            class="glass-card rounded-2xl p-4 flex gap-4 group cursor-pointer opacity-80 hover:opacity-100">
+                            <div class="relative shrink-0">
+                                <div class="size-12 rounded-full bg-cover bg-center border border-white/5 grayscale group-hover:grayscale-0 transition-all"
+                                    data-alt="Avatar of Michael Scott"
+                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAn2TFYVyfEpk4RTZrsbVR8qkmj0rA3yqX7A97qyxf-vhNWR6sNhBV8QSYy0V7vRHn1fPyTv1gEMUQsEXPNMM5d5cjS8SqaW3wwhRsWUScfCLfZKuqEemEwOJwLWc32a0AFGxIZdULQEuL4_FBtM46dAQ_f1_3VMmDmx5fOcXLJ6bnalOA7nxqXQbGR5i7ejhzEzy8SKEM9iavIFNvQSEQEwkQq1hotGu5vh5wwzBhlRKnYDkRcnQppySenOLaiTfHrocOJzVvhfqU');">
+                                </div>
+                            </div>
+                            <div class="flex flex-col flex-1 gap-1">
+                                <p class="text-slate-300 group-hover:text-white transition-colors text-sm leading-snug">
+                                    <span class="font-bold hover:underline">Michael Scott</span> commented:
+                                    <span class="text-slate-400">"That's what she said! 😂"</span>
+                                </p>
+                                <p class="text-slate-500 text-xs font-medium mt-1">5 hours ago</p>
+                            </div>
+                            <div class="shrink-0 text-slate-600 group-hover:text-slate-400">
+                                <span class="material-symbols-outlined">more_vert</span>
+                            </div>
+                        </div>
+                        <!-- Notif Item: System -->
+                        <div
+                            class="glass-card rounded-2xl p-4 flex gap-4 items-center group cursor-pointer opacity-80 hover:opacity-100">
+                            <div
+                                class="relative shrink-0 flex items-center justify-center size-12 rounded-full bg-white/5 border border-white/5">
+                                <span class="material-symbols-outlined text-yellow-500">security</span>
+                            </div>
+                            <div class="flex flex-col flex-1 gap-1">
+                                <p class="text-slate-300 group-hover:text-white transition-colors text-sm font-medium">
+                                    Your password was changed successfully.
+                                </p>
+                                <p class="text-slate-500 text-xs font-medium">Yesterday</p>
+                            </div>
+                        </div>
+                        <!-- Notif Item: Read Like -->
+                        <div
+                            class="glass-card rounded-2xl p-4 flex gap-4 group cursor-pointer opacity-80 hover:opacity-100">
+                            <div class="relative shrink-0">
+                                <div class="size-12 rounded-full bg-cover bg-center border border-white/5 grayscale group-hover:grayscale-0 transition-all"
+                                    data-alt="Avatar of Pam Beesly"
+                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAGLW5Yj9HU51s1-WvOY4sgEJqjbN6EstGlPa1EBcsccfihb6DbOwzCxrbGoVgZDH3kIU5HdySVgEA3kxn_57t4gQqjYMX6JPHRpSkcUAxUcYCEPTQ7XMmuU-cnu5u4YvDrUCDibgewRnsLOAKEdhMMCvL7AtWoOFS0ngrgtEAIK1MeqWtWMyIzV6PO1VL3V40uMsznhC7ZBC330S-O4gxAnk-1-lPuKgiBxdcFf-skvppFriFXGhNG22wSLldncMMrbT6hYKTerqc');">
+                                </div>
+                                <div
+                                    class="absolute -bottom-1 -right-1 size-6 bg-[#101522] rounded-full flex items-center justify-center">
+                                    <div class="size-4 bg-pink-500/50 rounded-full flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-[10px] text-white">favorite</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex flex-col flex-1 justify-center">
+                                <p class="text-slate-300 group-hover:text-white text-sm leading-snug">
+                                    <span class="font-bold hover:underline">Pam Beesly</span> liked your post.
+                                </p>
+                                <p class="text-slate-500 text-xs font-medium mt-1">Yesterday</p>
+                            </div>
+                            <div class="shrink-0">
+                                <div class="size-12 rounded-lg bg-cover bg-center border border-white/5 opacity-60 group-hover:opacity-100"
+                                    data-alt="Photo of a watercolor painting"
+                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCQwvZv5pdf1SnQM65SLWkMpwAZiTJQf9li-9dGbjeoPN3bs-rB7XykZwcX2EZXo74-FSQC5XRZIZUPAK6-Z9rwIhtTXDq2lnbz-bKG3fQuaILUKcxcVTif3gC-p7BKZLG5_TvqBZbsNKnCJLocDsT9gmVVWAAKHPysFNmdWAq4olMsDl-_BAaDbUmT_Ok7uKFwcB-oLwaaB42PiXmFLj0mvU96nVIbFKiQLUylEtn1qI9pRNhI5nKlADiKLPMWrOmwqMt_3xtd7JM');">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Loading Spinner at bottom -->
+                    <div class="flex justify-center py-6">
+                        <div class="size-8 border-2 border-white/10 border-t-primary rounded-full animate-spin"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <!-- Right Sidebar (Suggestions) -->
+        <aside
+            class="hidden xl:flex w-80 flex-col gap-6 border-l border-white/5 bg-[#101522]/80 backdrop-blur-xl h-full shrink-0 p-6 overflow-y-auto">
+            <!-- Trending Section -->
+            <div class="flex flex-col gap-4">
+                <h3 class="text-lg font-bold text-white">Trending for you</h3>
+                <div class="glass-card rounded-xl p-4 flex flex-col gap-4">
+                    <div class="flex justify-between items-start cursor-pointer group">
+                        <div>
+                            <p class="text-xs text-slate-500 mb-1">Technology · Trending</p>
+                            <p class="text-sm font-bold text-white group-hover:text-primary transition-colors">
+                                #WebDesign2024</p>
+                            <p class="text-xs text-slate-400">12.5k Posts</p>
+                        </div>
+                        <span class="material-symbols-outlined text-slate-600">more_horiz</span>
+                    </div>
+                    <div class="w-full h-px bg-white/5"></div>
+                    <div class="flex justify-between items-start cursor-pointer group">
+                        <div>
+                            <p class="text-xs text-slate-500 mb-1">Design · Trending</p>
+                            <p class="text-sm font-bold text-white group-hover:text-primary transition-colors">
+                                Glassmorphism</p>
+                            <p class="text-xs text-slate-400">8.2k Posts</p>
+                        </div>
+                        <span class="material-symbols-outlined text-slate-600">more_horiz</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Suggested Follows -->
+            <div class="flex flex-col gap-4">
+                <h3 class="text-lg font-bold text-white">Who to follow</h3>
+                <div class="flex flex-col gap-3">
+                    <div class="glass-card p-3 rounded-xl flex items-center gap-3">
+                        <div class="size-10 rounded-full bg-cover bg-center" data-alt="Avatar of user UI Master"
+                            style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDwg3bo0kRfwD2262-C28nS_lmYT0uvRieIVa9JZGrln8OMRthuET4iX6LOORkQP7k9rM3O4zFQFoOcdirmK_qNQ8VD2fg3ZSsrK5O2ZIBhyaMIT2WAULpvMdC3jkG7dJhv3aQi9l6XxpEg_ZymJLtRX74DxJB1HPXjaj3xD22PasoHvZjbWQSq5LPeIm6HH1Gz0hrYTBaBD-1rAerzhyrNy8wgznRz6bWl9LZ7YhQOxBqUbR8WOXvaHO_n8TFF-H-ArLcEf_97BD0');">
+                        </div>
+                        <div class="flex flex-col flex-1 min-w-0">
+                            <p class="text-sm font-bold text-white truncate">UI Master</p>
+                            <p class="text-xs text-slate-400 truncate">@uimaster</p>
+                        </div>
+                        <button
+                            class="size-8 rounded-lg bg-white/5 hover:bg-primary hover:text-white text-primary flex items-center justify-center transition-colors">
+                            <span class="material-symbols-outlined text-lg">add</span>
+                        </button>
+                    </div>
+                    <div class="glass-card p-3 rounded-xl flex items-center gap-3">
+                        <div class="size-10 rounded-full bg-cover bg-center" data-alt="Avatar of user Code Ninja"
+                            style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDM5tmzKRwFCd-sLi-GlI5xTh1YPXTfBpONsn8NbDii0MxUJ6i1E7zugtAW1jGtOuGq2NfYrmDeD4KBxrtcK5t78FFhzwi_x4qqm89_ypv04pY68ZRxRCWXNa6eWBlrZVsQsVyqu4wi_6ispwm_nmETdFQyLvSGBS634-q_KM2aRibo_5yaIfP-9JUYlXhSSueNuNuWAVa5epBznVhRDTqWdlKct42aISa6AxTRy6qJf5lDZFhji13zkxOydK1_ulnCe30yH1rrC6Q');">
+                        </div>
+                        <div class="flex flex-col flex-1 min-w-0">
+                            <p class="text-sm font-bold text-white truncate">Code Ninja</p>
+                            <p class="text-xs text-slate-400 truncate">@codeninja</p>
+                        </div>
+                        <button
+                            class="size-8 rounded-lg bg-white/5 hover:bg-primary hover:text-white text-primary flex items-center justify-center transition-colors">
+                            <span class="material-symbols-outlined text-lg">add</span>
+                        </button>
+                    </div>
+                </div>
+                <button class="text-primary text-sm font-medium hover:underline text-left mt-2">Show more</button>
+            </div>
+            <!-- Mini Footer -->
+            <div class="mt-auto pt-6 flex flex-wrap gap-x-4 gap-y-2 text-[11px] text-slate-500">
+                <a class="hover:underline" href="#">Terms of Service</a>
+                <a class="hover:underline" href="#">Privacy Policy</a>
+                <a class="hover:underline" href="#">Cookie Policy</a>
+                <a class="hover:underline" href="#">Accessibility</a>
+                <span>© 2024 Social Inc.</span>
+            </div>
+        </aside>
+    </div>
+</body>
+
+</html>

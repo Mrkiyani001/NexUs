@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Admin Dashboard</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#215bed",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101522",
+                        "surface-dark": "#1e2330",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "2xl": "2rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #101522;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #2d3748;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4a5568;
+        }
+
+        .glass-panel {
+            background: rgba(30, 35, 48, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .glass-panel-heavy {
+            background: rgba(30, 35, 48, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white antialiased selection:bg-primary selection:text-white overflow-hidden">
+    <!-- Background Gradient Effects for depth -->
+    <div
+        class="fixed top-0 left-0 w-full h-[500px] bg-gradient-to-b from-primary/10 to-transparent pointer-events-none z-0">
+    </div>
+    <div
+        class="fixed -top-[20%] -right-[10%] w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl pointer-events-none z-0">
+    </div>
+    <div class="relative flex h-screen w-full overflow-hidden z-10">
+        <!-- Sidebar Navigation -->
+        <aside class="hidden md:flex flex-col w-72 h-full glass-panel-heavy border-r border-white/5 z-20 shrink-0">
+            <!-- Brand / Profile Header -->
+            <div class="p-6 border-b border-white/5">
+                <div class="flex items-center gap-4">
+                    <div class="relative group cursor-pointer">
+                        <div class="bg-center bg-no-repeat bg-cover rounded-full size-12 ring-2 ring-primary/30 group-hover:ring-primary transition-all duration-300"
+                            data-alt="Admin profile picture with abstract gradient background"
+                            style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC9ol4QvypCXhFeEoydaVQ6_0BzkQLo0XTsB8vArMey0nvcJOJuGSfwgI4rbqF0LKkQevMdCY4NEHxeuEvGQDY7U4h_bPJrIusp4MJXWTKTWXN6oKggdRNXurKjqhbVGIx5zNx1kVArsZiBIrediGs1-dZxnyxKS6Vkm0-WL14gd6uXmooM8gQe-JOXgRq7qjQAhCyqUUwtQYuluuNR9lHdAMyUS_S8SvKgcIJYHj2JlmxAR1db0JN2bHre2n_KBUJ3EA7x2MM4JWs");'>
+                        </div>
+                        <div
+                            class="absolute bottom-0 right-0 size-3 bg-green-500 border-2 border-[#1e2330] rounded-full">
+                        </div>
+                    </div>
+                    <div class="flex flex-col">
+                        <h1 class="text-white text-base font-bold leading-tight tracking-tight">Admin Panel</h1>
+                        <p class="text-slate-400 text-xs font-medium">Super Admin</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Navigation Links -->
+            <nav class="flex-1 flex flex-col gap-2 p-4 overflow-y-auto">
+                <div class="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Menu</div>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/15 text-primary border border-primary/10 shadow-[0_0_15px_rgba(33,91,237,0.15)] group transition-all"
+                    href="#">
+                    <span class="material-symbols-outlined group-hover:scale-110 transition-transform"
+                        style="font-variation-settings: 'FILL' 1;">group</span>
+                    <span class="text-sm font-semibold">Users</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
+                    href="#">
+                    <span
+                        class="material-symbols-outlined group-hover:scale-110 transition-transform">shield_person</span>
+                    <span class="text-sm font-medium">Moderation Queue</span>
+                    <span
+                        class="ml-auto bg-red-500/20 text-red-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-red-500/20">12</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
+                    href="#">
+                    <span class="material-symbols-outlined group-hover:scale-110 transition-transform">flag</span>
+                    <span class="text-sm font-medium">Reports</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
+                    href="#">
+                    <span class="material-symbols-outlined group-hover:scale-110 transition-transform">analytics</span>
+                    <span class="text-sm font-medium">Analytics</span>
+                </a>
+                <div class="mt-6 px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider">System</div>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
+                    href="#">
+                    <span class="material-symbols-outlined group-hover:scale-110 transition-transform">settings</span>
+                    <span class="text-sm font-medium">Settings</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
+                    href="#">
+                    <span class="material-symbols-outlined group-hover:scale-110 transition-transform">help</span>
+                    <span class="text-sm font-medium">Support</span>
+                </a>
+            </nav>
+            <!-- Bottom Action -->
+            <div class="p-4 border-t border-white/5">
+                <button
+                    class="flex items-center justify-center w-full gap-2 px-4 py-3 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all text-sm font-medium">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                    Sign Out
+                </button>
+            </div>
+        </aside>
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+            <!-- Mobile Header (Visible only on small screens) -->
+            <header class="md:hidden flex items-center justify-between p-4 glass-panel-heavy border-b border-white/5">
+                <div class="flex items-center gap-3">
+                    <div class="bg-center bg-no-repeat bg-cover rounded-full size-8" data-alt="Admin profile mobile"
+                        style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDjuc8QtSwbC2qFwkuoVoVYoIY3Rv5BcF9DpF02z8MAEM-3KfqsBdcTEcyjzfrNJH4Edd_Ya52JeFPymoi7NEnbMgCD40GUp4TDhW_Xv5Ryy4NJy9IJvrA-6aaJqdneYmCcdxQpTVccdPf4WIp8ay1NDhy5di3zWo0njp7f8s3mlWG6XaccK9rC5MR-Nkw79Pd8_0PnbQ4_k0gCndDMsHUo_uUH1b8oqmrf_ZLTIPMm5JgqF80gGVmMUjWCqaincaqygIP-Wiiqh0A");'>
+                    </div>
+                    <span class="font-bold text-white">Admin Panel</span>
+                </div>
+                <button class="text-white p-2">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+            </header>
+            <!-- Scrollable Content Area -->
+            <div class="flex-1 overflow-y-auto p-4 md:p-8 lg:p-10 scroll-smooth">
+                <div class="max-w-7xl mx-auto space-y-8">
+                    <!-- Page Header & Actions -->
+                    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                        <div class="space-y-1">
+                            <h2 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">User Management
+                            </h2>
+                            <p class="text-slate-400 text-base">Manage access, roles, and platform security.</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button
+                                class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#282d39] hover:bg-[#323846] text-white text-sm font-medium border border-white/10 transition-colors">
+                                <span class="material-symbols-outlined text-[20px]">download</span>
+                                Export
+                            </button>
+                            <button
+                                class="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary hover:bg-blue-600 text-white text-sm font-bold shadow-[0_0_20px_rgba(33,91,237,0.3)] hover:shadow-[0_0_25px_rgba(33,91,237,0.5)] transition-all">
+                                <span class="material-symbols-outlined text-[20px]">add</span>
+                                Add User
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                        <!-- Card 1 -->
+                        <div
+                            class="glass-panel p-6 rounded-2xl flex flex-col justify-between relative overflow-hidden group">
+                            <div
+                                class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                <span class="material-symbols-outlined text-[80px] text-primary">groups</span>
+                            </div>
+                            <div class="space-y-4 relative z-10">
+                                <div class="flex items-center gap-2 text-slate-400 text-sm font-medium">
+                                    <span class="material-symbols-outlined text-[20px]">person</span>
+                                    Total Users
+                                </div>
+                                <div>
+                                    <div class="text-3xl md:text-4xl font-bold text-white tracking-tight">12,450</div>
+                                    <div class="flex items-center gap-1 text-[#0bda62] text-sm font-semibold mt-1">
+                                        <span class="material-symbols-outlined text-[16px]">trending_up</span>
+                                        <span>+5% this week</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Card 2 -->
+                        <div
+                            class="glass-panel p-6 rounded-2xl flex flex-col justify-between relative overflow-hidden group">
+                            <div
+                                class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                <span class="material-symbols-outlined text-[80px] text-indigo-400">person_add</span>
+                            </div>
+                            <div class="space-y-4 relative z-10">
+                                <div class="flex items-center gap-2 text-slate-400 text-sm font-medium">
+                                    <span class="material-symbols-outlined text-[20px]">today</span>
+                                    New Today
+                                </div>
+                                <div>
+                                    <div class="text-3xl md:text-4xl font-bold text-white tracking-tight">128</div>
+                                    <div class="flex items-center gap-1 text-[#0bda62] text-sm font-semibold mt-1">
+                                        <span class="material-symbols-outlined text-[16px]">trending_up</span>
+                                        <span>+12% vs yesterday</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Card 3 -->
+                        <div
+                            class="glass-panel p-6 rounded-2xl flex flex-col justify-between relative overflow-hidden group">
+                            <div
+                                class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                <span class="material-symbols-outlined text-[80px] text-red-400">block</span>
+                            </div>
+                            <div class="space-y-4 relative z-10">
+                                <div class="flex items-center gap-2 text-slate-400 text-sm font-medium">
+                                    <span class="material-symbols-outlined text-[20px]">gavel</span>
+                                    Banned Users
+                                </div>
+                                <div>
+                                    <div class="text-3xl md:text-4xl font-bold text-white tracking-tight">45</div>
+                                    <div class="flex items-center gap-1 text-[#fa6538] text-sm font-semibold mt-1">
+                                        <span class="material-symbols-outlined text-[16px]">trending_down</span>
+                                        <span>-2% new bans</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Filters and Controls -->
+                    <div
+                        class="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center glass-panel p-4 rounded-2xl">
+                        <!-- Search -->
+                        <div class="relative w-full lg:w-96 group">
+                            <div
+                                class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-500 group-focus-within:text-primary transition-colors">
+                                <span class="material-symbols-outlined">search</span>
+                            </div>
+                            <input
+                                class="block w-full p-3 pl-10 text-sm text-white bg-background-dark/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-primary/50 focus:border-primary placeholder-slate-500 transition-all"
+                                placeholder="Search users by name, email or ID..." type="text" />
+                        </div>
+                        <!-- Filter Chips -->
+                        <div class="flex gap-2 overflow-x-auto pb-2 lg:pb-0 w-full lg:w-auto no-scrollbar">
+                            <button
+                                class="whitespace-nowrap px-4 py-2 rounded-lg bg-primary/20 text-primary border border-primary/20 text-sm font-semibold hover:bg-primary/30 transition-all">
+                                All Users
+                            </button>
+                            <button
+                                class="whitespace-nowrap px-4 py-2 rounded-lg bg-background-dark/30 text-slate-400 border border-white/10 text-sm font-medium hover:bg-white/5 hover:text-white transition-all">
+                                Admins
+                            </button>
+                            <button
+                                class="whitespace-nowrap px-4 py-2 rounded-lg bg-background-dark/30 text-slate-400 border border-white/10 text-sm font-medium hover:bg-white/5 hover:text-white transition-all">
+                                Moderators
+                            </button>
+                            <button
+                                class="whitespace-nowrap px-4 py-2 rounded-lg bg-background-dark/30 text-slate-400 border border-white/10 text-sm font-medium hover:bg-white/5 hover:text-white transition-all">
+                                Banned
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Data Table -->
+                    <div
+                        class="glass-panel rounded-2xl overflow-hidden border border-white/5 shadow-2xl shadow-black/20">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr
+                                        class="border-b border-white/5 bg-white/5 text-xs uppercase tracking-wider text-slate-400 font-semibold">
+                                        <th class="px-6 py-4">
+                                            <div class="flex items-center gap-1 cursor-pointer hover:text-white">
+                                                User
+                                                <span class="material-symbols-outlined text-[16px]">unfold_more</span>
+                                            </div>
+                                        </th>
+                                        <th class="px-6 py-4">Role</th>
+                                        <th class="px-6 py-4">Status</th>
+                                        <th class="px-6 py-4">Joined Date</th>
+                                        <th class="px-6 py-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-sm divide-y divide-white/5">
+                                    <!-- Row 1 -->
+                                    <tr class="group hover:bg-white/[0.03] transition-colors">
+                                        <td class="px-6 py-4">
+                                            <div class="flex items-center gap-3">
+                                                <div class="size-10 rounded-full bg-cover bg-center border border-white/10"
+                                                    data-alt="Avatar of Alex Johnson"
+                                                    style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBfdEJeaMvg0awJb0FLE8lDTeTTj1K58V8W0q6N2ooCSPlNTnsSBWc04oq-m2WIGVC7QP_QrgCMaqHIMa9Qxt0T6ID2IHjpGaR3knzmO94jcHSL-qwOFNmOy_zal0HpeCdLJaW1glPZx9LfLEXxvjNW9ZpKA2NQkfhXN14M7EVElmUKQDjJoTNvkT4g_bTtB2UmqXSTS35VBpexPM6SXsIBqQZEeFWKgHcN23ha7ywV_vvWnkmowXPU8To9QJqvPvsjC1qF-sZc5KI");'>
+                                                </div>
+                                                <div class="flex flex-col">
+                                                    <span class="font-semibold text-white">Alex Johnson</span>
+                                                    <span class="text-slate-500 text-xs">alex.j@example.com</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span
+                                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/20">
+                                                <span class="size-1.5 rounded-full bg-purple-400 animate-pulse"></span>
+                                                Moderator
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span class="text-emerald-400 font-medium">Active</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-slate-400">
+                                            Oct 24, 2023
+                                        </td>
+                                        <td class="px-6 py-4 text-right">
+                                            <div
+                                                class="flex items-center justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                                                <button
+                                                    class="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                                                    title="Edit User">
+                                                    <span class="material-symbols-outlined text-[20px]">edit</span>
+                                                </button>
+                                                <button
+                                                    class="p-2 rounded-lg hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors"
+                                                    title="Ban User">
+                                                    <span class="material-symbols-outlined text-[20px]">block</span>
+                                                </button>
+                                                <button
+                                                    class="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                                                    title="More Options">
+                                                    <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <!-- Row 2 -->
+                                    <tr class="group hover:bg-white/[0.03] transition-colors">
+                                        <td class="px-6 py-4">
+                                            <div class="flex items-center gap-3">
+                                                <div class="size-10 rounded-full bg-cover bg-center border border-white/10"
+                                                    data-alt="Avatar of Sarah Smith"
+                                                    style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBWNXm6UQ-YljLShAKv-vrulpqwMv6La9Gxm4EhYWg2Ar4G3iRI0a1_DlrA_d7t8dnAr2eBUPStoOKKy0KX4xRTgXQEeJjb5CFM5epyjWIYE7s5WdwwBA6CHuoRRHTj5nfh4ljVvsxy8uJyIyKdY6FH8zD3AtT6IoopX0szUP3oE576CEhqrObu6bfGhb9ueWyG4JheN-4NnPvMU2gUy3mgNjzOO0dzGMdayyNrnX7lKFo5Qt3KTUkRwkde-Qm4XH0NI389DeaHSpU");'>
+                                                </div>
+                                                <div class="flex flex-col">
+                                                    <span class="font-semibold text-white">Sarah Smith</span>
+                                                    <span class="text-slate-500 text-xs">sarah.s@example.com</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span
+                                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/20">
+                                                Admin
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span class="text-emerald-400 font-medium">Active</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-slate-400">
+                                            Sep 12, 2023
+                                        </td>
+                                        <td class="px-6 py-4 text-right">
+                                            <div
+                                                class="flex items-center justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                                                <button
+                                                    class="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
+                                                    <span class="material-symbols-outlined text-[20px]">edit</span>
+                                                </button>
+                                                <button
+                                                    class="p-2 rounded-lg hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors">
+                                                    <span class="material-symbols-outlined text-[20px]">block</span>
+                                                </button>
+                                                <button
+                                                    class="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
+                                                    <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <!-- Row 3 -->
+                                    <tr class="group hover:bg-white/[0.03] transition-colors">
+                                        <td class="px-6 py-4">
+                                            <div class="flex items-center gap-3">
+                                                <div class="size-10 rounded-full bg-cover bg-center border border-white/10"
+                                                    data-alt="Avatar of Michael Chen"
+                                                    style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB3ePq9xcsrjVLmmyMsWOjSlrK-fjhbOcfteT1wRbVUfANllXaiCATIYFTY__rIIHX6KA939tJVvrkD7w_kH7TAPrIpdGHxrWyjAB5cn87d4CwoRUqMZTRgHSphyfr54xWuFnVQkEIrcNl4JoPPv7rC1zZRIDdDYW9fUYf5O0UeS-ndlF-l4ZC6NQYjtS4Hl0WTa8WuRxUSdmtDVrfYg3H1Q2_blxJ_BJO5hA3ZH-C5IdL0jEeXlIMdXkKJjVrZoOpHc_4OWWNMLrY");'>
+                                                </div>
+                                                <div class="flex flex-col">
+                                                    <span class="font-semibold text-white">Michael Chen</span>
+                                                    <span class="text-slate-500 text-xs">m.chen@example.com</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span
+                                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-300 border border-blue-500/10">
+                                                User
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span class="text-slate-400 font-medium">Offline</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-slate-400">
+                                            Nov 01, 2023
+                                        </td>
+                                        <td class="px-6 py-4 text-right">
+                                            <div
+                                                class="flex items-center justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                                                <button
+                                                    class="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
+                                                    <span class="material-symbols-outlined text-[20px]">edit</span>
+                                                </button>
+                                                <button
+                                                    class="p-2 rounded-lg hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors">
+                                                    <span class="material-symbols-outlined text-[20px]">block</span>
+                                                </button>
+                                                <button
+                                                    class="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
+                                                    <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <!-- Row 4 -->
+                                    <tr class="group hover:bg-white/[0.03] transition-colors">
+                                        <td class="px-6 py-4">
+                                            <div class="flex items-center gap-3">
+                                                <div class="size-10 rounded-full bg-cover bg-center border border-white/10 opacity-70 grayscale"
+                                                    data-alt="Avatar of Emily Davis"
+                                                    style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBklcr0k_8Z_i8wSk_OInhaDctq0gnmRDvsROqbdaa0_nYV2C51V7fs17EwCgXvv5XvkLufDI0b1Lh_YoFq7Vob9aFudtkVrmzxlO6TO6KMWMWSC4BguUvHOwzv0CNCVTnlQIBFB-Cgvj95NMzoF1cN1dI_OofQMGR98JJKGUhfsdlsE-xRD48m_JM9wI4Vr2GP0xHT2NmboQFsZZxNXdH59yc9-pVaYBHlr2lTtkJrY58jghrG207v1g1XwvtPxCVjrxsS4ZxA14U");'>
+                                                </div>
+                                                <div class="flex flex-col opacity-70">
+                                                    <span class="font-semibold text-white">Emily Davis</span>
+                                                    <span class="text-slate-500 text-xs">emily.d@example.com</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span
+                                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-300 border border-blue-500/10 opacity-70">
+                                                User
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span
+                                                class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold bg-red-500/20 text-red-400 uppercase tracking-wide">
+                                                Banned
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 text-slate-400 opacity-70">
+                                            Aug 15, 2023
+                                        </td>
+                                        <td class="px-6 py-4 text-right">
+                                            <div
+                                                class="flex items-center justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                                                <button
+                                                    class="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
+                                                    <span class="material-symbols-outlined text-[20px]">edit</span>
+                                                </button>
+                                                <button
+                                                    class="p-2 rounded-lg hover:bg-emerald-500/20 text-emerald-400 hover:text-emerald-300 transition-colors"
+                                                    title="Unban User">
+                                                    <span
+                                                        class="material-symbols-outlined text-[20px]">check_circle</span>
+                                                </button>
+                                                <button
+                                                    class="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
+                                                    <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <!-- Row 5 -->
+                                    <tr class="group hover:bg-white/[0.03] transition-colors border-b-0">
+                                        <td class="px-6 py-4">
+                                            <div class="flex items-center gap-3">
+                                                <div class="size-10 rounded-full bg-cover bg-center border border-white/10"
+                                                    data-alt="Avatar of James Wilson"
+                                                    style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBKa1x_9e4r_KwcRvgnStVwTOYjCXQOksYlGyWs5_R7-llJMRxTxzyPBqDby86Xoqb762-ahFYdAvMTXmiLH57sYd2QwRQLJKmXzw-_ebcJ7PMnEquXp2iltpqSj5EThLTut5S2_iM4LcRsApz8AR0q_wlI28sJIr8JW500mP9hpPkJ5ApA4fhyn0201A3ec0x8JL-HpmMN2DyhNXFpAhStPBE6uC4NRQYub89CDadxuBnYZXLCCGpEdNJpirXVlGqM3pxTIJTy8ps");'>
+                                                </div>
+                                                <div class="flex flex-col">
+                                                    <span class="font-semibold text-white">James Wilson</span>
+                                                    <span class="text-slate-500 text-xs">j.wilson@example.com</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span
+                                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-300 border border-blue-500/10">
+                                                User
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span class="text-slate-400 font-medium">Offline</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-slate-400">
+                                            Oct 10, 2023
+                                        </td>
+                                        <td class="px-6 py-4 text-right">
+                                            <div
+                                                class="flex items-center justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                                                <button
+                                                    class="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
+                                                    <span class="material-symbols-outlined text-[20px]">edit</span>
+                                                </button>
+                                                <button
+                                                    class="p-2 rounded-lg hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors">
+                                                    <span class="material-symbols-outlined text-[20px]">block</span>
+                                                </button>
+                                                <button
+                                                    class="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
+                                                    <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- Pagination Footer -->
+                        <div class="flex items-center justify-between p-4 border-t border-white/5 bg-white/[0.02]">
+                            <div class="text-sm text-slate-500">
+                                Showing <span class="text-white font-semibold">1-5</span> of <span
+                                    class="text-white font-semibold">12,450</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button
+                                    class="p-2 rounded-lg hover:bg-white/10 text-slate-400 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <span class="material-symbols-outlined text-[20px]">chevron_left</span>
+                                </button>
+                                <button
+                                    class="px-3 py-1 rounded-lg bg-primary text-white text-sm font-bold shadow-lg shadow-primary/30">1</button>
+                                <button
+                                    class="px-3 py-1 rounded-lg hover:bg-white/10 text-slate-400 text-sm font-medium transition-colors">2</button>
+                                <button
+                                    class="px-3 py-1 rounded-lg hover:bg-white/10 text-slate-400 text-sm font-medium transition-colors">3</button>
+                                <span class="text-slate-500 px-1">...</span>
+                                <button class="p-2 rounded-lg hover:bg-white/10 text-slate-400 transition-colors">
+                                    <span class="material-symbols-outlined text-[20px]">chevron_right</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

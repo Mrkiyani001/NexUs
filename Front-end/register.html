@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Register - Social Network</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#215bed",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101522",
+                        "glass-border": "rgba(255, 255, 255, 0.08)",
+                        "glass-surface": "rgba(28, 31, 39, 0.7)",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                    animation: {
+                        'blob': 'blob 10s infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        }
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #101522; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2a303c; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b4254; 
+        }
+        
+        .glass-card {
+            background: rgba(20, 24, 34, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .input-glass {
+            background-color: #111318 !important; /* Force dark background always */
+            border: 1px solid rgba(59, 66, 84, 0.5);
+            transition: all 0.3s ease;
+            color: white !important;
+        }
+        
+        .input-glass:focus {
+            background-color: #161b27 !important; /* Slightly lighter dark on focus */
+            border-color: #215bed;
+            box-shadow: 0 0 0 1px #215bed, 0 0 15px rgba(33, 91, 237, 0.2);
+            color: white !important;
+        }
+
+        /* Fix Autocomplete/Autofill white background */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:active {
+            /* Force the background to be dark using box-shadow inset */
+            -webkit-box-shadow: 0 0 0 1000px #111318 inset !important;
+            -webkit-text-fill-color: white !important;
+            caret-color: white !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
+        /* Toast Notification */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+        .toast {
+            background: rgba(16, 21, 34, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 24px;
+            border-radius: 12px;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            pointer-events: auto;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .toast.success { border-left: 4px solid #215bed; }
+        .toast.error { border-left: 4px solid #ef4444; }
+    </style>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-white min-h-screen relative overflow-x-hidden antialiased selection:bg-primary/30 selection:text-white flex flex-col">
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<!-- Ambient Background Blobs -->
+<div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+<!-- Primary Blue Blob -->
+<div class="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-primary/20 rounded-full blur-[100px] animate-blob mix-blend-screen opacity-60"></div>
+<!-- Cyan/Teal Blob -->
+<div class="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-teal-500/10 rounded-full blur-[120px] animate-blob animation-delay-2000 mix-blend-screen opacity-50"></div>
+<!-- Purple Blob -->
+<div class="absolute top-[40%] left-[30%] w-[30vw] h-[30vw] bg-purple-600/15 rounded-full blur-[90px] animate-blob animation-delay-4000 mix-blend-screen opacity-40"></div>
+</div>
+<div class="layout-container flex h-full grow flex-col justify-center items-center p-4 py-12">
+<!-- Main Card -->
+<div class="glass-card w-full max-w-[520px] rounded-2xl p-8 md:p-10 relative overflow-hidden group/card">
+<!-- Top decorative line -->
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50"></div>
+<div class="flex flex-col gap-6">
+<!-- Header -->
+<div class="text-center space-y-2">
+<div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/20 text-primary mb-4">
+<span class="material-symbols-outlined text-[28px]">token</span>
+</div>
+<h1 class="text-3xl font-bold tracking-tight text-white">Create your account</h1>
+<p class="text-slate-400 text-base">Join the next generation of social networking.</p>
+</div>
+<!-- Form -->
+                <form id="register-form" class="flex flex-col gap-5 mt-2" onsubmit="event.preventDefault();">
+<!-- Full Name -->
+<div class="space-y-2">
+<label class="text-sm font-medium text-slate-300 ml-1" for="fullname">Full Name</label>
+<div class="relative">
+<input class="input-glass w-full rounded-xl h-12 px-4 pl-11 text-white placeholder:text-slate-500 focus:outline-none text-base" id="fullname" placeholder="John Doe" type="text"/>
+<span class="material-symbols-outlined absolute left-3.5 top-3 text-slate-500 text-[20px]">person</span>
+</div>
+</div>
+<!-- Email -->
+<div class="space-y-2">
+<label class="text-sm font-medium text-slate-300 ml-1" for="email">Email Address</label>
+<div class="relative">
+<input class="input-glass w-full rounded-xl h-12 px-4 pl-11 text-white placeholder:text-slate-500 focus:outline-none text-base" id="email" placeholder="john@example.com" type="email"/>
+<span class="material-symbols-outlined absolute left-3.5 top-3 text-slate-500 text-[20px]">mail</span>
+</div>
+</div>
+<!-- Password Group -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+<div class="space-y-2">
+<label class="text-sm font-medium text-slate-300 ml-1" for="password">Password</label>
+<div class="relative group">
+<input class="input-glass w-full rounded-xl h-12 px-4 pl-11 pr-10 text-white placeholder:text-slate-500 focus:outline-none text-base" id="password" placeholder="••••••••" type="password"/>
+<span class="material-symbols-outlined absolute left-3.5 top-3 text-slate-500 text-[20px]">lock</span>
+<button class="absolute right-3 top-3 text-slate-500 hover:text-white transition-colors" type="button" onclick="togglePassword('password', this)">
+<span class="material-symbols-outlined text-[20px]">visibility_off</span>
+</button>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-center">
+<label class="text-sm font-medium text-slate-300 ml-1" for="confirm-password">Confirm</label>
+<!-- Mock validation visual -->
+<span class="text-xs text-emerald-400 font-medium flex items-center gap-1 opacity-0 group-focus-within/form:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Match
+                                </span>
+</div>
+<div class="relative group">
+<input class="input-glass w-full rounded-xl h-12 px-4 pl-11 pr-10 text-white placeholder:text-slate-500 focus:outline-none text-base" id="confirm-password" placeholder="••••••••" type="password"/>
+<span class="material-symbols-outlined absolute left-3.5 top-3 text-slate-500 text-[20px]">lock_reset</span>
+<button class="absolute right-3 top-3 text-slate-500 hover:text-white transition-colors" type="button" onclick="togglePassword('confirm-password', this)">
+<span class="material-symbols-outlined text-[20px]">visibility_off</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Terms Checkbox -->
+<label class="flex items-start gap-3 mt-1 group cursor-pointer">
+<div class="relative flex items-center">
+<input class="peer h-5 w-5 cursor-pointer appearance-none rounded border border-slate-600 bg-slate-800/50 checked:bg-primary checked:border-primary transition-all focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+<span class="material-symbols-outlined absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-[16px] opacity-0 peer-checked:opacity-100 pointer-events-none">check</span>
+</div>
+<span class="text-sm text-slate-400 leading-snug group-hover:text-slate-300 transition-colors">
+                            I agree to the <a class="text-primary hover:text-blue-400 hover:underline" href="#">Terms of Service</a> and <a class="text-primary hover:text-blue-400 hover:underline" href="#">Privacy Policy</a>.
+                        </span>
+</label>
+<!-- Submit Button -->
+                    <button id="register-btn" class="w-full h-12 mt-2 bg-primary hover:bg-blue-600 text-white font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(33,91,237,0.3)] hover:shadow-[0_0_30px_rgba(33,91,237,0.5)] active:scale-[0.98] flex items-center justify-center gap-2">
+<span>Create Account</span>
+<span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+</form>
+<!-- Divider -->
+<div class="relative flex py-2 items-center">
+<div class="flex-grow border-t border-slate-700"></div>
+<span class="flex-shrink-0 mx-4 text-slate-500 text-sm">Or continue with</span>
+<div class="flex-grow border-t border-slate-700"></div>
+</div>
+<!-- Social Login -->
+<div class="grid grid-cols-3 gap-3">
+<button class="flex items-center justify-center h-12 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700 hover:border-slate-500 transition-all group">
+<!-- Google SVG -->
+<svg class="w-5 h-5 text-slate-300 group-hover:text-white transition-colors" fill="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
+<path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
+<path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.84z" fill="#FBBC05"></path>
+<path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
+</svg>
+</button>
+<button class="flex items-center justify-center h-12 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700 hover:border-slate-500 transition-all group">
+<!-- Apple SVG -->
+<svg class="w-5 h-5 text-white" fill="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z"></path>
+</svg>
+</button>
+<button class="flex items-center justify-center h-12 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700 hover:border-slate-500 transition-all group">
+<!-- GitHub SVG -->
+<svg class="w-5 h-5 text-slate-300 group-hover:text-white transition-colors" fill="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.17 22 16.42 22 12A10 10 0 0012 2z" fill-rule="evenodd"></path>
+</svg>
+</button>
+</div>
+<!-- Footer -->
+<div class="text-center pt-2">
+<p class="text-slate-400 text-sm">
+                        Already have an account? 
+                        <a class="text-primary font-semibold hover:text-blue-400 transition-colors" href="login.html">Sign In</a>
+</p>
+</div>
+</div>
+</div>
+</div>
+</body>
+<script>
+    const API_BASE_URL = 'http://127.0.0.1:8000/api';
+
+    function togglePassword(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon = btn.querySelector('span');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.textContent = 'visibility';
+        } else {
+            input.type = 'password';
+            icon.textContent = 'visibility_off';
+        }
+    }
+
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        let icon = type === 'success' ? 'check_circle' : 'error';
+        
+        toast.innerHTML = `
+            <span class="material-symbols-outlined text-${type === 'success' ? 'emerald-400' : 'red-400'}">${icon}</span>
+            <span>${message}</span>
+        `;
+        
+        container.appendChild(toast);
+        
+        // Trigger animation
+        requestAnimationFrame(() => {
+            toast.classList.add('show');
+        });
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    document.getElementById('register-btn').addEventListener('click', async () => {
+        const name = document.getElementById('fullname').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const password_confirmation = document.getElementById('confirm-password').value;
+        const btn = document.getElementById('register-btn');
+        const btnText = btn.querySelector('span:first-child');
+        
+        if(!name || !email || !password || !password_confirmation) {
+            showToast('Please fill in all fields.', 'error');
+            return;
+        }
+
+        if(password !== password_confirmation) {
+            showToast('Passwords do not match.', 'error');
+            return;
+        }
+
+        const originalText = btnText.innerHTML;
+        btnText.innerHTML = 'Creating Account...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ name, email, password, password_confirmation })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                showToast(data.message, 'success');
+                // Allow user to read toast before redirecting
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+            } else {
+                let errorMessage = data.message || 'Registration failed';
+                if(data.errors) {
+                    errorMessage += ': ' + Object.values(data.errors).flat().join(', ');
+                }
+                showToast(errorMessage, 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showToast('An error occurred. Please try again.', 'error');
+        } finally {
+             btnText.innerHTML = originalText;
+             btn.disabled = false;
+        }
+    });
+</script>
+</html>

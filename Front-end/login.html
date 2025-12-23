@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Login - Social Platform</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Theme Config -->
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#215bed",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101522",
+                        "glass-border": "rgba(255, 255, 255, 0.08)",
+                        "glass-bg": "rgba(255, 255, 255, 0.03)",
+                        "surface-dark": "#1c1f27"
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "2xl": "2rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Custom Glassmorphism Utilities */
+        .glass-card {
+            background: rgba(16, 21, 34, 0.7);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Subtle animated gradient background */
+        .animated-bg {
+            background: radial-gradient(circle at 15% 50%, rgba(33, 91, 237, 0.15), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(124, 58, 237, 0.15), transparent 25%);
+            background-color: #101522;
+        }
+
+        /* Custom Input Autofill fix for dark mode */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px #1c1f27 inset !important;
+            -webkit-text-fill-color: white !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+    </style>
+</head>
+
+<body class="font-display antialiased text-white selection:bg-primary selection:text-white overflow-hidden">
+    <!-- Main Container -->
+    <div class="relative flex min-h-screen w-full flex-col justify-center items-center animated-bg overflow-hidden p-4">
+        <!-- Background Ambient Glows -->
+        <div
+            class="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] rounded-full bg-primary/20 blur-[120px] pointer-events-none">
+        </div>
+        <div
+            class="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] rounded-full bg-purple-600/10 blur-[120px] pointer-events-none">
+        </div>
+        <!-- Login Card -->
+        <div
+            class="relative w-full max-w-[480px] glass-card rounded-2xl overflow-hidden z-10 transition-all duration-500 hover:shadow-[0_0_40px_-10px_rgba(33,91,237,0.3)]">
+            <!-- Card Header / Brand -->
+            <div class="flex flex-col items-center pt-10 px-8 pb-2">
+                <!-- Logo Placeholder -->
+                <div
+                    class="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg shadow-primary/30 mb-6">
+                    <span class="material-symbols-outlined text-white text-3xl">hub</span>
+                </div>
+                <h1 class="text-3xl font-extrabold tracking-tight text-white mb-2 text-center">Welcome Back</h1>
+                <p class="text-slate-400 text-base text-center max-w-xs">Enter your details to access your account.</p>
+            </div>
+            <!-- Form Content -->
+            <div class="px-8 py-6 flex flex-col gap-5">
+                <!-- Email Field -->
+                <label class="flex flex-col gap-2">
+                    <span class="text-sm font-semibold text-slate-300 ml-1">Email Address</span>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <span
+                                class="material-symbols-outlined text-slate-500 group-focus-within:text-primary transition-colors">mail</span>
+                        </div>
+                        <input id="email"
+                            class="w-full bg-surface-dark/80 border border-slate-700/50 rounded-xl px-4 py-3.5 pl-12 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300"
+                            placeholder="name@example.com" type="email" />
+                    </div>
+                </label>
+                <!-- Password Field -->
+                <label class="flex flex-col gap-2">
+                    <div class="flex justify-between items-center ml-1">
+                        <span class="text-sm font-semibold text-slate-300">Password</span>
+                        <a class="text-sm font-medium text-primary hover:text-primary/80 hover:underline transition-colors"
+                            href="forget-password.html">Forgot Password?</a>
+                    </div>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <span
+                                class="material-symbols-outlined text-slate-500 group-focus-within:text-primary transition-colors">lock</span>
+                        </div>
+                        <input id="password"
+                            class="w-full bg-surface-dark/80 border border-slate-700/50 rounded-xl px-4 py-3.5 pl-12 pr-12 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300"
+                            placeholder="••••••••" type="password" />
+                        <button
+                            class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+                            type="button" onclick="togglePassword('password', this)">
+                            <span class="material-symbols-outlined text-xl">visibility_off</span>
+                        </button>
+                    </div>
+                </label>
+                <!-- Login Button -->
+                <!-- Login Button -->
+                <button id="login-btn"
+                    class="mt-2 w-full bg-primary hover:bg-blue-600 text-white font-bold py-3.5 rounded-xl transition-all duration-300 shadow-lg shadow-primary/25 hover:shadow-primary/40 transform hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]">
+                    Log In
+                </button>
+                <!-- Divider -->
+                <div class="flex items-center gap-4 my-2">
+                    <div class="h-[1px] flex-1 bg-slate-700/50"></div>
+                    <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Or continue with</span>
+                    <div class="h-[1px] flex-1 bg-slate-700/50"></div>
+                </div>
+                <!-- Social Login Buttons -->
+                <div class="grid grid-cols-2 gap-4">
+                    <button
+                        class="flex items-center justify-center gap-3 bg-surface-dark border border-slate-700/50 hover:bg-slate-800 hover:border-slate-600 rounded-xl py-3 transition-all duration-300 group">
+                        <!-- Google SVG Icon -->
+                        <svg class="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none"
+                            viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M23.766 12.2764C23.766 11.4607 23.6999 10.6406 23.5588 9.83807H12.24V14.4591H18.7217C18.4528 15.9494 17.5885 17.2678 16.323 18.1056V21.1039H20.19C22.4608 19.0139 23.766 15.9274 23.766 12.2764Z"
+                                fill="#4285F4"></path>
+                            <path
+                                d="M12.24 24.0008C15.4765 24.0008 18.2058 22.9382 20.1945 21.1039L16.3275 18.1055C15.2517 18.8375 13.8627 19.252 12.2445 19.252C9.11388 19.252 6.45946 17.1399 5.50705 14.3003H1.5166V17.3912C3.55371 21.4434 7.7029 24.0008 12.24 24.0008Z"
+                                fill="#34A853"></path>
+                            <path
+                                d="M5.50253 14.3003C5.00236 12.8199 5.00236 11.1799 5.50253 9.69967V6.60879H1.5166C-0.18551 10.0056 -0.18551 13.9945 1.5166 17.3912L5.50253 14.3003Z"
+                                fill="#FBBC05"></path>
+                            <path
+                                d="M12.24 4.74966C13.9509 4.7232 15.6044 5.36697 16.8434 6.54867L20.2695 3.12262C18.1001 1.0855 15.2208 -0.034466 12.24 0.000808666C7.7029 0.000808666 3.55371 2.55822 1.5166 6.60879L5.50253 9.69967C6.45064 6.86106 9.10447 4.74966 12.24 4.74966Z"
+                                fill="#EA4335"></path>
+                        </svg>
+                        <span class="text-sm font-semibold text-slate-300 group-hover:text-white">Google</span>
+                    </button>
+                    <button
+                        class="flex items-center justify-center gap-3 bg-surface-dark border border-slate-700/50 hover:bg-slate-800 hover:border-slate-600 rounded-xl py-3 transition-all duration-300 group">
+                        <!-- Apple SVG Icon -->
+                        <svg class="w-5 h-5 fill-white group-hover:scale-110 transition-transform duration-300"
+                            viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M17.5318 13.0853C17.5076 15.6429 19.6738 17.1557 19.756 17.2038C19.7028 17.3753 19.3858 18.4715 18.6185 19.5936C17.957 20.5555 17.2662 21.5039 16.1662 21.525C15.0903 21.5459 14.7461 20.887 13.507 20.887C12.2676 20.887 11.8795 21.525 10.8688 21.5459C9.83584 21.5671 9.07062 20.6974 8.39704 19.7196C7.02672 17.7348 5.97544 14.1032 7.3792 11.6669C8.07764 10.4568 9.32488 9.69192 10.7416 9.67086C11.7753 9.64998 12.7441 10.3686 13.3776 10.3686C14.0113 10.3686 15.2015 9.47954 16.4251 9.64998C16.9407 9.67198 18.381 9.8596 19.2934 11.1923C19.2155 11.2384 17.5562 12.2078 17.5318 13.0853ZM15.0211 7.22858C15.5847 6.54556 15.9622 5.59758 15.8585 4.65918C15.0216 4.69288 14.0113 5.21814 13.4111 5.91636C12.8942 6.51658 12.4285 7.49132 12.5454 8.41846C13.4725 8.49072 14.4578 7.9118 15.0211 7.22858Z">
+                            </path>
+                        </svg>
+                        <span class="text-sm font-semibold text-slate-300 group-hover:text-white">Apple</span>
+                    </button>
+                </div>
+            </div>
+            <!-- Card Footer -->
+            <div class="px-8 pb-10 pt-2 text-center">
+                <p class="text-slate-400 text-sm">
+                    Don't have an account?
+                    <a class="text-white font-bold hover:text-primary transition-colors hover:underline"
+                        href="register.html">Register</a>
+                </p>
+            </div>
+            <!-- Background Texture for Glass Card (Noise) -->
+            <div class="absolute inset-0 opacity-[0.03] pointer-events-none z-[-1]"
+                style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB3NAyP4C8uPU0LVQ8IGAbaYzPVfZcnkzzLAnEIkyl16KKxCrha_V35Z4Pc872Bqsr8ksyyQcv3toyJ01MM0uVuAo_xswb5nWFV_sNDvVmmULen7j9Yl4tH9EUpAcdvuzTg40Q1dRfK7dSthbJy-BNOz381G2ZB_VbfMNfNPoO_GFbW5VqldneGws0AqI7SIFEZ4_E-wszv0E9DIXIjaIiB_vnxx85P3BSJm-d5R47s5e52l2k6SGGLX1I_AzEtYbk6czzfXvGzYYU');">
+            </div>
+        </div>
+        <!-- Footer Info -->
+        <div class="mt-8 text-center">
+            <p class="text-xs text-slate-600 font-medium">© 2023 Social Platform. All rights reserved.</p>
+            <div class="flex gap-4 justify-center mt-2 text-xs text-slate-600">
+                <a class="hover:text-slate-400" href="#">Privacy</a>
+                <a class="hover:text-slate-400" href="#">Terms</a>
+            </div>
+        </div>
+    </div>
+    </div>
+    <script>
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('span');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.textContent = 'visibility';
+            } else {
+                input.type = 'password';
+                icon.textContent = 'visibility_off';
+            }
+        }
+    </script>
+</body>
+<script>
+    const API_BASE_URL = 'http://127.0.0.1:8000/api';
+
+    document.getElementById('login-btn').addEventListener('click', async () => {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const btn = document.getElementById('login-btn');
+
+        if (!email || !password) {
+            alert('Please fill in both email and password.');
+            return;
+        }
+
+        const originalText = btn.innerHTML;
+        btn.innerHTML = 'Logging In...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Check multiple token locations just in case
+                const token = data.access_token || (data.data && data.data.token) || data.token;
+
+                if (token) {
+                    localStorage.setItem('auth_token', token);
+                    if (data.user) localStorage.setItem('user_data', JSON.stringify(data.user));
+                    alert('Login Successful!');
+                    // Redirect logic
+                    window.location.href = 'loading-screen.html';
+                } else {
+                    console.log('Login success but no token found in expected paths', data);
+                    alert('Login successful but encountered an issue saving session.');
+                }
+            } else {
+                alert(data.message || 'Login failed');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    });
+</script>
+
+</html>

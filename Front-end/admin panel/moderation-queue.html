@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Moderation Queue View</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#215bed",
+                        "primary-glow": "#215bed", 
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101522",
+                        "glass-border": "rgba(255, 255, 255, 0.08)",
+                        "glass-surface": "rgba(20, 25, 40, 0.7)",
+                        "success": "#0bda62",
+                        "danger": "#ef4444",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "2xl": "2rem", "full": "9999px"},
+                    backdropBlur: {
+                        'xs': '2px',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2a3040; 
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b4254; 
+        }
+        
+        .glass-panel {
+            background: rgba(30, 35, 50, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .glass-card:hover {
+            border-color: rgba(33, 91, 237, 0.3);
+            box-shadow: 0 10px 40px -10px rgba(33, 91, 237, 0.15);
+        }
+
+        /* Ambient glow background */
+        .ambient-glow {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(33, 91, 237, 0.15) 0%, rgba(0,0,0,0) 70%);
+            top: -100px;
+            right: -100px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .ambient-glow-2 {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(11, 218, 98, 0.08) 0%, rgba(0,0,0,0) 70%);
+            bottom: -100px;
+            left: -100px;
+            pointer-events: none;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-white font-display h-screen w-full overflow-hidden flex selection:bg-primary selection:text-white">
+<!-- Sidebar Navigation -->
+<nav class="w-20 lg:w-72 flex-shrink-0 h-full flex flex-col justify-between border-r border-glass-border bg-[#111318]/90 z-20 relative">
+<div class="flex flex-col gap-8 p-4 lg:p-6">
+<!-- Brand -->
+<div class="flex items-center gap-3 pl-1">
+<div class="size-10 rounded-xl bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-white text-[24px]">admin_panel_settings</span>
+</div>
+<div class="hidden lg:flex flex-col">
+<h1 class="text-white text-lg font-bold leading-none tracking-tight">NexusAdmin</h1>
+<p class="text-gray-500 text-xs font-medium mt-1">Moderation Console</p>
+</div>
+</div>
+<!-- Navigation Links -->
+<div class="flex flex-col gap-2">
+<a class="flex items-center gap-4 px-3 py-3 rounded-xl text-gray-400 hover:bg-white/5 hover:text-white transition-all group" href="#">
+<span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">grid_view</span>
+<span class="hidden lg:block text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-4 px-3 py-3 rounded-xl bg-primary/10 text-primary border border-primary/20 shadow-[0_0_15px_rgba(33,91,237,0.1)] relative overflow-hidden" href="#">
+<div class="absolute inset-0 bg-primary/5"></div>
+<span class="material-symbols-outlined text-[24px] z-10">list_alt</span>
+<span class="hidden lg:block text-sm font-bold z-10">Queue</span>
+<span class="ml-auto hidden lg:flex h-5 w-6 items-center justify-center rounded-md bg-primary text-[10px] font-bold text-white z-10">142</span>
+</a>
+<a class="flex items-center gap-4 px-3 py-3 rounded-xl text-gray-400 hover:bg-white/5 hover:text-white transition-all group" href="#">
+<span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">group</span>
+<span class="hidden lg:block text-sm font-medium">Users</span>
+</a>
+<a class="flex items-center gap-4 px-3 py-3 rounded-xl text-gray-400 hover:bg-white/5 hover:text-white transition-all group" href="#">
+<span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">flag</span>
+<span class="hidden lg:block text-sm font-medium">Reports</span>
+</a>
+</div>
+</div>
+<div class="p-4 lg:p-6 border-t border-glass-border">
+<a class="flex items-center gap-4 px-3 py-3 rounded-xl text-gray-400 hover:bg-white/5 hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined text-[24px]">settings</span>
+<span class="hidden lg:block text-sm font-medium">Settings</span>
+</a>
+<div class="mt-4 hidden lg:flex items-center gap-3 px-3">
+<div class="size-8 rounded-full bg-cover bg-center ring-2 ring-white/10" data-alt="Admin user profile picture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAscl4l1ia9eT6vHlAwWqMgW9E_P5Pbvfjqujd1iWj5-1mIPkUxC9Vm22ww8Z8YY4yQj8xlVjJEllm6eEMEFnKUfd8iJ6hfwPJMx5UFfPEkpFAmUeQqeclgao3Oh7eHcENw6RyHjCy-zrcoUUp6Our7CL1_V3Mvxpame-b4F1qRZ-dSr-H5FZj51hOTgWSts8IStwoejG9DD-me5wY3ddtnAQXQveSblvfVa6bONvOgqWa272DTu9jkRj6F5SK8BJVJXmCHYn96Gb4')"></div>
+<div class="flex flex-col">
+<span class="text-sm text-white font-medium">Alex Morgan</span>
+<span class="text-xs text-gray-500">Super Admin</span>
+</div>
+</div>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col relative z-10 overflow-hidden bg-background-dark">
+<!-- Background Effects -->
+<div class="ambient-glow"></div>
+<div class="ambient-glow-2"></div>
+<!-- Sticky Header with Blur -->
+<header class="flex-shrink-0 px-6 py-5 lg:px-10 flex flex-col gap-6 z-20 backdrop-blur-sm bg-background-dark/30 sticky top-0 border-b border-glass-border">
+<!-- Top Bar: Title & Global Actions -->
+<div class="flex items-start justify-between">
+<div>
+<h2 class="text-3xl font-black tracking-tight text-white mb-1">Moderation Queue</h2>
+<p class="text-gray-400 text-sm">Reviewing pending user submissions for compliance.</p>
+</div>
+<div class="flex items-center gap-3">
+<!-- Sort Dropdown (Visual only) -->
+<button class="glass-card h-10 px-4 rounded-lg flex items-center gap-2 text-sm text-gray-300 hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[20px]">sort</span>
+                        Oldest First
+                    </button>
+<!-- Refresh Button -->
+<button class="glass-card size-10 rounded-lg flex items-center justify-center text-gray-300 hover:text-white hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined text-[20px]">refresh</span>
+</button>
+</div>
+</div>
+<!-- Stats & Chips Row -->
+<div class="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
+<!-- Stats -->
+<div class="flex gap-4 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0 no-scrollbar">
+<div class="glass-panel px-5 py-3 rounded-xl flex items-center gap-4 min-w-[160px] border-l-4 border-l-primary">
+<div class="flex flex-col">
+<span class="text-xs text-gray-400 uppercase font-semibold tracking-wider">Pending</span>
+<span class="text-2xl font-bold text-white">142</span>
+</div>
+<span class="text-xs font-medium text-success bg-success/10 px-2 py-1 rounded-full">+5%</span>
+</div>
+<div class="glass-panel px-5 py-3 rounded-xl flex items-center gap-4 min-w-[160px]">
+<div class="flex flex-col">
+<span class="text-xs text-gray-400 uppercase font-semibold tracking-wider">Wait Time</span>
+<span class="text-2xl font-bold text-white">12<span class="text-sm font-normal text-gray-500 ml-1">min</span></span>
+</div>
+</div>
+<div class="glass-panel px-5 py-3 rounded-xl flex items-center gap-4 min-w-[160px]">
+<div class="flex flex-col">
+<span class="text-xs text-gray-400 uppercase font-semibold tracking-wider">Actions</span>
+<span class="text-2xl font-bold text-white">58</span>
+</div>
+<span class="text-xs font-medium text-success bg-success/10 px-2 py-1 rounded-full">+12%</span>
+</div>
+</div>
+<!-- Chips -->
+<div class="flex gap-2 items-center overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0">
+<button class="h-9 px-4 rounded-lg bg-white/10 text-white text-sm font-medium border border-white/10 hover:bg-white/20 transition-all whitespace-nowrap flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">apps</span> All
+                    </button>
+<button class="h-9 px-4 rounded-lg bg-transparent text-gray-400 text-sm font-medium border border-transparent hover:bg-white/5 hover:text-white transition-all whitespace-nowrap flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">image</span> Images
+                    </button>
+<button class="h-9 px-4 rounded-lg bg-transparent text-gray-400 text-sm font-medium border border-transparent hover:bg-white/5 hover:text-white transition-all whitespace-nowrap flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">videocam</span> Videos
+                    </button>
+<button class="h-9 px-4 rounded-lg bg-transparent text-gray-400 text-sm font-medium border border-transparent hover:bg-white/5 hover:text-white transition-all whitespace-nowrap flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">notes</span> Text
+                    </button>
+</div>
+</div>
+</header>
+<!-- Scrollable Grid Content -->
+<div class="flex-1 overflow-y-auto px-6 lg:px-10 py-6 pb-20 custom-scrollbar">
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+<!-- Card 1: Image Post (Flagged) -->
+<div class="glass-card rounded-2xl flex flex-col overflow-hidden group/card relative">
+<!-- Status Indicator -->
+<div class="absolute top-4 right-4 z-10 flex gap-2">
+<span class="bg-black/60 backdrop-blur-md text-white text-xs font-bold px-2 py-1 rounded-md border border-white/10 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-yellow-500">warning</span> High Risk
+                        </span>
+</div>
+<!-- Header -->
+<div class="p-4 flex items-center gap-3 border-b border-glass-border bg-white/[0.02]">
+<div class="relative">
+<div class="size-10 rounded-full bg-cover bg-center" data-alt="User avatar male" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCnaYqH9_6ups7EIOO_IDMBPREJUKS5ARC0klmjrS1m7MhvwvTZXQqvupIRJqJhuUxTG7zQQP8MyQEL8sRXnqbAaJwFP7ImnEDQDaRqny9fOpOJGCUGWpPhDnyO74mfSEFndVWtPe-49r5N7Y2lPqrgMdBla_n-ndZgEuJsjoRtKnjhrhxvDst7b2Ay665f0Q8t22O-H1DUEAA7P5hWBj9c571RhaoWF4QkoIFLS0zKPrGmGKGIwBcN8y9k4l6X9s4ZWLyWe0_RfnY')"></div>
+<div class="absolute -bottom-1 -right-1 bg-[#101522] rounded-full p-0.5">
+<div class="size-3 rounded-full bg-gray-500 border-2 border-[#101522]"></div>
+</div>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-white">@david_k</span>
+<span class="text-xs text-gray-500">Reputation: Low</span>
+</div>
+<span class="ml-auto text-xs text-gray-500">2m ago</span>
+</div>
+<!-- Content Body -->
+<div class="flex-1 flex flex-col">
+<div class="relative aspect-video w-full bg-black/50 group cursor-pointer overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center transform transition-transform duration-500 group-hover:scale-105" data-alt="Meme image with text overlay" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBk28tNGDDQQcBOIVi8IoNNBkOsbEpf-XNY_zG0vEjvU-0hfDFkUt4az6l-CoBGa9aUFJg2RKa3_yzU6y3mHC8I_ehNm-cWN0qUOtM3_6ml2eYLBiPTYtVn-i0y9asFVbPMcIkQkAi8RAWxaTsnc-BW7DoK4lHvXOn7htqyhUgIrS5B63lj-o6ae1pHsjLCm9iCXElFwjxYaKufz5LvTsiGmZUXcT_WVmaXl2NViZNeVhTeo4Xd69HB-5mbdH8wtLfE9AjFh3UzK94')"></div>
+<!-- Hover overlay for detailed view -->
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<span class="bg-black/60 text-white px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-sm border border-white/10">View Full Size</span>
+</div>
+</div>
+<div class="p-4">
+<p class="text-sm text-gray-300 leading-relaxed">Check out this hilarious meme I found! 😂 #funny #crypto</p>
+</div>
+</div>
+<!-- Reports/Context -->
+<div class="px-4 pb-2">
+<div class="flex items-center gap-2 text-xs text-danger font-medium bg-danger/10 p-2 rounded-lg border border-danger/10">
+<span class="material-symbols-outlined text-[16px] fill-current">flag</span>
+                            Reported by 12 users (Spam)
+                        </div>
+</div>
+<!-- Actions Footer -->
+<div class="p-4 mt-auto flex gap-3 border-t border-glass-border bg-white/[0.02]">
+<button class="flex-1 group/btn flex items-center justify-center gap-2 bg-danger/10 hover:bg-danger text-danger hover:text-white h-11 rounded-xl transition-all duration-200 border border-danger/20 hover:border-danger hover:shadow-[0_0_20px_rgba(239,68,68,0.4)]">
+<span class="material-symbols-outlined text-[22px]">close</span>
+<span class="font-medium">Reject</span>
+</button>
+<button class="flex-1 group/btn flex items-center justify-center gap-2 bg-success/10 hover:bg-success text-success hover:text-white h-11 rounded-xl transition-all duration-200 border border-success/20 hover:border-success hover:shadow-[0_0_20px_rgba(11,218,98,0.4)]">
+<span class="material-symbols-outlined text-[22px]">check</span>
+<span class="font-medium">Approve</span>
+</button>
+</div>
+</div>
+<!-- Card 2: Text Post -->
+<div class="glass-card rounded-2xl flex flex-col overflow-hidden group/card">
+<!-- Header -->
+<div class="p-4 flex items-center gap-3 border-b border-glass-border bg-white/[0.02]">
+<div class="relative">
+<div class="size-10 rounded-full bg-cover bg-center" data-alt="User avatar female" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAUVDWnlSJY96e4Ea8Zusl5y9KyJ8n4qnKUzxC3WF0WzDBh758HQAKgkNBy8G9lvW0kSZ6a8Zm99cRLJtmYanDw0VrqTz02jssl9uwFeLsU0Jdw-9Y8JjfT5BmbDtND7SXgAlD55ACdmxTIta6FkR08WDODHGBnmF4bpiqPfTwsXjoSvGDpXylpoyPPubIQMEBH8Ur_Qx2fzeBE034bKy6DEus-rH9Nou1NCmqQfj-T3Uc8wDZ5LlFJR7jeKlDlobE-_RMHYR4WJ6U')"></div>
+<div class="absolute -bottom-1 -right-1 bg-[#101522] rounded-full p-0.5">
+<div class="size-3 rounded-full bg-success border-2 border-[#101522]"></div>
+</div>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-white">@sarah_writes</span>
+<span class="text-xs text-success">Reputation: High</span>
+</div>
+<span class="ml-auto text-xs text-gray-500">5m ago</span>
+</div>
+<!-- Content Body -->
+<div class="flex-1 flex flex-col p-5">
+<h3 class="text-white font-bold mb-2">My thoughts on the new policy update</h3>
+<p class="text-sm text-gray-400 leading-relaxed line-clamp-4">
+                            I've been reviewing the latest community guidelines and I think there's a huge gap in how we address AI-generated content. If we don't put stricter labels on it, the authenticity of this platform is going to tank. Here is my proposal for a better system...
+                        </p>
+<button class="text-primary text-xs font-bold mt-2 hover:underline self-start">Read more</button>
+</div>
+<!-- Reports/Context -->
+<div class="px-4 pb-2">
+<div class="flex items-center gap-2 text-xs text-gray-400 bg-white/5 p-2 rounded-lg border border-white/5">
+<span class="material-symbols-outlined text-[16px]">info</span>
+                            Automated flag: Keywords (AI, Policy)
+                        </div>
+</div>
+<!-- Actions Footer -->
+<div class="p-4 mt-auto flex gap-3 border-t border-glass-border bg-white/[0.02]">
+<button class="flex-1 group/btn flex items-center justify-center gap-2 bg-danger/10 hover:bg-danger text-danger hover:text-white h-11 rounded-xl transition-all duration-200 border border-danger/20 hover:border-danger hover:shadow-[0_0_20px_rgba(239,68,68,0.4)]">
+<span class="material-symbols-outlined text-[22px]">close</span>
+</button>
+<button class="size-11 flex items-center justify-center rounded-xl bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-colors border border-white/10" title="More Actions">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+<button class="flex-1 group/btn flex items-center justify-center gap-2 bg-success/10 hover:bg-success text-success hover:text-white h-11 rounded-xl transition-all duration-200 border border-success/20 hover:border-success hover:shadow-[0_0_20px_rgba(11,218,98,0.4)]">
+<span class="material-symbols-outlined text-[22px]">check</span>
+</button>
+</div>
+</div>
+<!-- Card 3: Video Post -->
+<div class="glass-card rounded-2xl flex flex-col overflow-hidden group/card">
+<!-- Header -->
+<div class="p-4 flex items-center gap-3 border-b border-glass-border bg-white/[0.02]">
+<div class="relative">
+<div class="size-10 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center text-xs font-bold text-white">G</div>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-white">@gamer_x_99</span>
+<span class="text-xs text-gray-500">Reputation: Neutral</span>
+</div>
+<span class="ml-auto text-xs text-gray-500">12m ago</span>
+</div>
+<!-- Content Body -->
+<div class="flex-1 flex flex-col">
+<div class="relative aspect-video w-full bg-black/50 group cursor-pointer overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center opacity-80" data-alt="Video game screenshot thumbnail" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAL8BRqFjyCb1UICOZWVYoX1wsVNZsSW5WvjZ8cYcWjwOleWnTLuo5oKOutk903un1TNFHIg-yWARLj03rA3A8Iaju572Vr3G4lFHAkGorLc4IFdDfasaRyiaXx1AE_1Gnuo-kL1FpwCO0VCHb5lv3AdkqtdDVEeX0fxdZRIz-3xc6LjqFdSyJZ5A0X6OFXhuhPak7VTnaADNyaZLrElnAmdNeyFs1QX_4G06OkZOzeconaztTSWZgn3GS9sq_3z8WSWjd-Ycc_pSY')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="size-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-white text-[28px] fill-current">play_arrow</span>
+</div>
+</div>
+<span class="absolute bottom-2 right-2 bg-black/70 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">0:45</span>
+</div>
+<div class="p-4">
+<p class="text-sm text-gray-300">New high score run! Is this glitch allowed? 🤔</p>
+</div>
+</div>
+<!-- Reports/Context -->
+<div class="px-4 pb-2">
+<div class="flex items-center gap-2 text-xs text-success font-medium bg-success/10 p-2 rounded-lg border border-success/10">
+<span class="material-symbols-outlined text-[16px]">verified_user</span>
+                            User is verified
+                        </div>
+</div>
+<!-- Actions Footer -->
+<div class="p-4 mt-auto flex gap-3 border-t border-glass-border bg-white/[0.02]">
+<button class="flex-1 group/btn flex items-center justify-center gap-2 bg-danger/10 hover:bg-danger text-danger hover:text-white h-11 rounded-xl transition-all duration-200 border border-danger/20 hover:border-danger hover:shadow-[0_0_20px_rgba(239,68,68,0.4)]">
+<span class="material-symbols-outlined text-[22px]">close</span>
+<span class="font-medium">Reject</span>
+</button>
+<button class="flex-1 group/btn flex items-center justify-center gap-2 bg-success/10 hover:bg-success text-success hover:text-white h-11 rounded-xl transition-all duration-200 border border-success/20 hover:border-success hover:shadow-[0_0_20px_rgba(11,218,98,0.4)]">
+<span class="material-symbols-outlined text-[22px]">check</span>
+<span class="font-medium">Approve</span>
+</button>
+</div>
+</div>
+<!-- Card 4: Link/Spam Post -->
+<div class="glass-card rounded-2xl flex flex-col overflow-hidden group/card relative border-danger/30">
+<!-- Status Indicator -->
+<div class="absolute top-4 right-4 z-10 flex gap-2">
+<span class="bg-danger/80 backdrop-blur-md text-white text-xs font-bold px-2 py-1 rounded-md border border-white/10 flex items-center gap-1 shadow-lg shadow-danger/20">
+<span class="material-symbols-outlined text-[14px]">block</span> Banned URL
+                       </span>
+</div>
+<!-- Header -->
+<div class="p-4 flex items-center gap-3 border-b border-glass-border bg-white/[0.02]">
+<div class="relative">
+<div class="size-10 rounded-full bg-cover bg-center grayscale" data-alt="User avatar male" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBZaO6yDGhzywSunjx2nkrjTQhJfKvlDTHLc3OgxzxWlc8fK7Bnx7S6zZy6o5__hS2kGrSjNipzl7_a8gWYCPN6S-wco3ZX5jfEcm65PwL-bJcwZRDAJxIQkh9NRtIZ8ExP4I-Qndga01A5PuuW9cYFXOPwPyw8-zIqL1rB3l_F1eJQWDwIyGq_lRLEE0Tfn8ZMRoX_aeti7-X6pdXqzTyNuzVl1nuUYOwAA23Q7NBEDOwvYlTxDdKsHP2PjfEbDSfrjQX6QG5-U10')"></div>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-white">@crypto_king_22</span>
+<span class="text-xs text-danger">Reputation: Very Low</span>
+</div>
+<span class="ml-auto text-xs text-gray-500">15m ago</span>
+</div>
+<!-- Content Body -->
+<div class="flex-1 flex flex-col p-5">
+<p class="text-sm text-gray-300 mb-3">Guaranteed returns! 🚀 Multiply your investment in 24 hours. Click here immediately before it's gone!</p>
+<div class="rounded-lg bg-black/40 border border-white/5 p-3 flex items-center gap-3 hover:bg-white/5 transition-colors cursor-pointer group/link">
+<div class="size-10 rounded bg-blue-500/20 flex items-center justify-center flex-shrink-0 text-blue-400">
+<span class="material-symbols-outlined">link</span>
+</div>
+<div class="flex flex-col overflow-hidden">
+<span class="text-xs text-blue-400 font-medium truncate group-hover/link:underline">http://bit.ly/scam-link-detected</span>
+<span class="text-[10px] text-gray-500 uppercase tracking-wide">External Link</span>
+</div>
+</div>
+</div>
+<!-- Reports/Context -->
+<div class="px-4 pb-2">
+<div class="flex items-center gap-2 text-xs text-danger font-medium bg-danger/10 p-2 rounded-lg border border-danger/10">
+<span class="material-symbols-outlined text-[16px] fill-current">flag</span>
+                           Reported by 45 users
+                       </div>
+</div>
+<!-- Actions Footer -->
+<div class="p-4 mt-auto flex gap-3 border-t border-glass-border bg-white/[0.02]">
+<button class="flex-1 group/btn flex items-center justify-center gap-2 bg-danger hover:bg-red-600 text-white shadow-lg shadow-danger/20 h-11 rounded-xl transition-all duration-200">
+<span class="material-symbols-outlined text-[22px]">gavel</span>
+<span class="font-medium">Ban User</span>
+</button>
+<button class="size-11 flex-shrink-0 flex items-center justify-center rounded-xl bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-colors border border-white/10">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+</div>
+<!-- Card 5: Discussion Post -->
+<div class="glass-card rounded-2xl flex flex-col overflow-hidden group/card">
+<!-- Header -->
+<div class="p-4 flex items-center gap-3 border-b border-glass-border bg-white/[0.02]">
+<div class="relative">
+<div class="size-10 rounded-full bg-cover bg-center" data-alt="User avatar female" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBjKg1bTQj46j9cWSeb3MfgM9a5jNT2ez9eG9TrSUARCWP8djf6yi06GTTaDu17hhhGhn7zSp5-I6xlnebj2D8FnF2BqIg8tmNQ92GOpLPjhUXfb37KR7hYh_glum1lv0s0M-L1Z6O4O2ywidqit66hCi98GUIX40LfpltaD0rP2zg-DsCoDN838ExURjWhPWUXnRWb8PZptCyXElA8rdUcJB84UBxFRvyJRxlvAKWLEAB2_jmFXjEPe99eaJCEXa4z2NY0x-dqzUI')"></div>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-white">@emily_rose</span>
+<span class="text-xs text-gray-500">Reputation: Good</span>
+</div>
+<span class="ml-auto text-xs text-gray-500">22m ago</span>
+</div>
+<!-- Content Body -->
+<div class="flex-1 flex flex-col p-5">
+<p class="text-sm text-gray-300 leading-relaxed">
+                           Can we talk about the UI changes? I feel like the contrast is a bit too low on the dark mode settings. Anyone else having trouble reading the small print?
+                       </p>
+</div>
+<!-- Reports/Context -->
+<div class="px-4 pb-2">
+<div class="flex items-center gap-2 text-xs text-gray-400 bg-white/5 p-2 rounded-lg border border-white/5">
+<span class="material-symbols-outlined text-[16px]">history</span>
+                           User has 0 previous violations
+                       </div>
+</div>
+<!-- Actions Footer -->
+<div class="p-4 mt-auto flex gap-3 border-t border-glass-border bg-white/[0.02]">
+<button class="flex-1 group/btn flex items-center justify-center gap-2 bg-danger/10 hover:bg-danger text-danger hover:text-white h-11 rounded-xl transition-all duration-200 border border-danger/20 hover:border-danger hover:shadow-[0_0_20px_rgba(239,68,68,0.4)]">
+<span class="material-symbols-outlined text-[22px]">close</span>
+</button>
+<button class="flex-1 group/btn flex items-center justify-center gap-2 bg-success/10 hover:bg-success text-success hover:text-white h-11 rounded-xl transition-all duration-200 border border-success/20 hover:border-success hover:shadow-[0_0_20px_rgba(11,218,98,0.4)]">
+<span class="material-symbols-outlined text-[22px]">check</span>
+<span class="font-medium">Approve</span>
+</button>
+</div>
+</div>
+<!-- Card 6: Gallery Post -->
+<div class="glass-card rounded-2xl flex flex-col overflow-hidden group/card">
+<!-- Header -->
+<div class="p-4 flex items-center gap-3 border-b border-glass-border bg-white/[0.02]">
+<div class="relative">
+<div class="size-10 rounded-full bg-cover bg-center" data-alt="User avatar male" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA4GNJv7U6I7HzWSF6YTXp2zMyU-wNYEBnAK6QguQJdCm369Frgs2nmxB8KDSj_vqtbjCCcHYVc6gLvjP2Pan9kzRqV73GVDcjzQ3wto0fvmr-dsioDigubZxVpHYdyNw8vXqEr9PvoPtK-JNdt5Mqu7XYJnhffqsCAVNLWFWZLKm0BcYgZNsBzCUT67BppsoFOOjgn69Dqa7FPKTqiEVLyRHiTUXywD0zdOkxhXDKKzNkwA66cbQGFXzXf72nclD_eCah2IM9PIPI')"></div>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-white">@travel_mike</span>
+<span class="text-xs text-gray-500">Reputation: Neutral</span>
+</div>
+<span class="ml-auto text-xs text-gray-500">30m ago</span>
+</div>
+<!-- Content Body -->
+<div class="flex-1 flex flex-col">
+<div class="grid grid-cols-2 gap-0.5 h-48 w-full bg-black/50 group cursor-pointer overflow-hidden">
+<div class="bg-cover bg-center" data-alt="Swiss alps landscape" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCLRjYMd7OTHbTY3DS6Ai1OEiy5DWC3c_4wQX2nQGmjLxD0MS4l4jFIgau0QpIRMNa4cQV6wafYU2TyGCpm4X1vWGcSri-e0aAHVXkRSHJ4Dxy2pwBeXOyMCwkk1cv-V45pNwv6FdT1fQ_LTTJaVPpX9U5K7eqT4gbgE3VwdJSgv8wyG8Jo-FMoSH7lXvMG1NOsmqHjIYo8V_7Zayhd0Ballm8tSAqxof7Ni5d6cysiix4TdiNQ3C5PjJDCZm3B0RXKHCJMq_kR7mA')"></div>
+<div class="bg-cover bg-center relative" data-alt="Forest hiking trail" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAKCKo5fp4QEeEE9_3uKVcArvT2rlPfkKpslY4j85DESiSOuF73RmhcX5EnByIjrmYtA7jguh9jmJQ21kGPhDAiSLCLlHJOXbgxoiJ7fh2_uV-iTSBHPDSGV3X4e3PfNNfWbRupaOPGARtYQtfB_EPwQZrr3UbjdRxA1kotdwFB8uUpLwu2cth6tyf4ngfADz2G_Jl4o1wFC-2VCOtxPuy09L4kEyUsP4y0mk2sLb3XjT-AIxQlzCC5jFTk6icMggIvP8Zopi70f34')">
+<div class="absolute inset-0 bg-black/50 flex items-center justify-center">
+<span class="text-white font-bold text-lg">+2</span>
+</div>
+</div>
+</div>
+<div class="p-4">
+<p class="text-sm text-gray-300">Hiking trip to the Alps! The views were insane. 🏔️</p>
+</div>
+</div>
+<!-- Reports/Context -->
+<div class="px-4 pb-2">
+<div class="flex items-center gap-2 text-xs text-gray-400 bg-white/5 p-2 rounded-lg border border-white/5">
+<span class="material-symbols-outlined text-[16px]">visibility</span>
+                       Public post
+                   </div>
+</div>
+<!-- Actions Footer -->
+<div class="p-4 mt-auto flex gap-3 border-t border-glass-border bg-white/[0.02]">
+<button class="flex-1 group/btn flex items-center justify-center gap-2 bg-danger/10 hover:bg-danger text-danger hover:text-white h-11 rounded-xl transition-all duration-200 border border-danger/20 hover:border-danger hover:shadow-[0_0_20px_rgba(239,68,68,0.4)]">
+<span class="material-symbols-outlined text-[22px]">close</span>
+<span class="font-medium">Reject</span>
+</button>
+<button class="flex-1 group/btn flex items-center justify-center gap-2 bg-success/10 hover:bg-success text-success hover:text-white h-11 rounded-xl transition-all duration-200 border border-success/20 hover:border-success hover:shadow-[0_0_20px_rgba(11,218,98,0.4)]">
+<span class="material-symbols-outlined text-[22px]">check</span>
+<span class="font-medium">Approve</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Load More -->
+<div class="mt-8 flex justify-center pb-8">
+<button class="flex items-center gap-2 text-gray-400 hover:text-white px-6 py-3 rounded-xl hover:bg-white/5 transition-all text-sm font-medium">
+<span class="material-symbols-outlined animate-spin" style="font-size: 20px;">progress_activity</span>
+                    Loading more items...
+                </button>
+</div>
+</div>
+<!-- Keyboard Shortcuts Hint (Floating) -->
+<div class="absolute bottom-6 right-8 hidden lg:flex items-center gap-4 bg-black/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-2xl z-30 pointer-events-none">
+<span class="text-xs text-gray-400 font-medium">Shortcuts:</span>
+<div class="flex items-center gap-2">
+<kbd class="hidden sm:inline-block rounded bg-white/10 px-2 py-0.5 text-[10px] font-bold text-gray-300 font-mono">A</kbd>
+<span class="text-[10px] text-gray-500">Approve</span>
+</div>
+<div class="flex items-center gap-2">
+<kbd class="hidden sm:inline-block rounded bg-white/10 px-2 py-0.5 text-[10px] font-bold text-gray-300 font-mono">R</kbd>
+<span class="text-[10px] text-gray-500">Reject</span>
+</div>
+</div>
+</main>
+</body></html>

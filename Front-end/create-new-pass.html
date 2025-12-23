@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Set New Password - Social Platform</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#215bed",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101522",
+                        "surface-dark": "#1a1f2e",
+                        "surface-glass": "rgba(30, 35, 50, 0.7)",
+                        "success": "#10b981",
+                        "warning": "#f59e0b",
+                        "error": "#ef4444",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "2xl": "2rem", "full": "9999px" },
+                    backdropBlur: {
+                        xs: '2px',
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #111318;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #282d39;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b4254;
+        }
+
+        .glass-panel {
+            background: rgba(30, 35, 50, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .input-dark {
+            background-color: #111318 !important; /* Force dark background */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white !important;
+            transition: all 0.2s;
+        }
+
+        .input-dark:focus {
+            border-color: #215bed;
+            box-shadow: 0 0 0 2px rgba(33, 91, 237, 0.2);
+            outline: none;
+            background-color: #161b27 !important; /* Slightly lighter on focus */
+        }
+
+        /* Fix Autocomplete/Autofill to match theme */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:active{
+            -webkit-box-shadow: 0 0 0 30px #111318 inset !important;
+            -webkit-text-fill-color: white !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
+        .check-circle {
+            transition: all 0.3s ease;
+        }
+
+        .valid .check-circle {
+            background-color: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
+
+        .invalid .check-circle {
+            background-color: transparent;
+            border-color: rgba(255, 255, 255, 0.2);
+            color: transparent;
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-[#111318] dark:text-white font-display overflow-y-auto">
+    <div class="flex min-h-screen w-full relative items-center justify-center p-4 py-8">
+        <div class="fixed top-0 left-0 w-full h-full pointer-events-none z-0 overflow-hidden">
+            <div
+                class="absolute top-[-10%] left-[20%] w-[50%] h-[50%] bg-primary/20 rounded-full blur-[120px] opacity-40 mix-blend-screen animate-pulse">
+            </div>
+            <div
+                class="absolute bottom-[-10%] right-[20%] w-[40%] h-[40%] bg-purple-600/20 rounded-full blur-[100px] opacity-30 mix-blend-screen">
+            </div>
+            <div
+                class="absolute top-[40%] left-[10%] w-[20%] h-[20%] bg-blue-400/10 rounded-full blur-[80px] opacity-20 mix-blend-screen">
+            </div>
+        </div>
+        <main class="w-full max-w-[480px] relative z-10 flex flex-col gap-6">
+            <div class="glass-panel rounded-2xl p-8 md:p-10 flex flex-col gap-8">
+                <div class="flex flex-col items-center text-center gap-4">
+                    <div
+                        class="size-14 rounded-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center justify-center shadow-lg shadow-black/20">
+                        <span class="material-symbols-outlined text-3xl text-primary">lock_reset</span>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight">Set new password</h1>
+                        <p class="text-white/50 text-sm md:text-base leading-relaxed">
+                            Your new password must be different from previously used passwords.
+                        </p>
+                    </div>
+                </div>
+                <form class="flex flex-col gap-5" onsubmit="event.preventDefault(); handleResetPassword();">
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-bold text-white/70 uppercase tracking-wider ml-1">New
+                            Password</label>
+                        <div class="relative group">
+                            <span
+                                class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-primary transition-colors">key</span>
+                            <input
+                                class="w-full rounded-lg pl-11 pr-10 py-3.5 input-dark placeholder-white/20 text-sm font-medium"
+                                id="password" placeholder="Create a strong password" type="password" />
+                            <button
+                                class="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors"
+                                type="button" onclick="togglePassword('password', this)">
+                                <span class="material-symbols-outlined text-[20px]">visibility_off</span>
+                            </button>
+                        </div>
+                        <div id="strength-bars" class="flex gap-1.5 mt-1">
+                            <div class="h-1 rounded-full flex-1 bg-white/10 transition-colors duration-300"></div>
+                            <div class="h-1 rounded-full flex-1 bg-white/10 transition-colors duration-300"></div>
+                            <div class="h-1 rounded-full flex-1 bg-white/10 transition-colors duration-300"></div>
+                            <div class="h-1 rounded-full flex-1 bg-white/10 transition-colors duration-300"></div>
+                        </div>
+                        <p id="strength-text" class="text-xs text-white/40 font-medium text-right mt-0.5">Enter Password</p>
+                    </div>
+                    <div class="bg-white/[0.02] border border-white/5 rounded-lg p-4 flex flex-col gap-3">
+                        <p class="text-xs font-semibold text-white/40 mb-1">PASSWORD MUST CONTAIN:</p>
+                        <div id="check-length" class="flex items-center gap-3 text-white/40">
+                            <div
+                                class="size-4 rounded-full border border-current flex items-center justify-center check-circle">
+                                <span class="material-symbols-outlined text-[10px] font-bold">check</span>
+                            </div>
+                            <span class="text-xs font-medium">At least 8 characters</span>
+                        </div>
+                        <div id="check-number" class="flex items-center gap-3 text-white/40">
+                            <div
+                                class="size-4 rounded-full border border-current flex items-center justify-center check-circle">
+                                <span class="material-symbols-outlined text-[10px] font-bold">check</span>
+                            </div>
+                            <span class="text-xs font-medium">Contains a number</span>
+                        </div>
+                        <div id="check-symbol" class="flex items-center gap-3 text-white/40">
+                            <div
+                                class="size-4 rounded-full border border-current flex items-center justify-center check-circle">
+                                <span class="material-symbols-outlined text-[10px] font-bold">check</span>
+                            </div>
+                            <span class="text-xs font-medium">Contains a special symbol</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-bold text-white/70 uppercase tracking-wider ml-1">Confirm
+                            Password</label>
+                        <div class="relative group">
+                            <span
+                                class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-primary transition-colors">lock</span>
+                            <input
+                                class="w-full rounded-lg pl-11 pr-10 py-3.5 input-dark placeholder-white/20 text-sm font-medium"
+                                id="confirm-password" placeholder="Confirm your new password" type="password" />
+                            <button
+                                class="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors"
+                                type="button" onclick="togglePassword('confirm-password', this)">
+                                <span class="material-symbols-outlined text-[20px]">visibility_off</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="pt-2">
+                        <button type="submit"
+                            class="w-full bg-primary hover:bg-blue-600 text-white font-bold py-3.5 rounded-lg shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group">
+                            <span>Reset Password</span>
+                            <span
+                                class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                        </button>
+                    </div>
+                </form>
+                <div class="text-center border-t border-white/5 pt-6">
+                    <a class="inline-flex items-center gap-2 text-sm font-medium text-white/40 hover:text-white transition-colors group"
+                        href="#">
+                        <span
+                            class="material-symbols-outlined text-[16px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
+                        Back to Log In
+                    </a>
+                </div>
+            </div>
+            <div class="text-center">
+                <p class="text-xs text-white/20 font-medium">© 2024 SocialNexus. Secure Checkpoint.</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:8000/api';
+
+        // Toggle Password Visibility
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('span');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.textContent = 'visibility';
+            } else {
+                input.type = 'password';
+                icon.textContent = 'visibility_off';
+            }
+        }
+
+        // Password Validation Logic
+        const passwordInput = document.getElementById('password');
+        const checkLength = document.getElementById('check-length');
+        const checkNumber = document.getElementById('check-number');
+        const checkSymbol = document.getElementById('check-symbol');
+        const strengthBars = document.querySelectorAll('#strength-bars div');
+        const strengthText = document.getElementById('strength-text');
+
+        function updateCheckItem(element, isValid) {
+            if (isValid) {
+                element.classList.remove('text-white/40');
+                element.classList.add('text-white/80', 'valid');
+                element.querySelector('.check-circle').style.backgroundColor = '#10b981'; // Green
+                element.querySelector('.check-circle').style.borderColor = '#10b981';
+                element.querySelector('.check-circle').style.color = 'white';
+            } else {
+                element.classList.remove('text-white/80', 'valid');
+                element.classList.add('text-white/40');
+                element.querySelector('.check-circle').style.backgroundColor = 'transparent';
+                element.querySelector('.check-circle').style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                element.querySelector('.check-circle').style.color = 'transparent';
+            }
+        }
+
+        function updateStrengthMeter(val, length, number, symbol) {
+            let score = 0;
+            if (length) score++; // At least 8 chars
+            if (number) score++; // Has number
+            if (symbol) score++; // Has symbol
+            if (val.length >= 12) score++; // Extra point for 12+ chars
+
+            // Reset all bars
+            strengthBars.forEach(bar => {
+                bar.className = 'h-1 rounded-full flex-1 bg-white/10 transition-colors duration-300';
+            });
+            strengthText.className = 'text-xs font-medium text-right mt-0.5 transition-colors duration-300 text-white/40';
+
+            let colorClass = 'bg-white/10';
+            let text = 'Weak';
+            let textClass = 'text-error';
+
+            if (val.length === 0) {
+                strengthText.textContent = 'Enter Password';
+                return;
+            }
+
+            if (score <= 1) {
+                colorClass = 'bg-error'; // Red
+                text = 'Weak';
+                textClass = 'text-error';
+            } else if (score === 2) {
+                colorClass = 'bg-warning'; // Yellow/Orange
+                text = 'Fair';
+                textClass = 'text-warning';
+            } else if (score === 3) {
+                colorClass = 'bg-blue-400'; // Blue
+                text = 'Good';
+                textClass = 'text-blue-400';
+            } else if (score >= 4) {
+                colorClass = 'bg-success'; // Green
+                text = 'Strong';
+                textClass = 'text-success';
+            }
+
+            // Fill bars based on score
+            for (let i = 0; i < Math.max(1, score); i++) {
+                 if (i < 4) strengthBars[i].classList.remove('bg-white/10');
+                 if (i < 4) strengthBars[i].classList.add(colorClass.replace('bg-', 'bg-')); // Doing this to ensure it works, but direct class works too using tailwind colors
+            }
+
+            // Apply specific colors manually since class names might be variable
+            // Tailwind arbitrary values or defined colors in config
+            // Simple mapping:
+             strengthBars.forEach((bar, index) => {
+                if (index < score || (score === 0 && index === 0 && val.length > 0)) {
+                    bar.classList.remove('bg-white/10');
+                    bar.classList.add(colorClass); 
+                }
+             });
+
+            strengthText.textContent = text;
+            strengthText.classList.remove('text-white/40');
+            strengthText.classList.add(textClass);
+        }
+
+        passwordInput.addEventListener('input', function() {
+            const val = this.value;
+            
+            // Checks
+            const hasLength = val.length >= 8;
+            const hasNumber = /\d/.test(val);
+            const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(val);
+
+            updateCheckItem(checkLength, hasLength);
+            updateCheckItem(checkNumber, hasNumber);
+            updateCheckItem(checkSymbol, hasSymbol);
+
+            updateStrengthMeter(val, hasLength, hasNumber, hasSymbol);
+        });
+
+        // Handle Form Submission
+        async function handleResetPassword() {
+            // Get URL params
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            const email = urlParams.get('email');
+
+            if (!token || !email) {
+                alert('Invalid reset link. Please request a new password reset.');
+                return;
+            }
+
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const btn = document.querySelector('button[type="submit"]'); // Assuming button is type submit in form
+            const btnText = btn.querySelector('span:first-child');
+
+            if (!password || !confirmPassword) {
+                alert('Please fill in all fields.');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                alert('Passwords do not match.');
+                return;
+            }
+
+            if (password.length < 6) {
+                alert('Password must be at least 6 characters.');
+                return;
+            }
+
+            // Loading state
+            const originalText = btnText.textContent;
+            btnText.textContent = 'Resetting...';
+            btn.disabled = true;
+
+            let isSuccess = false;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/reset_password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        token: token,
+                        password: password,
+                        password_confirmation: confirmPassword
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    isSuccess = true;
+                    alert('Password reset successful! Redirecting to login...');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 1500);
+                } else {
+                    alert(data.message || 'Failed to reset password.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            } finally {
+                if (!isSuccess) {
+                    btnText.textContent = originalText;
+                    btn.disabled = false;
+                }
+            }
+        }
+
+        // Attach to form is handled by inline onsubmit
+
+    </script>
+</body>
+
+</html>

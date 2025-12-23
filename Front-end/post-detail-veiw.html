@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SocialApp - Post Detail</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3b82f6", 
+                        "primary-hover": "#2563eb",
+                        "accent-purple": "#8b5cf6",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#0f111a",
+                        "surface-dark": "#161b27",
+                        "glass-border": "rgba(255, 255, 255, 0.08)",
+                        "secondary-text": "#9da5b9"
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "0.75rem", "xl": "1rem", "2xl": "1.5rem", "3xl": "2rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #282d39; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3e4556; }
+        .glass-panel {
+            background: linear-gradient(145deg, rgba(28, 32, 45, 0.6) 0%, rgba(20, 24, 34, 0.8) 100%);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+        .glass-nav {
+             background: rgba(15, 17, 26, 0.8);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+    </style>
+</head>
+<body class="bg-background-dark font-display text-white min-h-screen flex flex-col overflow-x-hidden selection:bg-primary/30">
+<!-- Top Navigation -->
+<header class="glass-nav sticky top-0 z-50">
+ <div class="px-4 md:px-10 py-4 flex items-center justify-between whitespace-nowrap">
+        <div class="flex items-center gap-3 cursor-pointer group select-none" onclick="window.location.href='homefeed-dashboard.html'">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center text-white shadow-lg">
+                <span class="material-symbols-outlined text-[26px]">token</span>
+            </div>
+            <div class="hidden md:flex flex-col">
+                <span class="text-xl font-bold tracking-tight text-white leading-none">Social</span>
+                <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-widest leading-none mt-1">Detail View</span>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-4">
+             <button id="logout-btn" class="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center text-slate-300 hover:text-red-400 transition-all btn-icon-hover" title="Logout">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0, 'wght' 300;">logout</span>
+            </button>
+             <div class="w-px h-8 bg-glass-border mx-1"></div>
+             <div class="flex items-center gap-3 pl-1 cursor-pointer">
+                <img id="nav-user-avatar" alt="Profile" class="w-10 h-10 rounded-full border-2 border-[#101522] object-cover" src="https://ui-avatars.com/api/?name=User&background=random"/>
+             </div>
+        </div>
+ </div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 relative flex justify-center py-8 px-4 md:px-0">
+    <!-- Ambient Background Glows -->
+    <div class="fixed top-[20%] left-[10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
+    <div class="fixed bottom-[10%] right-[10%] w-[400px] h-[400px] bg-purple-500/5 rounded-full blur-[100px] pointer-events-none z-0"></div>
+
+    <!-- Central Card Container -->
+    <div class="relative w-full max-w-[840px] z-10 flex flex-col gap-6">
+        <!-- Breadcrumbs / Back -->
+        <div class="flex items-center gap-2 text-secondary-text hover:text-white cursor-pointer transition-colors px-2" onclick="window.location.href='homefeed-dashboard.html'">
+            <span class="material-symbols-outlined text-sm">arrow_back</span>
+            <span class="text-sm font-medium">Back to Feed</span>
+        </div>
+
+        <!-- Post Card -->
+        <article class="glass-panel rounded-2xl shadow-2xl overflow-hidden flex flex-col" id="post-card">
+              <div class="flex justify-center p-12"><span class="material-symbols-outlined animate-spin text-4xl text-primary">progress_activity</span></div>
+              <!-- Content injected via JS -->
+        </article>
+
+        <!-- Comments Section -->
+        <section class="glass-panel rounded-2xl p-6 relative">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-white text-lg font-bold" id="comments-title">Comments (0)</h3>
+            </div>
+
+            <!-- Sticky Comment Input -->
+            <div class="sticky top-20 z-20 mb-8 -mx-2 px-2 pb-4 bg-[#14161c]/95 backdrop-blur-xl rounded-xl border border-white/5 shadow-lg">
+                <div class="flex gap-4 items-start pt-4">
+                    <img id="current-user-input-avatar" class="size-10 rounded-full bg-cover bg-center shrink-0" src="https://ui-avatars.com/api/?name=User&background=random">
+                    <div class="flex-1">
+                        <div class="relative group">
+                            <textarea id="comment-input" class="w-full bg-[#1c1f27] border border-[#282d39] rounded-xl p-3 text-white placeholder:text-secondary-text focus:ring-2 focus:ring-primary focus:border-transparent min-h-[80px] resize-y transition-shadow text-sm" placeholder="What are your thoughts?"></textarea>
+                            <div class="absolute bottom-3 right-3">
+                                <button id="submit-comment-btn" class="bg-primary hover:bg-blue-600 text-white text-sm font-bold py-1.5 px-4 rounded-lg transition-colors shadow-lg shadow-blue-500/20">Post</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Threaded Comments List -->
+            <div class="space-y-6" id="comments-list">
+                 <div class="flex justify-center py-4"><span class="text-slate-500 text-sm">Loading comments...</span></div>
+            </div>
+            
+            <div class="h-8"></div>
+        </section>
+        
+        <div class="h-10"></div>
+    </div>
+</main>
+<script>
+    const API_BASE_URL = 'http://127.0.0.1:8000/api';
+    const PUBLIC_URL = 'http://127.0.0.1:8000';
+    
+    // Auth & Params
+    const token = localStorage.getItem('auth_token');
+    const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+    const urlParams = new URLSearchParams(window.location.search);
+    const postId = urlParams.get('id');
+
+    if (!token) window.location.href = 'login.html';
+    if (!postId) { alert('No post specified'); window.location.href = 'homefeed-dashboard.html'; }
+
+    // Navigation setup
+    if(userData.name) {
+         document.getElementById('nav-user-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}&background=random`;
+         document.getElementById('current-user-input-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}&background=random`;
+    }
+    document.getElementById('logout-btn').onclick = () => {
+         localStorage.removeItem('auth_token');
+         localStorage.removeItem('user_data');
+         window.location.href = 'login.html';
+    };
+
+    // Load Post
+    async function loadPost() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/get_post`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ id: postId })
+            });
+            const data = await response.json();
+            
+            if(data.success) {
+                renderPost(data.data);
+                loadComments();
+            } else {
+                document.getElementById('post-card').innerHTML = `<div class="p-12 text-center text-red-400">Post not found.</div>`;
+            }
+        } catch(e) {
+            console.error(e);
+            document.getElementById('post-card').innerHTML = `<div class="p-12 text-center text-red-400">Error loading post.</div>`;
+        }
+    }
+
+    function renderPost(post) {
+        const user = post.user || { name: 'Unknown', id: 0 };
+        const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`;
+        const timeAgo = new Date(post.created_at).toLocaleString();
+
+        let attachmentsHTML = '';
+         if (post.attachments && post.attachments.length > 0) {
+            const files = Array.isArray(post.attachments) ? post.attachments : [];
+            if (files.length > 0) {
+                 attachmentsHTML = `<div class="px-6 py-4"><div class="rounded-xl overflow-hidden border border-white/10">`;
+                 const file = files[0];
+                 let src = '';
+                 if (typeof file === 'object' && file.file_path) {
+                    src = `${PUBLIC_URL}/${file.file_path}`;
+                 } else if (typeof file === 'string') {
+                    src = `${PUBLIC_URL}/posts/${file}`;
+                 }
+                 if(src){
+                    attachmentsHTML += `<img class="w-full object-cover" src="${src}" />`;
+                 }
+                 attachmentsHTML += `</div></div>`;
+            }
+        }
+
+        const html = `
+            <div class="p-6 pb-2 flex justify-between items-start">
+                <div class="flex gap-4 items-center">
+                    <div class="relative cursor-pointer" onclick="window.location.href='profile.html?id=${user.id}'">
+                        <div class="w-12 h-12 rounded-full bg-cover bg-center border-2 border-primary/20" style='background-image: url("${avatarUrl}");'></div>
+                    </div>
+                    <div class="flex flex-col">
+                        <div class="flex items-center gap-2">
+                             <h3 class="text-white text-base font-bold hover:underline cursor-pointer" onclick="window.location.href='profile.html?id=${user.id}'">${user.name}</h3>
+                        </div>
+                        <div class="flex items-center gap-2 text-secondary-text text-sm">
+                            <span>@user${user.id}</span>
+                            <span class="text-[8px] opacity-50">●</span>
+                            <span>${timeAgo}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="px-6 py-2">
+                <p class="text-slate-100 text-lg leading-relaxed font-normal whitespace-pre-line">${post.body}</p>
+            </div>
+            ${attachmentsHTML}
+            <div class="px-6 py-4 border-t border-white/5 bg-white/[0.02]">
+                <div class="flex gap-4">
+                    <button onclick="likePost(${post.id})" class="flex items-center gap-2 group hover:text-red-400 transition-colors">
+                        <span class="material-symbols-outlined text-secondary-text group-hover:text-red-400">favorite</span>
+                        <span class="text-secondary-text font-bold text-sm group-hover:text-red-400">Like</span>
+                    </button>
+                    <!-- Share etc... -->
+                </div>
+            </div>
+        `;
+        document.getElementById('post-card').innerHTML = html;
+    }
+
+    async function loadComments() {
+         try {
+            const response = await fetch(`${API_BASE_URL}/get_comment`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ post_id: postId })
+            });
+            const data = await response.json();
+            
+            const list = document.getElementById('comments-list');
+            list.innerHTML = '';
+            
+            if(data.success && data.data && data.data.length > 0) {
+                 document.getElementById('comments-title').textContent = `Comments (${data.data.length})`;
+                 data.data.forEach(comment => {
+                     list.insertAdjacentHTML('beforeend', createCommentHTML(comment));
+                 });
+            } else {
+                  list.innerHTML = '<div class="text-center text-slate-500 py-4">No comments yet.</div>';
+                  document.getElementById('comments-title').textContent = `Comments (0)`;
+            }
+
+        } catch(e) { console.error(e); }
+    }
+
+    function createCommentHTML(comment) {
+        const user = comment.user || { name: 'Unknown', id: 0 };
+        const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`;
+        const timeAgo = new Date(comment.created_at).toLocaleDateString();
+
+        return `
+            <div class="flex gap-4 group/comment">
+                <div class="flex flex-col items-center gap-2">
+                    <div class="size-10 rounded-full bg-cover bg-center shrink-0 cursor-pointer" onclick="window.location.href='profile.html?id=${user.id}'" style='background-image: url("${avatarUrl}");'></div>
+                    <div class="w-0.5 h-full bg-[#282d39] group-hover/comment:bg-[#3e4556] transition-colors rounded-full mt-1 min-h-[20px]"></div>
+                </div>
+                <div class="flex-1 pb-4">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-white font-bold text-sm cursor-pointer hover:underline" onclick="window.location.href='profile.html?id=${user.id}'">${user.name}</span>
+                        <span class="text-xs text-secondary-text">${timeAgo}</span>
+                    </div>
+                    <p class="text-slate-300 text-sm leading-relaxed mb-3">${comment.content}</p>
+                    <div class="flex items-center gap-4">
+                        <button class="flex items-center gap-1.5 text-secondary-text hover:text-white transition-colors text-xs font-semibold group">
+                            <span class="material-symbols-outlined text-[16px] group-hover:text-primary">thumb_up</span> Like
+                        </button>
+                        <button class="flex items-center gap-1.5 text-secondary-text hover:text-white transition-colors text-xs font-semibold group" onclick="alert('Replies coming soon!')">
+                            <span class="material-symbols-outlined text-[16px] group-hover:text-primary">mode_comment</span> Reply
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Submit Comment
+    document.getElementById('submit-comment-btn').onclick = async () => {
+        const content = document.getElementById('comment-input').value;
+        if(!content) return;
+        const btn = document.getElementById('submit-comment-btn');
+        btn.disabled = true;
+        btn.textContent = 'Posting...';
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/create_comment`, {
+                 method: 'POST',
+                 headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ post_id: postId, content: content })
+            });
+            const data = await response.json();
+            if(data.success) {
+                document.getElementById('comment-input').value = '';
+                loadComments();
+            } else {
+                alert('Failed: ' + data.message);
+            }
+        } catch(e) { console.error(e); } 
+        finally { btn.disabled = false; btn.textContent = 'Post'; }
+    };
+
+    // Like Logic (Simplified)
+    async function likePost(id) {
+         try {
+            await fetch(`${API_BASE_URL}/add_reaction_to_post`, {
+                method: 'POST',
+                 headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ post_id: id, type: 1 })
+            });
+            alert('Liked!');
+        } catch(e) { console.error(e); }
+    }
+
+    loadPost(); // Init
+</script>
+</body></html>

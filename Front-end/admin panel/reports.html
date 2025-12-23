@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Reports Center View</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#215bed",
+                        "primary-glow": "#3b82f6",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101522",
+                        "card-dark": "#161b26",
+                        "accent-red": "#ff4757",
+                        "accent-green": "#2ed573",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "0.75rem", "xl": "1rem", "2xl": "1.5rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #2d3748;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4a5568;
+        }
+
+        /* Glassmorphism utilities */
+        .glass-panel {
+            background: rgba(22, 27, 38, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card {
+            background: rgba(30, 35, 48, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            background: rgba(30, 35, 48, 0.8);
+            border-color: rgba(33, 91, 237, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display antialiased selection:bg-primary selection:text-white overflow-hidden h-screen flex">
+    <!-- Ambient Background Glows -->
+    <div class="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px]"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-purple-600/10 rounded-full blur-[100px]">
+        </div>
+    </div>
+    <!-- Sidebar -->
+    <aside class="relative z-20 hidden lg:flex flex-col w-72 h-full glass-panel border-r-0 border-r-white/5">
+        <div class="p-6 flex flex-col gap-8 h-full">
+            <div class="flex items-center gap-3 px-2">
+                <div class="bg-primary/20 p-2 rounded-xl">
+                    <span class="material-symbols-outlined text-primary"
+                        style="font-size: 28px;">admin_panel_settings</span>
+                </div>
+                <div class="flex flex-col">
+                    <h1 class="text-white text-lg font-bold tracking-tight">Admin Console</h1>
+                    <p class="text-slate-400 text-xs font-medium">Moderation Team</p>
+                </div>
+            </div>
+            <nav class="flex flex-col gap-2 flex-1">
+                <p class="px-4 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Main Menu</p>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors group"
+                    href="#">
+                    <span class="material-symbols-outlined group-hover:text-primary transition-colors">dashboard</span>
+                    <span class="text-sm font-medium">Dashboard</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/10 text-primary border border-primary/20"
+                    href="#">
+                    <span class="material-symbols-outlined">flag</span>
+                    <span class="text-sm font-medium">Reports Center</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors group"
+                    href="#">
+                    <span class="material-symbols-outlined group-hover:text-primary transition-colors">group</span>
+                    <span class="text-sm font-medium">Users</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors group"
+                    href="#">
+                    <span
+                        class="material-symbols-outlined group-hover:text-primary transition-colors">description</span>
+                    <span class="text-sm font-medium">Content Logs</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors group"
+                    href="#">
+                    <span class="material-symbols-outlined group-hover:text-primary transition-colors">analytics</span>
+                    <span class="text-sm font-medium">Analytics</span>
+                </a>
+            </nav>
+            <div class="mt-auto">
+                <div class="glass-card p-4 rounded-xl flex items-center gap-3 mb-4">
+                    <div class="relative">
+                        <div class="size-10 rounded-full bg-cover bg-center border-2 border-primary/30"
+                            data-alt="Admin user profile picture"
+                            style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAec4RxfTaYQAitrpaqh0DeOnjBdeiYxWxMRNTXAuzYIfjILiDbKlfmB6MA1DFK5QpE2gzJvyr-KNPnDAyl5ygiMQKEsqJEdPj5gfd-71IPeeFcZ-udxYtE7y3yYgnhcu6I8T0Ogy211PcWD_xRbh9pqyYOaTWdkYCtHAPpR7qi36eIzoOCdzOIdj_ZBHT7jczYnyh77M3VaEPOpb0rMqxf-73YM2ZB7B9N1czPOtu-y_POInZ-ShcOHQRVsOSw-iKVpEDQpWYAD-g')">
+                        </div>
+                        <div
+                            class="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full border-2 border-[#161b26]">
+                        </div>
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="text-sm font-semibold text-white truncate">Marcus Chen</p>
+                        <p class="text-xs text-slate-400 truncate">Super Admin</p>
+                    </div>
+                    <button class="ml-auto text-slate-400 hover:text-white">
+                        <span class="material-symbols-outlined">logout</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </aside>
+    <!-- Main Content -->
+    <main class="flex-1 relative z-10 flex flex-col h-full overflow-hidden">
+        <!-- Top Navigation / Header -->
+        <header
+            class="h-20 flex items-center justify-between px-6 lg:px-10 border-b border-white/5 glass-panel shrink-0">
+            <div class="flex flex-col">
+                <h2 class="text-xl font-bold text-white tracking-tight">Reports Center</h2>
+                <p class="text-xs text-slate-400">Review and resolve community flagged content.</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <button class="p-2 text-slate-400 hover:text-white rounded-full hover:bg-white/5 transition relative">
+                    <span class="material-symbols-outlined">notifications</span>
+                    <span class="absolute top-2 right-2 size-2 bg-accent-red rounded-full"></span>
+                </button>
+                <div class="h-8 w-px bg-white/10 mx-2"></div>
+                <button class="lg:hidden p-2 text-white">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+            </div>
+        </header>
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto p-6 lg:p-10 scroll-smooth">
+            <div class="max-w-7xl mx-auto space-y-8 pb-10">
+                <!-- Stats Row -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
+                    <div class="glass-card p-5 rounded-2xl flex flex-col relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <span class="material-symbols-outlined text-4xl text-white">report_problem</span>
+                        </div>
+                        <p class="text-slate-400 text-sm font-medium">Pending Reports</p>
+                        <div class="flex items-end gap-3 mt-2">
+                            <p class="text-3xl font-black text-white">12</p>
+                            <span class="text-xs font-bold text-accent-green mb-1.5 flex items-center">
+                                <span class="material-symbols-outlined text-sm mr-0.5">trending_up</span> +2%
+                            </span>
+                        </div>
+                    </div>
+                    <div class="glass-card p-5 rounded-2xl flex flex-col relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <span class="material-symbols-outlined text-4xl text-accent-red">priority_high</span>
+                        </div>
+                        <p class="text-slate-400 text-sm font-medium">High Priority</p>
+                        <div class="flex items-end gap-3 mt-2">
+                            <p class="text-3xl font-black text-white">3</p>
+                            <span class="text-xs font-bold text-accent-green mb-1.5 flex items-center">
+                                <span class="material-symbols-outlined text-sm mr-0.5">trending_down</span> -1%
+                            </span>
+                        </div>
+                    </div>
+                    <div class="glass-card p-5 rounded-2xl flex flex-col relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <span class="material-symbols-outlined text-4xl text-primary">check_circle</span>
+                        </div>
+                        <p class="text-slate-400 text-sm font-medium">Resolved Today</p>
+                        <div class="flex items-end gap-3 mt-2">
+                            <p class="text-3xl font-black text-white">145</p>
+                            <span class="text-xs font-bold text-accent-green mb-1.5 flex items-center">
+                                <span class="material-symbols-outlined text-sm mr-0.5">trending_up</span> +15%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Filters & Search Bar -->
+                <div class="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+                    <!-- Search -->
+                    <div class="relative w-full lg:max-w-md group">
+                        <div
+                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+                            <span class="material-symbols-outlined">search</span>
+                        </div>
+                        <input
+                            class="block w-full pl-10 pr-4 py-3 rounded-xl bg-card-dark border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
+                            placeholder="Search by user, reason, or content ID..." type="text" />
+                    </div>
+                    <!-- Chips -->
+                    <div class="flex gap-2 overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0 scrollbar-hide">
+                        <button
+                            class="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-sm font-medium shadow-lg shadow-primary/20 shrink-0">
+                            Status: All
+                            <span class="material-symbols-outlined text-sm">expand_more</span>
+                        </button>
+                        <button
+                            class="flex items-center gap-2 px-4 py-2 rounded-xl bg-card-dark border border-white/10 text-slate-300 hover:text-white hover:bg-white/5 text-sm font-medium transition shrink-0">
+                            Reason
+                            <span class="material-symbols-outlined text-sm">expand_more</span>
+                        </button>
+                        <button
+                            class="flex items-center gap-2 px-4 py-2 rounded-xl bg-card-dark border border-white/10 text-slate-300 hover:text-white hover:bg-white/5 text-sm font-medium transition shrink-0">
+                            Date
+                            <span class="material-symbols-outlined text-sm">expand_more</span>
+                        </button>
+                        <button
+                            class="flex items-center gap-2 px-4 py-2 rounded-xl bg-card-dark border border-white/10 text-slate-300 hover:text-white hover:bg-white/5 text-sm font-medium transition shrink-0">
+                            Priority
+                            <span class="material-symbols-outlined text-sm">expand_more</span>
+                        </button>
+                    </div>
+                </div>
+                <!-- Reports Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    <!-- Report Card 1 (Hate Speech - High Priority) -->
+                    <div class="glass-card rounded-2xl p-0 flex flex-col h-full border-l-4 border-l-accent-red">
+                        <div class="p-5 border-b border-white/5 flex justify-between items-start">
+                            <div class="flex items-center gap-3">
+                                <div class="size-10 rounded-full bg-slate-700 bg-cover bg-center" data-alt="User avatar"
+                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAj7KdQNs-k2gjcw_nLmdMdMapZFrbI0Nwy1gcA0xJRTHQjEaTqlc8GC5D49riTZ78uMLZtAUmIFrIfYo56vEnMmle2qj7dL7T6uBZ5wWfyAIdVNBRF-JBML2i7ww4BMlyH-CZW7j9cdZsK6F3QC49QbwQxEShCAge-fKjsePwg7KpS8H96C-LMTgoD76Y6ZReoXpWh3FLHxedWLIEwAR84a_VTL4NZ0U_EHiCecAAZT48Hc8l3VRUq7ruvVsnRDdpbpJNbyMFU_rs')">
+                                </div>
+                                <div>
+                                    <p class="text-white font-semibold text-sm">@alex_d</p>
+                                    <p class="text-slate-400 text-xs">Reported by 3 users</p>
+                                </div>
+                            </div>
+                            <span
+                                class="px-3 py-1 rounded-full bg-accent-red/10 text-accent-red text-xs font-bold border border-accent-red/20 uppercase tracking-wider">Hate
+                                Speech</span>
+                        </div>
+                        <div class="p-5 flex-1">
+                            <div class="bg-black/40 rounded-lg p-4 mb-4 border border-white/5">
+                                <p class="text-slate-200 text-sm leading-relaxed italic">"You people are all the same,
+                                    absolutely worthless and should be removed from..."</p>
+                            </div>
+                            <div class="flex items-center gap-2 text-xs text-slate-500">
+                                <span class="material-symbols-outlined text-sm">schedule</span>
+                                <span>2 minutes ago</span>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-black/20 border-t border-white/5 flex gap-3">
+                            <button
+                                class="flex-1 py-2.5 rounded-lg bg-accent-red/20 text-accent-red hover:bg-accent-red hover:text-white font-medium text-sm transition-all border border-accent-red/20 hover:border-accent-red">
+                                Delete &amp; Ban
+                            </button>
+                            <button
+                                class="flex-1 py-2.5 rounded-lg bg-white/5 text-slate-300 hover:bg-white/10 font-medium text-sm transition-all border border-white/10">
+                                Dismiss
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Report Card 2 (Spam - Image) -->
+                    <div class="glass-card rounded-2xl p-0 flex flex-col h-full border-l-4 border-l-orange-500">
+                        <div class="p-5 border-b border-white/5 flex justify-between items-start">
+                            <div class="flex items-center gap-3">
+                                <div class="size-10 rounded-full bg-slate-700 bg-cover bg-center" data-alt="User avatar"
+                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCw7hAu7prwjzaWD-rzDGqEMbadbmu1tWVPN0aKdH_GzjPJ0KbVGaH5_IGZiTZQfKcru4vYZ2dYhxF5E6gzCOfQpaBNQbzifKFulyeu0_UOKSx-N1Vr_oXEJs-Q-Pey9ef9bemhtFNtZcTLnsCxcm8E7p8kCgtPaoppHLBZX4kQXZmMe2fbOgTJYXPYiu4FHRbSwqqh99t0jr7rgdWi3IXatxBmThwGp5lM6jbvBY5c7Dgsfr99Y8h3kukALWQJRt5W5RJQ_-bkdWY')">
+                                </div>
+                                <div>
+                                    <p class="text-white font-semibold text-sm">@bot_sales_99</p>
+                                    <p class="text-slate-400 text-xs">Reported by System</p>
+                                </div>
+                            </div>
+                            <span
+                                class="px-3 py-1 rounded-full bg-orange-500/10 text-orange-400 text-xs font-bold border border-orange-500/20 uppercase tracking-wider">Spam</span>
+                        </div>
+                        <div class="p-5 flex-1">
+                            <div class="relative w-full h-32 rounded-lg overflow-hidden mb-4 group cursor-pointer">
+                                <div class="absolute inset-0 bg-cover bg-center blur-md scale-110"
+                                    data-alt="Blurred spam image content"
+                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD6_z1dzDCqDmuZBb4ER0N7vWI7TjQI39qtkceZNRJkK54kBX7ywF-DkV893D_eqSbxkAbL3rqaz9SaWpV_-WSHau2pldjGad49TKxy5vh2ksoSM_H-xHNyJMba_gRYL0CaIZgIgY5Wb0AK47jLEY_ieQQKAxNaw5yZ3Ac67kcfcSgzil-gf4o7s5XC8IkPUy8SsjHsqcCg1Y0AqdDd6Q6TBZ1xubxubjebQvQZFBeOxdadSj0nsb2bDiqTUzB-u2i_43QFxs05I7k')">
+                                </div>
+                                <div
+                                    class="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-colors">
+                                    <div
+                                        class="bg-black/60 px-4 py-2 rounded-full flex items-center gap-2 backdrop-blur-sm border border-white/10">
+                                        <span class="material-symbols-outlined text-white text-sm">visibility_off</span>
+                                        <span class="text-xs text-white font-medium">Click to reveal</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 text-xs text-slate-500">
+                                <span class="material-symbols-outlined text-sm">schedule</span>
+                                <span>15 minutes ago</span>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-black/20 border-t border-white/5 flex gap-3">
+                            <button
+                                class="flex-1 py-2.5 rounded-lg bg-accent-red/20 text-accent-red hover:bg-accent-red hover:text-white font-medium text-sm transition-all border border-accent-red/20 hover:border-accent-red">
+                                Remove Content
+                            </button>
+                            <button
+                                class="flex-1 py-2.5 rounded-lg bg-white/5 text-slate-300 hover:bg-white/10 font-medium text-sm transition-all border border-white/10">
+                                Dismiss
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Report Card 3 (Impersonation) -->
+                    <div class="glass-card rounded-2xl p-0 flex flex-col h-full border-l-4 border-l-primary">
+                        <div class="p-5 border-b border-white/5 flex justify-between items-start">
+                            <div class="flex items-center gap-3">
+                                <div class="size-10 rounded-full bg-slate-700 bg-cover bg-center" data-alt="User avatar"
+                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDvQFvVWJLh3jAcaZCkdX6wY0FR4PasJaR_OZNiD10IZJdBqTorz52OsldoERnFP5bBumyVr1cjalAK3rF3M4c0GIbryylgdrXxP48GO5VmxczVJeA_dc0H-8D1NYIXa76YpU64zgpfocLPnmYHffxfH-gEBO5q_gDQSGCfVC4lv1ii5Zzf6ZdNiIydCopxeFVGxatuIzk_58xD2K7j-lGTfE1JrD1Rx4ZDS5UXX9nmf0BWgqEhtes7MC2JkLQmIIW_P5-kkbU7zlY')">
+                                </div>
+                                <div>
+                                    <p class="text-white font-semibold text-sm">@real_elon_m</p>
+                                    <p class="text-slate-400 text-xs">Reported by 15 users</p>
+                                </div>
+                            </div>
+                            <span
+                                class="px-3 py-1 rounded-full bg-primary/10 text-blue-400 text-xs font-bold border border-primary/20 uppercase tracking-wider">Impersonation</span>
+                        </div>
+                        <div class="p-5 flex-1">
+                            <div class="bg-black/40 rounded-lg p-3 mb-4 border border-white/5 flex items-center gap-3">
+                                <div class="size-12 rounded bg-cover bg-center shrink-0"
+                                    data-alt="Profile picture of impersonator"
+                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCOwy8wlZ0K9SX3dJd2CrtNr3ndTMYhRyh5csIh-wB7YkfXuvcG1Lhlnd4Y3VQOwaCxXEOHopPVj4Foq3Wmcnm9-W4bAF80jzrY_ufDb1vnnerhsSxJXbdiEtLIOB9YgSxQhLOJRIBltRx52in3TWFjbh31nyQqs_QjgpS6r23Y-rHxSppApYO69wvqC0jF8DLNqMaJhcRf3cVhB5WxJU_m1JtfwPoEJfcXOjGpD62XOjIW1wGKQ5NWWjx_W-5_05o9aTOTQAhMbHk')">
+                                </div>
+                                <div class="overflow-hidden">
+                                    <p class="text-sm font-medium text-white truncate">Elon Musk Official</p>
+                                    <p class="text-xs text-slate-400 truncate">Bio: Giving away crypto...</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 text-xs text-slate-500">
+                                <span class="material-symbols-outlined text-sm">schedule</span>
+                                <span>1 hour ago</span>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-black/20 border-t border-white/5 flex gap-3">
+                            <button
+                                class="flex-1 py-2.5 rounded-lg bg-accent-red/20 text-accent-red hover:bg-accent-red hover:text-white font-medium text-sm transition-all border border-accent-red/20 hover:border-accent-red">
+                                Suspend User
+                            </button>
+                            <button
+                                class="flex-1 py-2.5 rounded-lg bg-white/5 text-slate-300 hover:bg-white/10 font-medium text-sm transition-all border border-white/10">
+                                Dismiss
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Report Card 4 (Nudity - Warning) -->
+                    <div class="glass-card rounded-2xl p-0 flex flex-col h-full border-l-4 border-l-purple-500">
+                        <div class="p-5 border-b border-white/5 flex justify-between items-start">
+                            <div class="flex items-center gap-3">
+                                <div class="size-10 rounded-full bg-slate-700 bg-cover bg-center" data-alt="User avatar"
+                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCf0BpNDAoX-IOU08enyUt4piZ-hEtL8Z2yOIXeXC6cjPRxI61daYds1hjXtrtra37n0VkURqS5t1hKHrdV8Ovr_48Ruz3-CWYLJthUZomEbk4MOqXPrZS44wVqHfLYZDpp50PVjAhoP8f6repcNUbdZdVMXIln0Uzgd6xbZcqZmu3_eilOcjicq-_KbRDK4HGCrMiDZBBm1lEt64Fj-cCCyeqexd-BNv4a1EY14NQFHMfnbyDAQNDH2Is5LjBH-xOugfQzS1atXuI')">
+                                </div>
+                                <div>
+                                    <p class="text-white font-semibold text-sm">@jason_k</p>
+                                    <p class="text-slate-400 text-xs">Reported by AI Moderation</p>
+                                </div>
+                            </div>
+                            <span
+                                class="px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 text-xs font-bold border border-purple-500/20 uppercase tracking-wider">NSFW</span>
+                        </div>
+                        <div class="p-5 flex-1">
+                            <div
+                                class="relative w-full h-32 rounded-lg overflow-hidden mb-4 group cursor-pointer bg-black">
+                                <div class="absolute inset-0 bg-cover bg-center blur-xl opacity-60"
+                                    data-alt="Blurred NSFW content"
+                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDjt21A22C8DnHyzhCJXB5zCOKdYNE1XONzVKAuzqQdMMKRd66OdhWIB3yHWr5OmODDFbblMPQw38mfTe1j32cxHI2eS05O2D_7APneU66nqVNmfHwpA5SkQkHOO_p1rDtmEIR2hmo4HzqjVzDf0TWxSzgfZAuRKOEGYvbGWdv9RcmcGQKYS60j3QWmnUK-MQBO66wp9JiZspSy1E97dDV4f9DcO0gryiDQ9CbQOjaNXqEzTWb839wp7acToIBED7G0U0ugggLZcDU')">
+                                </div>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <div class="flex flex-col items-center gap-1">
+                                        <span
+                                            class="material-symbols-outlined text-purple-400 text-3xl">visibility_off</span>
+                                        <span
+                                            class="text-[10px] uppercase font-bold text-purple-400 tracking-wider">Sensitive
+                                            Content</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 text-xs text-slate-500">
+                                <span class="material-symbols-outlined text-sm">schedule</span>
+                                <span>3 hours ago</span>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-black/20 border-t border-white/5 flex gap-3">
+                            <button
+                                class="flex-1 py-2.5 rounded-lg bg-accent-red/20 text-accent-red hover:bg-accent-red hover:text-white font-medium text-sm transition-all border border-accent-red/20 hover:border-accent-red">
+                                Delete
+                            </button>
+                            <button
+                                class="flex-1 py-2.5 rounded-lg bg-white/5 text-slate-300 hover:bg-white/10 font-medium text-sm transition-all border border-white/10">
+                                Ignore
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Report Card 5 (Harassment - Text) -->
+                    <div class="glass-card rounded-2xl p-0 flex flex-col h-full border-l-4 border-l-accent-red">
+                        <div class="p-5 border-b border-white/5 flex justify-between items-start">
+                            <div class="flex items-center gap-3">
+                                <div class="size-10 rounded-full bg-slate-700 bg-cover bg-center" data-alt="User avatar"
+                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBNBvBwMKz3T-fg2GxBwqAwJnfm-BOQfzcRS5Aw0nlYqGAQJT__RhmeP8_CLRabrcqr9fegp7-oB60dlemTQ-mfFkqtNX_EIFCER2dUdwPR0qmpqm_Fs3Si1zXLUfT3Kn8ORvMbrFxEUk3FA9yjs1UELPQuElOVl5e56tKRgtVNVPuDEHTgBcf2WIHw8JNv5eb7Drk_oFRj9UobAW_Yg1TPb12-W4N3lNNeJOjL_Nlcuce5wW8ANfWpO-PRpNKVYlfw__b1AVoG3dU')">
+                                </div>
+                                <div>
+                                    <p class="text-white font-semibold text-sm">@mike_tyson_fan</p>
+                                    <p class="text-slate-400 text-xs">Reported by 1 user</p>
+                                </div>
+                            </div>
+                            <span
+                                class="px-3 py-1 rounded-full bg-accent-red/10 text-accent-red text-xs font-bold border border-accent-red/20 uppercase tracking-wider">Harassment</span>
+                        </div>
+                        <div class="p-5 flex-1">
+                            <div class="bg-black/40 rounded-lg p-4 mb-4 border border-white/5">
+                                <p class="text-slate-200 text-sm leading-relaxed">"Stop messaging me or I will find out
+                                    where you live. This is your last warning..."</p>
+                            </div>
+                            <div class="flex items-center gap-2 text-xs text-slate-500">
+                                <span class="material-symbols-outlined text-sm">schedule</span>
+                                <span>4 hours ago</span>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-black/20 border-t border-white/5 flex gap-3">
+                            <button
+                                class="flex-1 py-2.5 rounded-lg bg-accent-red/20 text-accent-red hover:bg-accent-red hover:text-white font-medium text-sm transition-all border border-accent-red/20 hover:border-accent-red">
+                                Warning
+                            </button>
+                            <button
+                                class="flex-1 py-2.5 rounded-lg bg-white/5 text-slate-300 hover:bg-white/10 font-medium text-sm transition-all border border-white/10">
+                                Dismiss
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Report Card 6 (Misinformation) -->
+                    <div class="glass-card rounded-2xl p-0 flex flex-col h-full border-l-4 border-l-yellow-500">
+                        <div class="p-5 border-b border-white/5 flex justify-between items-start">
+                            <div class="flex items-center gap-3">
+                                <div class="size-10 rounded-full bg-slate-700 bg-cover bg-center" data-alt="User avatar"
+                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDZEs2GZzlL-Yz-g35hyVvIoQnxvJuJmR7PI0MJOIA1fDk65yQUpJ6lC0PbOO-qPRDRPW3-My2xdxvxhM9zZU586KOzeV0D3jMAlihU-r0DigNMM8kT_7iGtaNssq7ngODEpAyv7NBUiTsVUSW9Eo_kvBZXiMuJAJWcThtFUtmvxSX-5SPcy599JYRY9cP4st75APEYXZWWniLTENmhMSs4LDUHRkWjMpVPh38i3_coGxnjh6uWq94bmaQxWASJPSRyCEkTylKVExU')">
+                                </div>
+                                <div>
+                                    <p class="text-white font-semibold text-sm">@news_daily_fake</p>
+                                    <p class="text-slate-400 text-xs">Reported by 50+ users</p>
+                                </div>
+                            </div>
+                            <span
+                                class="px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-400 text-xs font-bold border border-yellow-500/20 uppercase tracking-wider">Fake
+                                News</span>
+                        </div>
+                        <div class="p-5 flex-1">
+                            <div class="bg-black/40 rounded-lg p-3 mb-4 border border-white/5">
+                                <div class="text-xs text-yellow-500 font-bold mb-1 uppercase">Link Preview</div>
+                                <p class="text-white text-sm font-medium truncate">Breaking: Aliens land in New York...
+                                </p>
+                                <p class="text-slate-400 text-xs truncate">www.totallyrealsitenotfake.com/aliens...</p>
+                            </div>
+                            <div class="flex items-center gap-2 text-xs text-slate-500">
+                                <span class="material-symbols-outlined text-sm">schedule</span>
+                                <span>5 hours ago</span>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-black/20 border-t border-white/5 flex gap-3">
+                            <button
+                                class="flex-1 py-2.5 rounded-lg bg-accent-red/20 text-accent-red hover:bg-accent-red hover:text-white font-medium text-sm transition-all border border-accent-red/20 hover:border-accent-red">
+                                Remove
+                            </button>
+                            <button
+                                class="flex-1 py-2.5 rounded-lg bg-white/5 text-slate-300 hover:bg-white/10 font-medium text-sm transition-all border border-white/10">
+                                Dismiss
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Pagination -->
+                <div class="flex items-center justify-between pt-6 border-t border-white/5">
+                    <p class="text-sm text-slate-400">Showing <span class="text-white font-medium">1-6</span> of <span
+                            class="text-white font-medium">157</span> reports</p>
+                    <div class="flex gap-2">
+                        <button
+                            class="px-4 py-2 rounded-lg bg-card-dark border border-white/10 text-slate-400 hover:text-white hover:bg-white/5 transition text-sm">Previous</button>
+                        <button
+                            class="px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary/90 transition text-sm font-medium shadow-lg shadow-primary/25">Next</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>
