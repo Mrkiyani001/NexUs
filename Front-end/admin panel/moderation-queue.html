@@ -175,34 +175,77 @@
             loadPendingPosts();
         });
 
-        async function loadPendingPosts() {
+        let isFetchingQueue = false;
+        async function loadPendingPosts(isAutoRefresh = false) {
+            if(isFetchingQueue) return;
+            isFetchingQueue = true;
+
             const grid = document.getElementById('moderation-grid');
-            grid.innerHTML = `<div class="col-span-full py-20 text-center text-slate-500">
-                <span class="material-symbols-outlined animate-spin text-4xl mb-2">progress_activity</span>
-                <p>Loading pending submissions...</p>
-            </div>`;
+            if(!grid) { isFetchingQueue = false; return; }
+
+            const cacheKey = 'moderation_queue_cache';
+            
+            // 1. Initial Cache Load
+            const cached = localStorage.getItem(cacheKey);
+            if (!isAutoRefresh && cached && grid.innerHTML.trim() === '') {
+                try {
+                    const parsed = JSON.parse(cached);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        renderPendingPosts(parsed);
+                        document.getElementById('pending-count').textContent = parsed.length;
+                    }
+                } catch(e) { console.error(e); }
+            }
 
             try {
                 const response = await fetch(`${API_BASE_URL}/pending_posts`, {
                     headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
                 });
-                const data = await response.json();
 
-                if (data.success && data.data.length > 0) {
-                    renderPendingPosts(data.data);
-                    document.getElementById('pending-count').textContent = data.data.length;
+                if(handleAdminApiError(response)) return;
+
+                const data = await response.json();
+                if (data.success) {
+                    const newDataStr = JSON.stringify(data.data);
+                    const oldDataStr = localStorage.getItem(cacheKey);
+
+                    // SMART REFRESH: Only update if data changed
+                    if (newDataStr !== oldDataStr) {
+                         localStorage.setItem(cacheKey, newDataStr);
+                         
+                         if (data.data.length > 0) {
+                            renderPendingPosts(data.data);
+                            document.getElementById('pending-count').textContent = data.data.length;
+                         } else {
+                            grid.innerHTML = `<div class="col-span-full py-20 text-center text-slate-500">
+                                <span class="material-symbols-outlined text-4xl mb-2">check_circle</span>
+                                <p>No pending posts to review. Excellent work!</p>
+                            </div>`;
+                            document.getElementById('pending-count').textContent = '0';
+                         }
+                    }
                 } else {
-                    grid.innerHTML = `<div class="col-span-full py-20 text-center text-slate-500">
+                     grid.innerHTML = `<div class="col-span-full py-20 text-center text-slate-500">
                         <span class="material-symbols-outlined text-4xl mb-2">check_circle</span>
                         <p>No pending posts to review. Excellent work!</p>
                     </div>`;
                     document.getElementById('pending-count').textContent = '0';
+                    localStorage.removeItem(cacheKey);
                 }
             } catch (e) {
                 console.error(e);
-                grid.innerHTML = `<div class="col-span-full py-20 text-center text-red-500">Error loading moderation queue.</div>`;
+                 if(!cached && !isAutoRefresh) grid.innerHTML = `<div class="col-span-full py-20 text-center text-red-500">Error loading moderation queue.</div>`;
+            } finally {
+                isFetchingQueue = false;
             }
         }
+
+        // Recursive Polling
+        async function startQueuePolling() {
+            await loadPendingPosts(true);
+            setTimeout(startQueuePolling, 3000);
+        }
+        startQueuePolling();
 
         function renderPendingPosts(posts) {
             const grid = document.getElementById('moderation-grid');

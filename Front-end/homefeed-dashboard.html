@@ -5,12 +5,14 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Home Feed</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔥</text></svg>">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔥</text></svg>">
     <link href="https://fonts.googleapis.com" rel="preconnect" />
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap"
         rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
         rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script id="tailwind-config">
@@ -203,7 +205,8 @@
             class="absolute bottom-[-20%] left-[30%] w-[45vw] h-[45vw] bg-accent-pink/5 rounded-full blur-[100px] animate-blob animation-delay-4000 mix-blend-screen opacity-30">
         </div>
     </div>
-    <header class="glass-nav fixed top-0 w-full z-50 h-[70px] md:h-[80px] flex items-center justify-between px-4 md:px-8 transition-all duration-300">
+    <header
+        class="glass-nav fixed top-0 w-full z-50 h-[70px] md:h-[80px] flex items-center justify-between px-4 md:px-8 transition-all duration-300">
         <div class="flex items-center gap-3 cursor-pointer group select-none min-w-fit">
             <div id="site-logo-img"
                 class="w-12 h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center group-hover:scale-105 transition-all duration-300 bg-cover bg-center bg-no-repeat overflow-hidden">
@@ -211,19 +214,21 @@
                 <span class="material-symbols-outlined text-[22px] md:text-[26px] text-white/80">token</span>
             </div>
             <div class="flex flex-col">
-                <span id="site-logo-text" class="text-xl md:text-2xl font-bold tracking-tight text-white leading-none ml-2"></span>
+                <span id="site-logo-text"
+                    class="text-xl md:text-2xl font-bold tracking-tight text-white leading-none ml-2"></span>
             </div>
         </div>
-        <nav
-            class="hidden md:flex items-center gap-1 lg:gap-2 absolute left-1/2 -translate-x-1/2 z-10">
+        <nav class="hidden md:flex items-center gap-1 lg:gap-2 absolute left-1/2 -translate-x-1/2 z-10">
             <a class="relative flex items-center gap-2 px-4 lg:px-6 py-2.5 rounded-full bg-gradient-to-r from-primary/10 to-blue-600/10 border border-primary/20 text-primary font-semibold transition-all group shadow-[0_0_15px_rgba(59,130,246,0.15)]"
                 href="homefeed-dashboard.html">
-                <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">home</span>
+                <span class="material-symbols-outlined text-[24px]"
+                    style="font-variation-settings: 'FILL' 1;">home</span>
                 <span class="hidden lg:inline">Home</span>
             </a>
             <a class="flex items-center gap-2 px-3 lg:px-4 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
                 href="#">
-                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">explore</span>
+                <span
+                    class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">explore</span>
                 <span class="hidden lg:block font-medium">Explore</span>
             </a>
             <a class="flex items-center gap-2 px-3 lg:px-4 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group relative"
@@ -238,58 +243,71 @@
             </a>
             <a class="flex items-center gap-2 px-3 lg:px-4 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
                 href="#">
-                <span class="material-symbols-outlined text-[24px] group-hover/btn:scale-110 transition-transform">mail</span>
+                <span
+                    class="material-symbols-outlined text-[24px] group-hover/btn:scale-110 transition-transform">mail</span>
                 <span class="hidden lg:block font-medium">Messages</span>
             </a>
         </nav>
         <div class="flex items-center gap-2 md:gap-4 justify-end flex-1 md:flex-initial min-w-0">
             <!-- Search Bar -->
-            <div class="relative group hidden sm:block w-32 md:w-36 lg:w-48 transition-all focus-within:w-48 md:focus-within:w-52 lg:focus-within:w-64 shrink">
+            <div
+                class="relative group hidden sm:block w-32 md:w-36 lg:w-48 transition-all focus-within:w-48 md:focus-within:w-52 lg:focus-within:w-64 shrink">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span class="material-symbols-outlined text-slate-500 text-[20px] group-focus-within:text-primary transition-colors">search</span>
+                    <span
+                        class="material-symbols-outlined text-slate-500 text-[20px] group-focus-within:text-primary transition-colors">search</span>
                 </div>
                 <input id="global-search-input"
                     class="bg-white/5 border-transparent focus:bg-white/10 focus:border-primary/50 block w-full pl-10 pr-3 py-2 rounded-full text-xs md:text-sm font-medium focus:outline-none transition-all"
                     placeholder="Search..." type="text">
             </div>
 
-            <button class="sm:hidden w-9 h-9 rounded-full hover:bg-white/5 flex items-center justify-center text-slate-300">
+            <button
+                class="sm:hidden w-9 h-9 rounded-full hover:bg-white/5 flex items-center justify-center text-slate-300">
                 <span class="material-symbols-outlined text-[20px]">search</span>
             </button>
             <div class="w-px h-8 bg-white/10 mx-1 hidden md:block"></div>
-            
+
             <a href="notification.html" class="md:hidden relative group p-2 text-slate-400">
                 <span class="material-symbols-outlined text-[24px]">notifications</span>
-                <span id="notif-badge-mobile-header" class="hidden absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-background-dark animate-pulse"></span>
+                <span id="notif-badge-mobile-header"
+                    class="hidden absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-background-dark animate-pulse"></span>
             </a>
 
-            <!-- Logout button removed -->
             <div class="w-px h-8 bg-white/10 mx-1 hidden md:block"></div>
-            
+
             <div class="relative group/profile shrink-0">
                 <div class="flex items-center gap-3 pl-1 cursor-pointer" onclick="toggleProfileDropdown()">
                     <div class="flex flex-col items-end hidden xl:flex">
-                        <span id="header-user-name" class="text-xs font-bold text-white leading-none initials-name">User</span>
+                        <span id="header-user-name"
+                            class="text-xs font-bold text-white leading-none initials-name">User</span>
                         <div class="flex items-center gap-1">
-                            <span id="header-user-handle" class="text-[9px] text-slate-500 font-medium mt-1">@user</span>
-                            <span class="material-symbols-outlined text-[14px] text-slate-500 mt-1">keyboard_arrow_down</span>
+                            <span id="header-user-handle"
+                                class="text-[9px] text-slate-500 font-medium mt-1">@user</span>
+                            <span
+                                class="material-symbols-outlined text-[14px] text-slate-500 mt-1">keyboard_arrow_down</span>
                         </div>
                     </div>
                     <div class="relative">
                         <img id="header-user-avatar" alt="Avatar"
-                            class="w-9 h-9 md:w-10 md:h-10 rounded-full border-2 border-white/10 group-hover/profile:border-primary/50 transition-all object-cover bg-slate-700" src="">
-                        <div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-[#0f111a] rounded-full"></div>
+                            class="w-9 h-9 md:w-10 md:h-10 rounded-full border-2 border-white/10 group-hover/profile:border-primary/50 transition-all object-cover bg-slate-700"
+                            src="">
+                        <div
+                            class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-[#0f111a] rounded-full">
+                        </div>
                     </div>
                 </div>
 
                 <!-- Dropdown Menu -->
-                <div id="profile-dropdown" class="hidden absolute top-full right-0 mt-3 w-48 bg-card-dark border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 animate-fade-in">
-                    <a href="profile.html" class="block px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2">
+                <div id="profile-dropdown"
+                    class="hidden absolute top-full right-0 mt-3 w-48 bg-card-dark border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 animate-fade-in">
+                    <a href="profile.html"
+                        class="block px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2">
                         <span class="material-symbols-outlined text-[18px]">person</span>
                         View Profile
                     </a>
                     <div class="h-px bg-white/5 my-1"></div>
-                    <button onclick="localStorage.removeItem('auth_token'); localStorage.removeItem('user_data'); window.location.href='login.html'" 
+                    <button
+                        onclick="localStorage.removeItem('auth_token'); localStorage.removeItem('user_data'); window.location.href='login.html'"
                         class="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors flex items-center gap-2">
                         <span class="material-symbols-outlined text-[18px]">logout</span>
                         Logout
@@ -299,502 +317,964 @@
         </div>
     </header>
     <main class="pt-[90px] md:pt-[110px] pb-20 px-4 flex justify-center w-full">
-        <div class="w-full max-w-[640px] space-y-8">
-            <!-- Create Post Card -->
-            <div class="glass-card rounded-2xl relative group/create transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 z-20">
-                <!-- Top Gradient Line -->
-                <div class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-primary/60 to-transparent opacity-50 group-hover/create:opacity-100 transition-opacity"></div>
-                
-                <div class="p-4 sm:p-5">
-                    <div class="flex gap-4">
-                        <img id="create-post-avatar" alt="Current User"
-                            class="w-10 h-10 rounded-full object-cover border-2 border-background-dark ring-2 ring-white/5 shadow-md"
-                            src="https://ui-avatars.com/api/?name=User&background=random" />
-                        
-                        <div class="flex-1 space-y-3">
-                             <!-- Editor Box -->
-                            <div class="w-full bg-surface-dark/60 rounded-xl border border-white/5 hover:border-white/10 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/50 transition-all duration-300 overflow-hidden relative">
-                                <!-- Title removed from UI, will auto-generate -->
-                                <textarea id="create-post-content"
-                                    class="w-full bg-transparent px-4 py-3 text-sm text-slate-200 placeholder:text-slate-500/70 focus:outline-none resize-none min-h-[60px] leading-relaxed scrollbar-hide"
-                                    placeholder="Write something..."></textarea>
-                                
-                                <!-- Typing Indicator / Focus line (optional visual flair) -->
-                                <div class="absolute bottom-0 left-0 h-[1px] w-0 bg-primary transition-all duration-500 group-focus-within/create:w-full"></div>
+        <div class="w-full max-w-[1440px] grid grid-cols-1 lg:grid-cols-4 gap-8">
+
+            <!-- LEFT SIDEBAR (Requests & Suggestions) -->
+            <div class="hidden lg:flex flex-col gap-6 lg:col-span-1 h-fit sticky top-[110px]">
+
+            <!-- Requests Widget -->
+            <div id="sidebar-requests-widget" class="glass-card rounded-2xl p-5 animate-fade-in">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-white text-lg flex items-center gap-2">
+                        Requests
+                        <span id="requests-badge-count"
+                            class="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-lg shadow-red-500/20">0</span>
+                    </h3>
+                </div>
+
+                <div id="requests-list" class="flex flex-col gap-4">
+                    <div class="text-center text-slate-500 text-xs py-4">Loading requests...</div>
+                </div>
+
+                <a href="friendreq.html?tab=requests"
+                    class="block text-center text-xs font-medium text-slate-400 hover:text-white mt-4 border-t border-white/5 pt-3 transition-colors">
+                    View all requests <span
+                        class="material-symbols-outlined text-[12px] align-middle">arrow_forward</span>
+                </a>
+            </div>
+
+            <!-- Suggestions Widget -->
+            <div id="sidebar-suggestions-widget" class="glass-card rounded-2xl p-5 animate-fade-in">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-white text-lg">Suggestions</h3>
+                    <span
+                        onclick="fetchSuggestionsWidget()" 
+                        class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-white text-[18px] hover:rotate-180 transition-transform duration-500" title="Refresh">refresh</span>
+                </div>
+
+                <div id="suggestions-list" class="flex flex-col gap-4">
+                     <div class="text-center text-slate-500 text-xs py-4">Loading suggestions...</div>
+                </div>
+
+                <a href="friendreq.html?tab=suggestions"
+                    class="block text-center text-xs font-medium text-slate-400 hover:text-white mt-4 border-t border-white/5 pt-3 transition-colors">
+                    View all suggestions <span
+                        class="material-symbols-outlined text-[12px] align-middle">arrow_forward</span>
+                </a>
+            </div>
+
+            </div>
+
+            <!-- CENTER FEED -->
+            <div class="lg:col-span-2 w-full max-w-[640px] mx-auto space-y-6">
+                <!-- Create Post Card -->
+                <div
+                    class="glass-card rounded-2xl relative group/create transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 z-20">
+                    <!-- Top Gradient Line -->
+                    <div
+                        class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-primary/60 to-transparent opacity-50 group-hover/create:opacity-100 transition-opacity">
+                    </div>
+
+                    <div class="p-4 sm:p-5">
+                        <div class="flex gap-4">
+                            <img id="create-post-avatar" alt="Current User"
+                                class="w-10 h-10 rounded-full object-cover border-2 border-background-dark ring-2 ring-white/5 shadow-md"
+                                src="https://ui-avatars.com/api/?name=User&background=random" />
+
+                            <div class="flex-1 space-y-3">
+                                <!-- Editor Box -->
+                                <div
+                                    class="w-full bg-surface-dark/60 rounded-xl border border-white/5 hover:border-white/10 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/50 transition-all duration-300 overflow-hidden relative">
+                                    <textarea id="create-post-content"
+                                        class="w-full bg-transparent px-4 py-3 text-sm text-slate-200 placeholder:text-slate-500/70 focus:outline-none resize-none min-h-[60px] leading-relaxed scrollbar-hide"
+                                        placeholder="Write something..."></textarea>
+                                    <div
+                                        class="absolute bottom-0 left-0 h-[1px] w-0 bg-primary transition-all duration-500 group-focus-within/create:w-full">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quote Preview -->
+                    <div id="quote-preview-container" class="mt-4 hidden"></div>
+                    <input type="hidden" id="original-post-id">
+
+                    <!-- Image Preview -->
+                    <div id="image-preview-container" class="grid grid-cols-2 gap-2 mt-4 hidden animate-fade-in px-4">
+                    </div>
+
+                    <!-- Emoji Picker Container -->
+                    <div id="emoji-picker"
+                        class="hidden absolute top-full right-4 mt-2 w-64 glass-card rounded-xl p-3 z-50 grid grid-cols-6 gap-2 max-h-48 overflow-y-auto shadow-2xl border border-white/10">
+                    </div>
+
+                    <!-- Footer Toolbar -->
+                    <div
+                        class="bg-white/5 px-4 py-2.5 flex items-center justify-between border-t border-white/5 backdrop-blur-sm rounded-b-2xl">
+                        <div class="flex items-center gap-1 relative">
+                            <button onclick="document.getElementById('post-image-input').click()"
+                                class="p-2 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-emerald-400/10 transition-all flex items-center gap-2 group/btn relative overflow-hidden"
+                                title="Add Photo">
+                                <span
+                                    class="material-symbols-outlined text-[20px] group-hover/btn:scale-110 transition-transform">image</span>
+                            </button>
+                            <input type="file" id="post-image-input" class="hidden" multiple accept="image/*,video/*">
+
+                            <button onclick="document.getElementById('post-file-input').click()"
+                                class="p-2 rounded-lg text-slate-400 hover:text-blue-400 hover:bg-blue-400/10 transition-all flex items-center gap-2 group/btn"
+                                title="Attach File">
+                                <span
+                                    class="material-symbols-outlined text-[20px] group-hover/btn:scale-110 transition-transform">attach_file</span>
+                            </button>
+                            <input type="file" id="post-file-input" class="hidden" multiple
+                                accept=".pdf,.doc,.docx,.txt">
+
+                            <button id="emoji-btn" onclick="toggleEmojiPicker(event)"
+                                class="p-2 rounded-lg text-slate-400 hover:text-pink-400 hover:bg-pink-400/10 transition-all flex items-center gap-2 group/btn relative"
+                                title="Add Emoji">
+                                <span
+                                    class="material-symbols-outlined text-[20px] group-hover/btn:scale-110 transition-transform">sentiment_satisfied</span>
+                            </button>
+                        </div>
+
+                        <button id="create-post-btn" type="button"
+                            class="px-5 py-1.5 bg-gradient-to-r from-primary to-blue-600 hover:from-blue-500 hover:to-blue-700 text-white text-xs font-bold rounded-full shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 group/submit">
+                            <span>Post</span>
+                            <span
+                                class="material-symbols-outlined text-[14px] group-hover/submit:translate-x-1 transition-transform">send</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Dynamic Search Results -->
+                <div id="search-results-container" class="hidden glass-card rounded-xl p-4 mb-4"></div>
+
+                <!-- Posts Feed -->
+                <div id="posts-container" class="space-y-8">
+                    <div class="flex justify-center py-12">
+                        <div class="relative w-10 h-10">
+                            <div class="absolute inset-0 border-4 border-white/10 rounded-full"></div>
+                            <div
+                                class="absolute inset-0 border-4 border-primary rounded-full border-t-transparent animate-spin">
                             </div>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Quote Preview (Corrected) -->
-                <div id="quote-preview-container" class="mt-4 hidden"></div>
-                <input type="hidden" id="original-post-id">
+            </div>
 
-                <!-- Image Preview -->
-                <div id="image-preview-container" class="grid grid-cols-2 gap-2 mt-4 hidden animate-fade-in"></div>
-
-                <!-- Emoji Picker Container -->
-                <div id="emoji-picker" class="hidden absolute top-full right-4 mt-2 w-64 glass-card rounded-xl p-3 z-50 grid grid-cols-6 gap-2 max-h-48 overflow-y-auto shadow-2xl border border-white/10">
-                    <!-- Emojis will be injected here -->
-                </div>
-
-                <!-- Footer Toolbar -->
-                <div class="bg-white/5 px-4 py-2.5 flex items-center justify-between border-t border-white/5 backdrop-blur-sm">
-                    <div class="flex items-center gap-1 relative">
-                        <button onclick="document.getElementById('post-image-input').click()"
-                            class="p-2 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-emerald-400/10 transition-all flex items-center gap-2 group/btn relative overflow-hidden"
-                            title="Add Photo">
-                            <span class="material-symbols-outlined text-[20px] group-hover/btn:scale-110 transition-transform">image</span>
-                        </button>
-                        <input type="file" id="post-image-input" class="hidden" multiple accept="image/*,video/*">
-                        
-                        <button onclick="document.getElementById('post-file-input').click()"
-                            class="p-2 rounded-lg text-slate-400 hover:text-blue-400 hover:bg-blue-400/10 transition-all flex items-center gap-2 group/btn"
-                            title="Attach File">
-                            <span class="material-symbols-outlined text-[20px] group-hover/btn:scale-110 transition-transform">attach_file</span>
-                        </button>
-                        <input type="file" id="post-file-input" class="hidden" multiple accept=".pdf,.doc,.docx,.txt">
-                        
-                        <button id="emoji-btn" onclick="toggleEmojiPicker(event)"
-                            class="p-2 rounded-lg text-slate-400 hover:text-pink-400 hover:bg-pink-400/10 transition-all flex items-center gap-2 group/btn relative"
-                            title="Add Emoji">
-                            <span class="material-symbols-outlined text-[20px] group-hover/btn:scale-110 transition-transform">sentiment_satisfied</span>
-                        </button>
-
-                        <!-- Emoji Picker (Moved inside relative container) -->
-                        <div id="emoji-picker" class="hidden absolute top-12 left-0 w-64 glass-card rounded-xl p-3 z-50 grid grid-cols-6 gap-2 max-h-48 overflow-y-auto shadow-2xl border border-white/10 bg-[#161b27]">
-                            <!-- Emojis -->
-                        </div>
+            <!-- RIGHT SIDEBAR (Who To Follow) -->
+            <div class="hidden lg:flex flex-col gap-6 lg:col-span-1 h-fit sticky top-[110px]">
+                <div class="glass-card rounded-2xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-white text-lg">Who to Follow</h3>
+                        <span onclick="fetchWhoToFollowWidget()" 
+                            class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-white text-[18px] hover:rotate-180 transition-transform duration-500" title="Refresh">refresh</span>
                     </div>
 
-                    <button id="create-post-btn" type="button"
-                        class="px-5 py-1.5 bg-gradient-to-r from-primary to-blue-600 hover:from-blue-500 hover:to-blue-700 text-white text-xs font-bold rounded-full shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 group/submit">
-                        <span>Post</span>
-                        <span class="material-symbols-outlined text-[14px] group-hover/submit:translate-x-1 transition-transform">send</span>
-                    </button>
+                    <div id="who-to-follow-container" class="flex flex-col gap-4">
+                        <!-- Dynamic Content -->
+                        <div class="text-center text-slate-500 text-xs py-4">Loading...</div>
+                    </div>
+
+                    <a href="friendreq.html?tab=whotofollow" class="block text-xs font-medium text-primary hover:text-primary-hover hover:underline mt-4 pt-3 border-t border-white/5">
+                        View more people <span class="material-symbols-outlined text-[12px] align-middle">arrow_forward</span>
+                    </a>
+                </div>
+
+                <div class="flex flex-wrap gap-x-4 gap-y-2 px-2">
+                    <a href="privacy.html" class="text-[11px] text-slate-500 hover:text-slate-300">Privacy</a>
+                    <a href="terms.html" class="text-[11px] text-slate-500 hover:text-slate-300">Terms</a>
+                    <a href="#" class="text-[11px] text-slate-500 hover:text-slate-300">Advertising</a>
+                    <a href="#" class="text-[11px] text-slate-500 hover:text-slate-300">Cookies</a>
+                    <a href="#" class="text-[11px] text-slate-500 hover:text-slate-300">More</a>
+                    <span class="text-[11px] text-slate-600 block w-full mt-2">NexUs &copy; 2024</span>
                 </div>
             </div>
 
-            <script>
-                // Emojis List
-                const emojis = [
-                    '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇',
-                    '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', 'yz',
-                    '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞',
-                    '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺',
-                    '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶',
-                    '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥',
-                    '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧', '😮', '😲',
-                    '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷',
-                    '🤒', '🤕', '🤑', '🤠', '😈', '👿', '👹', '👺', '🤡', '💩',
-                    '👻', '💀', '☠️', '👽', '👾', '🤖', '🎃', '😺', '😸', '😹',
-                    '👋', '🤚', 'Bk', '🖖', '👌', '🤏', '✌️', '🤞', '🤟', '🤘',
-                    '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊',
-                    '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️',
-                    '💅', '🤳', '💪', '🦾', '🦵', '🦿', '🦶', '👂', '🦻', '👃',
-                    '🧠', '🫀', '🫁', '🦷', '🦴', '👀', '👁️', '👅', '👄', '💋',
-                    '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔',
-                    '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️',
-                    '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐',
-                    '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑',
-                    '♒', '♓', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴', '📳', '🈶', '🈚',
-                    '🈸', '🈺', '🈷️', '✴️', '🆚', '💮', '🉐', '㊙️', '㊗️', '🈴', '🈵',
-                    '🈹', '🈲', '🅰️', '🅱️', '🆎', '🆑', '🅾️', '🆘', '❌', '⭕', '🛑',
-                    '⛔', '📛', '🚫', '💯', '💢', '♨️', '🚷', '🚯', '🚳', '🚱', '🔞',
-                    '📵', '🚭', '❗', '❕', '❓', '❔', '‼️', '⁉️', '🔅', '🔆', '〽️',
-                    '⚠️', '🚸', '🔱', '⚜️', '🔰', '♻️', '✅', '🈯', '💹', '❇️', '✳️',
-                    '❎', '🌐', '🍆', '🍑', '🍓', '🍒', '🥑', '🍔', '🍕', '🌭'
-                ];
-
-                const emojiPicker = document.getElementById('emoji-picker');
-                // const titleInput = document.getElementById('create-post-title'); // Removed
-                const contentInput = document.getElementById('create-post-content');
-                let lastFocusedInput = contentInput;
-
-                contentInput.addEventListener('focus', () => lastFocusedInput = contentInput);
-
-                // Initialize Picker
-                emojis.forEach(emoji => {
-                    const span = document.createElement('span');
-                    span.textContent = emoji;
-                    span.className = 'cursor-pointer hover:bg-white/10 rounded p-1 text-center transition-colors text-xl select-none';
-                    span.onclick = (e) => {
-                         e.stopPropagation();
-                         insertAtCursor(lastFocusedInput, emoji);
-                    };
-                    emojiPicker.appendChild(span);
-                });
-
-                function toggleEmojiPicker(event) {
-                    if(event) event.stopPropagation();
-                    emojiPicker.classList.toggle('hidden');
-                }
-
-                // Close picker when clicking outside
-                document.addEventListener('click', (e) => {
-                    const btn = document.getElementById('emoji-btn');
-                    if (!emojiPicker.contains(e.target) && !btn.contains(e.target)) {
-                        emojiPicker.classList.add('hidden');
-                    }
-                });
-
-                function insertAtCursor(input, text) {
-                    const start = input.selectionStart;
-                    const end = input.selectionEnd;
-                    const value = input.value;
-                    input.value = value.substring(0, start) + text + value.substring(end);
-                    input.selectionStart = input.selectionEnd = start + text.length;
-                    input.focus();
-                }
-            </script>
-            <!-- Dynamic Search Results -->
-            <div id="search-results-container" class="hidden glass-card rounded-xl p-4 mb-4"></div>
-            <!-- Posts Feed -->
-            <div id="posts-container" class="space-y-8">
-                <div class="flex justify-center py-12">
-                    <div class="relative w-10 h-10">
-                        <div class="absolute inset-0 border-4 border-white/10 rounded-full"></div>
-                        <div
-                            class="absolute inset-0 border-4 border-primary rounded-full border-t-transparent animate-spin">
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </main>
-    <!-- Toast Notification -->
-    <div id="toast-container" class="fixed bottom-20 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
-
-    <!-- Mobile Navigation Bar (fixed bottom) -->
-    <nav class="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around h-16 md:hidden glass-nav border-t border-white/5 bg-background-dark/80 backdrop-blur-lg">
-        <a href="homefeed-dashboard.html" class="flex flex-col items-center justify-center gap-1 p-2 w-16 text-primary">
-            <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">home</span>
-            <span class="text-[10px] font-medium">Home</span>
-        </a>
-        <a href="#" class="flex flex-col items-center justify-center gap-1 p-2 w-16 text-slate-400 hover:text-white transition-colors">
-            <span class="material-symbols-outlined text-[24px]">explore</span>
-            <span class="text-[10px] font-medium">Explore</span>
-        </a>
-        <a href="notification.html" class="flex flex-col items-center justify-center gap-1 p-2 w-16 text-slate-400 hover:text-white transition-colors relative">
-            <div class="relative">
-                <span class="material-symbols-outlined text-[24px]">notifications</span>
-                <span id="notif-badge-mobile" class="hidden absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-background-dark animate-pulse"></span>
-            </div>
-            <span class="text-[10px] font-medium">Notifications</span>
-        </a>
-        <a href="profile.html" class="flex flex-col items-center justify-center gap-1 p-2 w-16 text-slate-400 hover:text-white transition-colors">
-            <span class="material-symbols-outlined text-[24px]">person</span>
-            <span class="text-[10px] font-medium">Profile</span>
-        </a>
-    </nav>
     <script>
         const API_BASE_URL = 'http://127.0.0.1:8000/api';
         const PUBLIC_URL = 'http://127.0.0.1:8000';
         const token = localStorage.getItem('auth_token');
         const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
-        window.currentUserData = userData; // Fix for post_utils.js reference
+        window.currentUserData = userData; 
         if (!token) window.location.href = 'login.html';
+        
+        function toggleProfileDropdown() {
+             const dropdown = document.getElementById('profile-dropdown');
+             if (dropdown) dropdown.classList.toggle('hidden');
+        }
     </script>
+    
     <script src="js/post_utils.js"></script>
     <script src="js/notifications.js"></script>
-    <script>
-        // Global Fetch Interceptor for Token Expiration (401)
-        const originalFetch = window.fetch;
-        window.fetch = async function (...args) {
-            try {
-                const response = await originalFetch(...args);
-                if (response.status === 401) {
-                    // Token expired or invalid
-                    localStorage.removeItem('auth_token');
-                    localStorage.removeItem('user_data');
-                    window.location.href = 'login.html';
-                }
-                return response;
-            } catch (error) {
-                if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
-                    // Check if showToast is available (from post_utils.js)
-                    if (typeof showToast === 'function') {
-                        showToast('Cannot connect to server. Is the backend running?', 'error');
-                    }
-                }
-                throw error;
-            }
-        };
+    <script src="js/site_branding.js"></script>
+    <!-- Combined Dashboard Logic -->
+<script>
+/**
+ * Dashboard Logic - Consolidated
+ * Handles Posts, Widgets, Post Creation, UI Interactions, and Real-time Updates.
+ */
 
-        // Header Init
-        if (userData.name) {
-            const initialsUrl = DEFAULT_AVATAR(userData.name);
-            const avatarUrl = getAvatarUrl(userData) || initialsUrl;
-            
-            const headerAvatar = document.getElementById('header-user-avatar');
-            const createPostAvatar = document.getElementById('create-post-avatar');
-            
-            if(headerAvatar) {
-                headerAvatar.src = avatarUrl;
-                headerAvatar.onerror = function() {
-                    this.onerror = null;
-                    this.src = initialsUrl;
-                };
-            }
-            
-            const headerName = document.getElementById('header-user-name');
-            const headerHandle = document.getElementById('header-user-handle');
-            if (headerName) headerName.innerText = userData.name;
-            if (headerHandle) headerHandle.innerText = '@' + userData.name.toLowerCase().replace(/\s+/g, '');
+// Debug Logger
+const DEBUG = true;
+function log(msg, data) {
+    if (DEBUG) console.log(`[Dashboard] ${msg}`, data || '');
+}
 
-            if(createPostAvatar) {
-                createPostAvatar.src = avatarUrl;
-                createPostAvatar.onerror = function() {
-                    this.onerror = null;
-                    this.src = initialsUrl;
-                };
-                // Add click to view profile - ONLY on the avatar, not the parent container
-                createPostAvatar.style.cursor = 'pointer';
-                createPostAvatar.onclick = (e) => {
-                    e.stopPropagation();
-                    window.location.href = 'profile.html';
-                };
+// Global State
+let isFetchingPosts = false;
+let postsCacheKey = 'home_posts_cache';
+let selectedFiles = [];
+
+// --- 1. GLOBAL FETCH INTERCEPTOR ---
+const originalFetch = window.fetch;
+window.fetch = async function (...args) {
+    try {
+        const response = await originalFetch(...args);
+        if (response.status === 401) {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_data');
+            window.location.href = 'login.html';
+        }
+        return response;
+    } catch (error) {
+        if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+            if (typeof showToast === 'function') {
+                showToast('Cannot connect to server.', 'error');
             }
         }
+        throw error;
+    }
+};
 
+// --- 2. HEADER & UI INITIALIZATION ---
+function initHeader() {
+    if (window.currentUserData && window.currentUserData.name) {
+        const userData = window.currentUserData;
+        const initialsUrl = window.DEFAULT_AVATAR(userData.name); // from post_utils.js
+        const avatarUrl = getAvatarUrl(userData) || initialsUrl;
 
-        // Post Creation
-        const postImageInput = document.getElementById('post-image-input');
-        const postFileInput = document.getElementById('post-file-input');
-        const imagePreviewContainer = document.getElementById('image-preview-container');
-        const quotePreviewContainer = document.getElementById('quote-preview-container'); // NEW
-        const originalPostIdInput = document.getElementById('original-post-id'); // NEW
-        let selectedFiles = [];
+        // Desktop and Mobile Header Avatars
+        const headerAvatar = document.getElementById('header-user-avatar');
+        const createPostAvatar = document.getElementById('create-post-avatar');
+        const mobileNavAvatar = document.getElementById('mobile-nav-avatar');
 
-        // Expose global function for Quote Tweet
-        window.prepareRetweet = function(postData) {
-            originalPostIdInput.value = postData.id;
-            
-            // Scroll to top
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            
-            // Populate Preview
-            document.getElementById('create-post-content').focus();
-            document.getElementById('create-post-content').placeholder = "Add a comment...";
-            
-            quotePreviewContainer.innerHTML = `
-                <div class="relative bg-white/5 border border-white/10 rounded-xl p-4 flex gap-3 animate-fade-in group">
-                     <!-- Close Button -->
-                     <button onclick="window.cancelRetweet()" class="absolute top-2 right-2 p-1 rounded-full bg-black/40 hover:bg-white/20 text-white/50 hover:text-white transition-colors">
-                        <span class="material-symbols-outlined text-[16px]">close</span>
-                     </button>
-                     
-                     <div class="w-1 bg-purple-500 rounded-full"></div>
-                     <div>
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="material-symbols-outlined text-purple-400 text-[18px]">repeat</span>
-                            <span class="text-xs font-bold text-purple-300">Reposting @${postData.username}</span>
-                        </div>
-                        <p class="text-sm text-slate-300 line-clamp-2">${postData.body || 'Media'}</p>
-                     </div>
-                </div>
-            `;
-            quotePreviewContainer.classList.remove('hidden');
-        };
+        [headerAvatar, createPostAvatar, mobileNavAvatar].forEach(img => {
+            if (img) {
+                img.src = avatarUrl;
+                img.onerror = function () { this.src = initialsUrl; };
+            }
+        });
 
-        window.cancelRetweet = function() {
-            originalPostIdInput.value = '';
-            quotePreviewContainer.innerHTML = '';
-            quotePreviewContainer.classList.add('hidden');
-            document.getElementById('create-post-content').placeholder = "What's on your mind?";
-        };
-
-        function handleFileSelect(e) {
-            const files = Array.from(e.target.files);
-            selectedFiles = [...selectedFiles, ...files];
-            imagePreviewContainer.innerHTML = '';
-            if (selectedFiles.length > 0) imagePreviewContainer.classList.remove('hidden');
-            selectedFiles.forEach(file => {
-                const div = document.createElement('div');
-                div.className = 'relative h-32 rounded-lg overflow-hidden border border-glass-border bg-white/5 flex items-center justify-center';
-                if (file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        div.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    div.innerHTML = ` <div class="flex flex-col items-center text-slate-400"> <span class="material-symbols-outlined text-3xl">description</span> <span class="text-xs mt-1 px-2 text-center truncate w-full">${file.name}</span> </div>`;
-                }
-                imagePreviewContainer.appendChild(div);
-            });
+        if (createPostAvatar) {
+            createPostAvatar.onclick = (e) => { e.stopPropagation(); window.location.href = 'profile.html'; };
         }
-        postImageInput.addEventListener('change', handleFileSelect);
-        postFileInput.addEventListener('change', handleFileSelect);
 
-        document.getElementById('create-post-btn').addEventListener('click', async () => {
-            console.log("Post button clicked"); 
-            const content = document.getElementById('create-post-content').value;
-            const btn = document.getElementById('create-post-btn');
+        const headerName = document.getElementById('header-user-name');
+        const headerHandle = document.getElementById('header-user-handle');
+        if (headerName) headerName.innerText = userData.name;
+        if (headerHandle) headerHandle.innerText = '@' + userData.name.toLowerCase().replace(/\s+/g, '');
+    }
+}
+
+// --- 3. POST CREATION LOGIC ---
+function initPostCreation() {
+    const postImageInput = document.getElementById('post-image-input');
+    const postFileInput = document.getElementById('post-file-input');
+    const createBtn = document.getElementById('create-post-btn');
+    
+    // File Inputs
+    if (postImageInput) postImageInput.addEventListener('change', handleFileSelect);
+    if (postFileInput) postFileInput.addEventListener('change', handleFileSelect);
+
+    // Create Button
+    if (createBtn) {
+        createBtn.addEventListener('click', async () => {
+            const contentInput = document.getElementById('create-post-content');
+            const originalPostIdInput = document.getElementById('original-post-id');
+            const imagePreviewContainer = document.getElementById('image-preview-container');
+            const quotePreviewContainer = document.getElementById('quote-preview-container');
+
+            const content = contentInput.value;
             const originalPostId = originalPostIdInput.value;
-            
-            // Check for empty content (allowed only for retweets)
+
             if (!content && selectedFiles.length === 0 && !originalPostId) {
                 showToast("Please write something!", "error");
                 return;
             }
-            btn.disabled = true;
-            btn.textContent = 'Posting...';
-            
-            // Auto-generate title from first few words of content
-            const generatedTitle = "New Post"; 
-            
-            const formData = new FormData();
-            formData.append('title', generatedTitle);
-            formData.append('body', content); // Can be empty string now
-            
-            if(originalPostId) {
-                formData.append('original_post_id', originalPostId);
-            }
+            createBtn.disabled = true;
+            createBtn.textContent = 'Posting...';
 
+            const formData = new FormData();
+            formData.append('title', "New Post");
+            formData.append('body', content);
+            if (originalPostId) formData.append('original_post_id', originalPostId);
             selectedFiles.forEach(file => formData.append('attachments[]', file));
+
             try {
                 const response = await fetch(`${API_BASE_URL}/create_post`, {
                     method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    },
+                    headers: { 'Authorization': `Bearer ${token}` },
                     body: formData
                 });
                 const data = await response.json();
                 if (data.success) {
-                    document.getElementById('create-post-content').value = '';
-                    // Reset Quote Tweet State
+                    contentInput.value = '';
                     window.cancelRetweet();
-                    
                     imagePreviewContainer.innerHTML = '';
                     imagePreviewContainer.classList.add('hidden');
                     selectedFiles = [];
-                    
-                    // Show success message
                     showToast(originalPostId ? 'Reposted successfully! 🔄' : 'Post created! It is under moderation.');
-                    
-                    loadPosts(); // Refresh
+                    loadPosts(); // Refresh feed immediately
                 } else {
-                    let msg = data.message || 'Error creating post';
-                    if (data.errors) {
-                         const firstErrorKey = Object.keys(data.errors)[0];
-                         if (firstErrorKey) {
-                             msg = data.errors[firstErrorKey][0];
-                         }
-                    }
-                    showToast(msg, 'error');
+                    showToast(data.message || 'Error creating post', 'error');
                 }
-            } catch (e) {
-                console.error(e);
-            } finally {
-                btn.textContent = 'Post';
-                btn.disabled = false;
+            } catch (e) { 
+                console.error(e); 
+                showToast('Error creating post', 'error'); 
+            } finally { 
+                createBtn.textContent = 'Post'; 
+                createBtn.disabled = false; 
             }
         });
+    }
 
-        // Search Logic is now handled by post_utils.js using #global-search-input
+    // Emoji Picker Logic
+    initEmojiPicker();
+}
 
-        // Load Posts
-        async function loadPosts() {
-            const postsContainer = document.getElementById('posts-container');
-            
-            // Check for cached data from loading screen
-            const cachedData = localStorage.getItem('cached_posts');
-            if (cachedData) {
-                try {
-                    const data = JSON.parse(cachedData);
-                    renderPosts(data, postsContainer);
-                    localStorage.removeItem('cached_posts');
-                    // We can optionally fetch fresh data silently here if we want to update it
-                    return; 
-                } catch (e) {
-                    console.error('Error parsing cache', e);
-                    localStorage.removeItem('cached_posts');
-                }
-            }
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/get_all_posts?limit=50`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Accept': 'application/json'
-                    }
-                });
-                const data = await response.json();
-                renderPosts(data, postsContainer);
-            } catch (e) {
-                console.error(e);
-                postsContainer.innerHTML = '<div class="text-center text-slate-500 py-10">Failed to load posts.</div>';
-            }
+function handleFileSelect(e) {
+    const imagePreviewContainer = document.getElementById('image-preview-container');
+    const files = Array.from(e.target.files);
+    selectedFiles = [...selectedFiles, ...files];
+    imagePreviewContainer.innerHTML = '';
+    if (selectedFiles.length > 0) imagePreviewContainer.classList.remove('hidden');
+    
+    selectedFiles.forEach(file => {
+        const div = document.createElement('div');
+        div.className = 'relative h-32 rounded-lg overflow-hidden border border-glass-border bg-white/5 flex items-center justify-center';
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                div.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
+            };
+            reader.readAsDataURL(file);
+        } else {
+            div.innerHTML = ` <div class="flex flex-col items-center text-slate-400"> <span class="material-symbols-outlined text-3xl">description</span> <span class="text-xs mt-1 px-2 text-center truncate w-full">${file.name}</span> </div>`;
         }
+        imagePreviewContainer.appendChild(div);
+    });
+}
 
-        function renderPosts(data, container) {
-            container.innerHTML = '';
-            const posts = data.data && data.data.items ? data.data.items : [];
+// Global Retweet Helpers (called from post_utils.js generated HTML)
+window.prepareRetweet = function (postData) {
+    const originalPostIdInput = document.getElementById('original-post-id');
+    const quotePreviewContainer = document.getElementById('quote-preview-container');
+    const contentInput = document.getElementById('create-post-content');
 
-            if (posts.length > 0) {
-                posts.forEach(post => {
-                    container.insertAdjacentHTML('beforeend', createPostHTML(post));
-                });
-            } else {
-                container.innerHTML = '<div class="text-center text-slate-500 py-10">No posts yet. Be the first!</div>';
-            }
-        }
+    originalPostIdInput.value = postData.id;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    contentInput.focus();
+    contentInput.placeholder = "Add a comment...";
 
-        // Handle URL Params (e.g. ?repost=123)
-        document.addEventListener('DOMContentLoaded', async () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const repostId = urlParams.get('repost');
-            
-            if(repostId && typeof window.prepareRetweet === 'function') {
-                 try {
-                     const response = await fetch(`${API_BASE_URL}/get_post`, {
-                         method: 'POST',
-                         headers: { 
-                             'Authorization': `Bearer ${token}`,
-                             'Content-Type': 'application/json' 
-                         },
-                         body: JSON.stringify({ id: repostId })
-                     });
-                     const data = await response.json();
-                     if(data.success && data.data) {
-                         const post = data.data;
-                         const user = post.user || { name: 'Unknown' };
-                         window.prepareRetweet({
-                             id: post.id,
-                             username: user.name,
-                             body: post.body
-                         });
-                         // Clean URL
-                         window.history.replaceState({}, document.title, window.location.pathname);
-                     }
-                 } catch(e) { console.error("Error fetching repost data", e); }
-            }
-        });
-
-</script>
-    <!-- Likers Modal -->
-    <div id="likers-modal" class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center hidden p-4">
-        <div class="glass-panel w-full max-w-sm rounded-2xl transform transition-all duration-300 scale-95 opacity-0 flex flex-col max-h-[80vh]">
-            <div class="p-4 border-b border-glass-border flex justify-between items-center shrink-0">
-                <h3 class="font-bold text-white text-lg">Likes</h3>
-                <button onclick="closeLikersModal()" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors">
-                    <span class="material-symbols-outlined text-gray-400">close</span>
+    quotePreviewContainer.innerHTML = `
+        <div class="relative bg-white/5 border border-white/10 rounded-xl p-4 flex gap-3 animate-fade-in group">
+                <button onclick="window.cancelRetweet()" class="absolute top-2 right-2 p-1 rounded-full bg-black/40 hover:bg-white/20 text-white/50 hover:text-white transition-colors">
+                <span class="material-symbols-outlined text-[16px]">close</span>
                 </button>
-            </div>
-            <div id="likers-list" class="p-2 overflow-y-auto custom-scrollbar flex-1">
-                 <!-- Content via JS -->
-            </div>
+                <div class="w-1 bg-purple-500 rounded-full"></div>
+                <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="material-symbols-outlined text-purple-400 text-[18px]">repeat</span>
+                    <span class="text-xs font-bold text-purple-300">Reposting @${postData.username}</span>
+                </div>
+                <p class="text-sm text-slate-300 line-clamp-2">${postData.body || 'Media'}</p>
+                </div>
+        </div>
+    `;
+    quotePreviewContainer.classList.remove('hidden');
+};
+
+window.cancelRetweet = function () {
+    document.getElementById('original-post-id').value = '';
+    const quotePreviewContainer = document.getElementById('quote-preview-container');
+    quotePreviewContainer.innerHTML = '';
+    quotePreviewContainer.classList.add('hidden');
+    document.getElementById('create-post-content').placeholder = "Write something...";
+};
+
+function initEmojiPicker() {
+    const emojis = [
+        '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇',
+        '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', 'yz',
+        '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞',
+        '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺',
+        '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶',
+        '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥',
+        '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧', '😮', '😲',
+        '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷',
+        '🤒', '🤕', '🤑', '🤠', '😈', '👿', '👹', '👺', '🤡', '💩',
+        '👋', '👍', '👎', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️',
+        '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔',
+        '🔥', '✨', '🌟', '💫', '💥', '💢', '💦', '💧', '💤', '💨'
+    ];
+
+    const emojiPicker = document.getElementById('emoji-picker');
+    const contentInput = document.getElementById('create-post-content');
+    if (!emojiPicker || !contentInput) return;
+
+    let lastFocusedInput = contentInput;
+    contentInput.addEventListener('focus', () => lastFocusedInput = contentInput);
+
+    emojis.forEach(emoji => {
+        const span = document.createElement('span');
+        span.textContent = emoji;
+        span.className = 'cursor-pointer hover:bg-white/10 rounded p-1 text-center transition-colors text-xl select-none';
+        span.onclick = (e) => {
+            e.stopPropagation();
+            insertAtCursor(lastFocusedInput, emoji);
+        };
+        emojiPicker.appendChild(span);
+    });
+
+    window.toggleEmojiPicker = function(event) {
+        if (event) event.stopPropagation();
+        emojiPicker.classList.toggle('hidden');
+    };
+
+    document.addEventListener('click', (e) => {
+        const btn = document.getElementById('emoji-btn');
+        if (!emojiPicker.contains(e.target) && (!btn || !btn.contains(e.target))) {
+            emojiPicker.classList.add('hidden');
+        }
+    });
+
+    function insertAtCursor(input, text) {
+        const start = input.selectionStart;
+        const end = input.selectionEnd;
+        const value = input.value;
+        input.value = value.substring(0, start) + text + value.substring(end);
+        input.selectionStart = input.selectionEnd = start + text.length;
+        input.focus();
+    }
+}
+
+// --- 4. FEED LOGIC ---
+// --- 4. FEED LOGIC ---
+async function loadPosts(isAutoRefresh = false) {
+    const postsContainer = document.getElementById('posts-container');
+    if (!postsContainer) return;
+    
+    // Safety check: if stuck fetching for too long, reset
+    if (isFetchingPosts) {
+        console.log("Already fetching posts...");
+        return;
+    }
+    isFetchingPosts = true;
+
+    console.log("Starting loadPosts...");
+
+    // 1. Initial Cache Load
+    if (!isAutoRefresh && postsContainer.innerHTML.trim() === '') {
+        const cached = localStorage.getItem(postsCacheKey);
+        if (cached) {
+            try {
+                const parsed = JSON.parse(cached);
+                const items = Array.isArray(parsed) ? parsed : (parsed.items ? parsed.items : []);
+                if (items.length > 0) renderPosts({ data: { items: items } }, postsContainer);
+            } catch (e) { console.error("Cache parse error", e); }
+        } else {
+            // Ensure skeleton is visible if no cache
+            if(!postsContainer.innerHTML.includes('animate-pulse')) {
+                postsContainer.innerHTML = `
+                    <div class="animate-pulse space-y-4">
+                        <div class="h-40 bg-[#1e2330] rounded-2xl"></div>
+                        <div class="h-40 bg-[#1e2330] rounded-2xl"></div>
+                    </div>`;
+            }
+        }
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/get_all_posts?limit=10`, {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+        });
+        
+        console.log("Fetch response status:", response.status);
+
+        if (response.status === 204) {
+             if (!isAutoRefresh) renderEmptyState(postsContainer);
+             return;
+        }
+
+        const data = await response.json();
+        console.log("API Data received:", data);
+        
+        if (data.success) {
+            // Robust data parsing
+            let items = [];
+            
+            // Case 1: data.data is the array (e.g. simple list)
+            if (Array.isArray(data.data)) {
+                items = data.data;
+            } 
+            // Case 2: data.data.items is the array (Pagination wrapper)
+            else if (data.data && data.data.items && Array.isArray(data.data.items)) {
+                items = data.data.items;
+            } 
+            // Case 3: data.data.data is the array (Laravel default pagination)
+            else if (data.data && data.data.data && Array.isArray(data.data.data)) {
+                items = data.data.data;
+            }
+
+            console.log("Parsed items count:", items.length);
+            
+            const newDataStr = JSON.stringify(items);
+            const oldDataStr = localStorage.getItem(postsCacheKey);
+            const isSkeleton = postsContainer.innerHTML.includes('animate-pulse') || postsContainer.innerHTML.includes('animate-spin');
+
+            // Force render if skeleton is visible OR data changed
+            if (isSkeleton || newDataStr !== oldDataStr) {
+                console.log("Rendering posts (Skeleton:", isSkeleton, "DataChanged:", newDataStr !== oldDataStr, ")");
+                localStorage.setItem(postsCacheKey, newDataStr);
+                renderPosts({ data: { items: items } }, postsContainer);
+            } else {
+                console.log("No render needed (Data same & no skeleton)");
+            }
+        } else {
+            console.warn("API reported success=false", data.message);
+            if (!isAutoRefresh) {
+                const msg = data.message || "No posts available.";
+                postsContainer.innerHTML = `<div class="p-8 text-center text-slate-500">${msg}</div>`;
+            }
+        }
+    } catch (e) {
+        console.error("Load Posts Error:", e);
+        if (!isAutoRefresh) {
+            postsContainer.innerHTML = `<div class="p-8 text-center text-slate-500">Failed to load posts. <button onclick="loadPosts()" class="text-primary hover:underline">Retry</button></div>`;
+        }
+    } finally {
+        isFetchingPosts = false;
+        console.log("Finished loadPosts");
+    }
+}
+
+function renderPosts(data, container) {
+    container.innerHTML = '';
+    const posts = data.data && data.data.items ? data.data.items : [];
+    if (posts.length > 0) {
+        posts.forEach(post => {
+            container.insertAdjacentHTML('beforeend', createPostHTML(post));
+        });
+    } else {
+        renderEmptyState(container);
+    }
+}
+
+function renderEmptyState(container) {
+    container.innerHTML = '<div class="text-center text-slate-500 py-10">No posts yet. Be the first!</div>';
+}
+
+// Polling disabled as per user request
+// async function startFeedPolling() { ... }
+
+async function fetchDashboardWidgets() {
+    if (window.innerWidth < 1024) return;
+    await Promise.all([
+        fetchPendingRequestsWidget(),
+        fetchSuggestionsWidget()
+    ]);
+}
+
+async function fetchPendingRequestsWidget() {
+    const container = document.getElementById('requests-list');
+    const widget = document.getElementById('sidebar-requests-widget');
+    const badge = document.getElementById('requests-badge-count');
+    if (!container || !widget) return;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/fetch_requests`, {
+             method: 'POST',
+             headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+
+        if (data.success && data.data.length > 0) {
+            widget.classList.remove('hidden');
+            renderRequestsWidget(data.data, container, badge);
+        } else {
+             widget.classList.add('hidden');
+        }
+    } catch (e) { log("Error fetching requests", e); }
+}
+
+function renderRequestsWidget(items, container, badge) {
+    container.innerHTML = '';
+    if (badge) badge.textContent = items.length;
+
+    items.slice(0, 3).forEach(req => {
+        const avatar = getAvatarUrl(req) || window.DEFAULT_AVATAR(req.name);
+        if(!req.id) return; 
+
+        // Safely creating HTML
+        // Note: Using window.location.href for redirection
+        const profileUrl = `profile.html?id=${req.id}`;
+        
+        const html = `
+            <div class="flex flex-col gap-3 p-3 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-all">
+                <div class="flex items-center gap-3">
+                    <img src="${avatar}" class="w-10 h-10 rounded-full object-cover border border-white/10 cursor-pointer" onclick="window.location.href='${profileUrl}'">
+                    <div class="flex-1 min-w-0">
+                        <h4 class="text-sm font-bold text-slate-200 truncate cursor-pointer hover:text-primary transition-colors" onclick="window.location.href='${profileUrl}'">${req.name}</h4>
+                        <p class="text-[10px] text-primary">Req.</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="handleDashboardRequest(${req.id}, 'accept', this)" class="flex-1 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-lg transition-colors shadow-lg shadow-primary/20">Accept</button>
+                    <button onclick="handleDashboardRequest(${req.id}, 'reject', this)" class="flex-1 py-1.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white text-xs font-bold rounded-lg transition-colors border border-white/5">Delete</button>
+                </div>
+            </div>`;
+        container.insertAdjacentHTML('beforeend', html);
+    });
+}
+
+async function handleDashboardRequest(userId, action, btn) {
+    const originalContent = btn.innerHTML;
+    btn.innerHTML = '<span class="material-symbols-outlined text-[10px] animate-spin">progress_activity</span>';
+    btn.disabled = true;
+    const endpoint = action === 'accept' ? 'accept_request' : 'reject_request';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userId })
+        });
+        const data = await response.json();
+        if (data.success) {
+            showToast(data.message, 'success');
+            fetchDashboardWidgets();
+        } else {
+            showToast(data.message || 'Action failed', 'error');
+            btn.innerHTML = originalContent;
+            btn.disabled = false;
+        }
+    } catch (e) {
+        showToast('Network error', 'error');
+        btn.innerHTML = originalContent;
+        btn.disabled = false;
+    }
+}
+
+// --- 5. WIDGET LOGIC ---
+async function fetchDashboardWidgets() {
+    // Only check mobile width if we want to save bandwidth, but for debugging let's allow it to try.
+    // If CSS hides it, it's fine.
+    if (window.innerWidth < 1024) {
+        console.log("Skipping widgets: Mobile view detected (Screen width < 1024px)");
+        // return; // Uncomment to disable on mobile
+    }
+    console.log("Fetching dashboard widgets...");
+    await Promise.all([
+        fetchPendingRequestsWidget(),
+        fetchSuggestionsWidget()
+    ]);
+}
+
+async function fetchPendingRequestsWidget() {
+    const container = document.getElementById('requests-list');
+    const widget = document.getElementById('sidebar-requests-widget');
+    const badge = document.getElementById('requests-badge-count');
+    
+    if (!container || !widget) {
+        console.warn("Requests widget elements not found in DOM");
+        return;
+    }
+
+    try {
+        console.log("Fetching pending requests...");
+        const response = await fetch(`${API_BASE_URL}/fetch_requests`, {
+             method: 'POST',
+             headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        console.log("Pending Requests Data:", data);
+
+        if (data.success && data.data && data.data.length > 0) {
+            console.log("Rendering Requests Widget with", data.data.length, "items");
+            widget.classList.remove('hidden');
+            renderRequestsWidget(data.data, container, badge);
+        } else {
+             console.log("No pending requests to show.");
+             widget.classList.remove('hidden'); // Ensure visible
+             container.innerHTML = '<div class="text-center text-slate-500 text-xs py-4">No pending requests</div>';
+             if(badge) badge.innerText = '0';
+        }
+    } catch (e) { 
+        log("Error fetching requests", e); 
+        container.innerHTML = '<div class="text-center text-red-500/50 text-xs py-4">Error loading</div>';
+    }
+}
+
+// --- WHO TO FOLLOW WIDGET ---
+async function fetchWhoToFollowWidget() {
+    const container = document.getElementById('who-to-follow-container');
+    if (!container) return;
+
+    // Loading state
+    container.innerHTML = '<div class="text-center text-slate-500 text-xs py-4">Loading...</div>';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/fetch_who_to_follow`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ limit: 5 })
+        });
+        const data = await response.json();
+
+        // Robust parsing
+        const items = data.data && data.data.items ? data.data.items : (Array.isArray(data.data) ? data.data : []);
+
+        if (data.success && items.length > 0) {
+            container.innerHTML = '';
+            items.forEach(user => {
+                const avatar = getAvatarUrl(user) || window.DEFAULT_AVATAR(user.name);
+                const html = `
+                    <div class="flex items-center justify-between group">
+                        <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='profile.html?id=${user.id}'">
+                            <img src="${avatar}" class="w-10 h-10 rounded-full object-cover border border-white/10 group-hover:border-primary/50 transition-colors">
+                            <div class="flex flex-col">
+                                <span class="text-sm font-bold text-white group-hover:text-primary transition-colors">${user.name}</span>
+                                <span class="text-[11px] text-slate-400">@${user.name.toLowerCase().replace(/\s+/g, '')}</span>
+                            </div>
+                        </div>
+                        <button onclick="followUserDashboard(this, ${user.id})" 
+                            class="px-3 py-1.5 rounded-full text-xs font-semibold bg-white/5 hover:bg-primary/20 text-white hover:text-primary border border-white/10 hover:border-primary/30 transition-all">
+                            Follow Back
+                        </button>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+        } else {
+            container.innerHTML = '<div class="text-center text-slate-500 text-xs py-4">No suggestions available</div>';
+        }
+    } catch (e) {
+        console.error("Error loading Who to Follow:", e);
+        container.innerHTML = '<div class="text-center text-red-500/50 text-xs py-4">Error loading</div>';
+    }
+}
+
+async function fetchSuggestionsWidget() {
+    const container = document.getElementById('suggestions-list');
+    const widget = document.getElementById('sidebar-suggestions-widget');
+    
+    if (!container || !widget) {
+        console.warn("Suggestions widget elements not found in DOM");
+        return;
+    }
+
+    try {
+        console.log("Fetching suggestions...");
+        const response = await fetch(`${API_BASE_URL}/fetch_suggestions`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ limit: 5 })
+        });
+        const data = await response.json();
+        console.log("Suggestions Data:", data);
+
+        // Robust parsing for paginated vs non-paginated response
+        const items = data.data && data.data.items ? data.data.items : (Array.isArray(data.data) ? data.data : []);
+
+        if (data.success && items.length > 0) {
+            console.log("Rendering Suggestions Widget with", items.length, "items");
+            widget.classList.remove('hidden');
+            renderSuggestionsWidget(items, container);
+        } else {
+            console.log("No suggestions to show.");
+            widget.classList.remove('hidden'); // Ensure visible
+            container.innerHTML = '<div class="text-center text-slate-500 text-xs py-4">No suggestions found</div>';
+        }
+    } catch (e) { 
+        log("Error fetching suggestions", e);
+        container.innerHTML = '<div class="text-center text-red-500/50 text-xs py-4">Error loading</div>';
+    }
+}
+
+function renderSuggestionsWidget(users, container) {
+    container.innerHTML = '';
+    users.forEach(user => {
+        const avatar = getAvatarUrl(user) || DEFAULT_AVATAR(user.name);
+        const profileUrl = `profile.html?id=${user.id}`;
+        const html = `
+            <div class="flex items-center justify-between group cursor-pointer">
+                <div class="flex items-center gap-3">
+                    <img src="${avatar}" class="w-10 h-10 rounded-full object-cover border border-white/10" onclick="window.location.href='${profileUrl}'">
+                    <div>
+                        <h4 class="text-sm font-bold text-slate-200 group-hover:text-primary transition-colors" onclick="window.location.href='${profileUrl}'">${user.name}</h4>
+                        <p class="text-[10px] text-slate-400">Suggested for you</p>
+                    </div>
+                </div>
+                <!-- Pass 'this' keyword to the function -->
+                <button onclick="followUserDashboard(this, ${user.id})" class="w-8 h-8 rounded-full bg-white/5 hover:bg-primary hover:text-white text-primary flex items-center justify-center transition-all border border-white/10 shadow-lg shadow-black/20">
+                    <span class="material-symbols-outlined text-[18px]">person_add</span>
+                </button>
+            </div>`;
+        container.insertAdjacentHTML('beforeend', html);
+    });
+}
+
+// Global Follow Handler (attached to window for HTML calls)
+window.followUserDashboard = async function(btn, userId) {
+    if (btn.dataset.loading === "true") return;
+
+    const isRequested = btn.classList.contains('bg-yellow-500/20');
+    const isFollowing = btn.classList.contains('bg-green-500/20');
+    const action = (isRequested || isFollowing) ? 'unfollow' : 'follow';
+
+    btn.dataset.loading = "true";
+    const previousHtml = btn.innerHTML;
+    const previousClass = btn.className;
+
+    // Optimistic UI
+    if (action === 'follow') {
+         // Pending state
+         btn.className = "w-8 h-8 rounded-full bg-yellow-500/20 text-yellow-500 border border-yellow-500/30 flex items-center justify-center transition-all cursor-pointer hover:bg-yellow-500/30";
+         btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">schedule</span>';
+    } else {
+         // Reset to add
+         btn.className = "w-8 h-8 rounded-full bg-white/5 hover:bg-primary hover:text-white text-primary flex items-center justify-center transition-all border border-white/10 shadow-lg shadow-black/20 cursor-pointer";
+         btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">person_add</span>';
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/${action}`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userId })
+        });
+        const data = await response.json();
+        if (data.success) {
+            // Check status if available
+            if (action === 'follow' && data.data && data.data.status === 'accepted') {
+                 // Convert to checkmark if accepted immediately
+                 btn.className = "w-8 h-8 rounded-full bg-green-500/20 text-green-500 border border-green-500/30 flex items-center justify-center transition-all cursor-pointer hover:bg-green-500/30";
+                 btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check</span>';
+            }
+        } else {
+             throw new Error(data.message);
+        }
+    } catch(e) {
+        log('Follow action failed', e);
+        btn.className = previousClass;
+        btn.innerHTML = previousHtml;
+        showToast('Action failed', 'error');
+    } finally {
+        btn.dataset.loading = "false";
+    }
+};
+
+// --- 6. PULL TO REFRESH LOGIC ---
+function initPullToRefresh() {
+    let touchStart = 0;
+    const refreshThreshold = 150;
+    const indicator = document.getElementById('refresh-indicator');
+
+    if (indicator) {
+        document.addEventListener('touchstart', (e) => {
+            if (window.scrollY === 0) touchStart = e.touches[0].clientY;
+        }, { passive: true });
+
+        document.addEventListener('touchmove', (e) => {
+            const touchCur = e.touches[0].clientY;
+            const pull = touchCur - touchStart;
+
+            if (window.scrollY === 0 && pull > 0 && touchStart > 0) {
+                if (pull < refreshThreshold) {
+                    indicator.style.opacity = Math.min(pull / 100, 1);
+                    indicator.style.transform = `translate(-50%, ${Math.min(pull / 2, 60)}px)`;
+                }
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchend', async (e) => {
+            const touchEnd = e.changedTouches[0].clientY;
+            const pull = touchEnd - touchStart;
+
+            if (window.scrollY === 0 && pull > 100 && touchStart > 0) {
+                indicator.style.opacity = '1';
+                indicator.style.transform = `translate(-50%, 50px)`;
+                await loadPosts();
+                setTimeout(() => {
+                    indicator.style.opacity = '0';
+                    indicator.style.transform = `translate(-50%, -40px)`;
+                }, 500);
+            } else {
+                indicator.style.opacity = '0';
+                indicator.style.transform = `translate(-50%, -40px)`;
+            }
+            touchStart = 0;
+        }, { passive: true });
+    }
+}
+
+// --- INITIALIZATION ---
+document.addEventListener('DOMContentLoaded', () => {
+    initHeader();
+    initPostCreation();
+    initPullToRefresh();
+    loadPosts(); 
+    fetchDashboardWidgets(); // Manual fetch once
+    fetchWhoToFollowWidget();
+    // startFeedPolling(); // Disabled
+    // startWidgetPolling(); // Disabled
+});
+</script>
+
+    <!-- Custom Refresh Indicator -->
+    <div id="refresh-indicator"
+        class="fixed top-24 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 opacity-0 -translate-y-10 pointer-events-none">
+        <div
+            class="bg-[#1e2330]/80 backdrop-blur-md border border-white/10 rounded-full p-3 text-primary shadow-xl flex items-center justify-center">
+            <span class="material-symbols-outlined text-2xl animate-spin">refresh</span>
         </div>
     </div>
 
-
-    <script>
-        loadPosts();
-    </script>
-
-    <script src="js/site_branding.js"></script>
+    <!-- Mobile Bottom Navigation -->
+    <nav
+        class="md:hidden fixed bottom-0 w-full glass-nav-mobile z-50 px-6 py-3 flex justify-between items-center pb-5 shadow-[0_-10px_40px_rgba(0,0,0,0.4)]">
+        <a href="homefeed-dashboard.html" class="flex flex-col items-center gap-1 text-primary group">
+            <span class="material-symbols-outlined text-[28px] group-hover:scale-110 transition-transform filled-icon"
+                style="font-variation-settings: 'FILL' 1;">home</span>
+        </a>
+        <a href="#" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors group">
+            <span
+                class="material-symbols-outlined text-[28px] group-hover:scale-110 transition-transform">explore</span>
+        </a>
+        <a href="friendreq.html"
+            class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors group relative">
+            <span class="material-symbols-outlined text-[28px] group-hover:scale-110 transition-transform">group</span>
+            <span id="mobile-nav-requests-badge"
+                class="hidden absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#0f111a] animate-pulse"></span>
+        </a>
+        <a href="notification.html"
+            class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors group relative">
+            <span
+                class="material-symbols-outlined text-[28px] group-hover:scale-110 transition-transform">notifications</span>
+            <span id="notif-badge-mobile"
+                class="hidden absolute top-0 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#0f111a] animate-pulse"></span>
+        </a>
+        <a href="profile.html"
+            class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors group">
+            <img id="mobile-nav-avatar" src=""
+                class="w-7 h-7 rounded-full object-cover border border-white/10 group-hover:border-primary/50 transition-colors bg-slate-700">
+        </a>
+    </nav>
 </body>
+
 </html>

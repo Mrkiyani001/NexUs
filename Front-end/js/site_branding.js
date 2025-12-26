@@ -70,33 +70,56 @@ document.addEventListener('DOMContentLoaded', async () => {
         favicon.href = logoPath;
     };
 
-    // Expose function globally so it can be called after dynamic content loading (e.g. admin sidebar)
+    // Expose function globally
     window.refreshSiteBranding = async () => {
         // Cached default
         const cachedSettings = localStorage.getItem('site_settings');
         if (cachedSettings) {
-             try { applySettings(JSON.parse(cachedSettings)); } catch(e){}
+            try { applySettings(JSON.parse(cachedSettings)); } catch (e) { }
         }
-        
+
         // Fetch fresh
         try {
-            const response = await fetch(`${PUBLIC_URL}/api/settings`, {
+            console.log("Fetching site settings...");
+            // Add timestamp to prevent browser caching
+            const response = await fetch(`${PUBLIC_URL}/api/settings?t=${new Date().getTime()}`, {
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
             });
+            console.log("Settings API Response Status:", response.status);
+
             if (response.ok) {
                 const data = await response.json();
+                console.log("Settings API Data:", data);
+
                 if (data.success && data.data) {
                     let settings = data.data;
                     if (Array.isArray(settings)) settings = settings[0];
                     localStorage.setItem('site_settings', JSON.stringify(settings));
                     applySettings(settings);
+                } else {
+                    console.error("Settings API returned success:false or no data", data);
                 }
+            } else {
+                console.error("Settings API failed", response.status, response.statusText);
             }
         } catch (error) {
             console.error("Failed to fetch fresh site settings:", error);
         }
     };
 
-    // Initial call
-    window.refreshSiteBranding();
+    // Attempt to apply immediately if body exists
+    const cached = localStorage.getItem('site_settings');
+    if (cached) {
+        try {
+            console.log("Applying cached settings:", JSON.parse(cached));
+            applySettings(JSON.parse(cached));
+        } catch (e) {
+            console.error("Error parsing cached settings", e);
+        }
+    }
+
+    // Also run on DOMContentLoaded to ensure all elements are caught
+    document.addEventListener('DOMContentLoaded', () => {
+        window.refreshSiteBranding();
+    });
 });

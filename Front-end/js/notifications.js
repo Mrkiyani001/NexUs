@@ -19,12 +19,21 @@ const NotificationService = {
             });
             const data = await response.json();
             if (data.success) {
-                this.unreadCount = data.data.count;
-                this.updateBadges();
+                // Smart Refresh: Only update DOM if count changed
+                if(this.unreadCount !== data.data.count) {
+                    this.unreadCount = data.data.count;
+                    this.updateBadges();
+                }
             }
         } catch (error) {
             console.error('Error fetching notification count:', error);
         }
+    },
+
+    startPolling() {
+        this.fetchUnreadCount().finally(() => {
+             setTimeout(() => this.startPolling(), 3000);
+        });
     },
 
     updateBadges() {
@@ -99,8 +108,19 @@ const NotificationService = {
         // This depends on how the backend structures the notification text/data
         if (notification.notifiable_type.includes('Post')) {
             window.location.href = `post-detail-veiw.html?id=${notification.notifiable_id}`;
+            // Handle Follow Request redirects
         } else if (notification.notifiable_type.includes('User')) {
-            window.location.href = `profile.html?id=${notification.notifiable_id}`;
+            if (notification.title.includes('Request') || notification.title.includes('New Follower')) {
+                 if (notification.title.includes('Accepted')) {
+                     // If accepted, view their profile
+                     window.location.href = `profile.html?id=${notification.notifiable_id}`;
+                 } else {
+                     // If incoming request, go to requests page
+                     window.location.href = 'friendreq.html';
+                 }
+            } else {
+                 window.location.href = `profile.html?id=${notification.notifiable_id}`;
+            }
         } else if (notification.notifiable_type.includes('Comment')) {
              // If it's a comment, we usually want to view the post it belongs to
              // This might need more data from backend or a separate fetch
@@ -112,13 +132,17 @@ const NotificationService = {
         }
     }
 };
-
-// Initialize if on a page with a header
+// Initialize Global Notification Polling
+document.addEventListener('DOMContentLoaded', () => {
+    if(localStorage.getItem('auth_token')) {
+        NotificationService.startPolling();
+    }
+});
 document.addEventListener('DOMContentLoaded', () => {
     // Only fetch if logged in
     if (localStorage.getItem('auth_token')) {
         NotificationService.fetchUnreadCount();
-        // Set interval to check every 1 minute
-        setInterval(() => NotificationService.fetchUnreadCount(), 60000);
+        // Set interval to check every 10 seconds (Safe Refresh)
+        setInterval(() => NotificationService.fetchUnreadCount(), 10000);
     }
 });

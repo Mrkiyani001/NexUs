@@ -172,17 +172,33 @@
              if(!ADMIN_TOKEN) window.location.href = '../login.html';
              await Promise.all([fetchRoles(), fetchPermissions()]);
              renderRolesList();
+             startRolesPolling();
         });
 
-        async function fetchRoles() {
+        async function fetchRoles(isAutoRefresh = false) {
             try {
                 const res = await fetch(`${API_BASE_URL}/get_all_roles`, { headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` } });
                 
                 if(handleAdminApiError(res)) return;
 
                 const data = await res.json();
-                if(data.success) rolesData = data.data;
+                if(data.success) {
+                    const newDataStr = JSON.stringify(data.data);
+                    const oldDataStr = JSON.stringify(rolesData); // Compare with current memory
+
+                    if (newDataStr !== oldDataStr) {
+                        rolesData = data.data;
+                        renderRolesList();
+                        // If selected role was updated, maybe refresh perms grid too?
+                        // For now just list.
+                    }
+                }
             } catch(e) { console.error(e); }
+        }
+        
+        async function startRolesPolling() {
+            await fetchRoles(true);
+            setTimeout(startRolesPolling, 3000);
         }
 
         async function fetchPermissions() {

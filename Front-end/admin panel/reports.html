@@ -161,13 +161,40 @@
         let currentPage = 1;
         let currentLimit = 10;
 
-        async function loadReports(page = 1) {
+        let isFetchingReports = false;
+        async function loadReports(page = 1, isAutoRefresh = false) {
+            // Only allow auto-refresh on first page to prevent disrupting pagination
+            if (isAutoRefresh && page !== 1) return;
+            
+            if(isFetchingReports) return;
+            isFetchingReports = true;
+
             currentPage = page;
             const grid = document.getElementById('reports-grid');
-            grid.innerHTML = `<div class="col-span-full py-20 text-center text-slate-500">
-                <span class="material-symbols-outlined animate-spin text-4xl mb-2">progress_activity</span>
-                <p>Fetching community reports...</p>
-            </div>`;
+            if(!grid) { isFetchingReports = false; return; }
+
+            const cacheKey = `reports_cache_page_${page}`;
+            
+            // 1. Initial Cache Load (Only if not auto-refreshing and on page 1)
+            const cached = localStorage.getItem(cacheKey);
+            if (!isAutoRefresh && cached && page === 1 && grid.innerHTML.trim() === '') {
+                try {
+                    const parsed = JSON.parse(cached);
+                    if (parsed && parsed.items && parsed.items.length > 0) {
+                        renderReports(parsed.items);
+                        document.getElementById('pending-reports-count').textContent = parsed.total || parsed.items.length;
+                        updatePagination(parsed.total, parsed.current_page, parsed.last_page);
+                    }
+                } catch(e) { console.error(e); }
+            }
+
+            // Show spinner only if explicit user action (not auto-refresh) and no cache
+            if (!isAutoRefresh && (!cached || page !== 1)) {
+                grid.innerHTML = `<div class="col-span-full py-20 text-center text-slate-500">
+                    <span class="material-symbols-outlined animate-spin text-4xl mb-2">progress_activity</span>
+                    <p>Fetching community reports...</p>
+                </div>`;
+            }
 
             try {
                 const response = await fetch(`${API_BASE_URL}/get_reports?page=${currentPage}&limit=${currentLimit}`, {
@@ -178,10 +205,28 @@
 
                 const data = await response.json();
 
-                if (data.success && data.data && data.data.items && data.data.items.length > 0) {
-                    renderReports(data.data.items);
-                    document.getElementById('pending-reports-count').textContent = data.data.total || data.data.items.length;
-                    updatePagination(data.data.total, data.data.current_page, data.data.last_page);
+                if (data.success && data.data && data.data.items) {
+                    const newDataStr = JSON.stringify(data.data);
+                    const oldDataStr = localStorage.getItem(cacheKey);
+
+                    // SMART REFRESH: Only update if data changed (or if it's a manual load)
+                    if (newDataStr !== oldDataStr || !isAutoRefresh) {
+                         if (page === 1) localStorage.setItem(cacheKey, newDataStr); // Only cache page 1
+                         
+                         if (data.data.items.length > 0) {
+                            renderReports(data.data.items);
+                            document.getElementById('pending-reports-count').textContent = data.data.total || data.data.items.length;
+                            updatePagination(data.data.total, data.data.current_page, data.data.last_page);
+                         } else {
+                            grid.innerHTML = `<div class="col-span-full py-20 text-center text-slate-500">
+                                <span class="material-symbols-outlined text-4xl mb-2">verified_user</span>
+                                <p>No pending reports. All clear!</p>
+                            </div>`;
+                            document.getElementById('pending-reports-count').textContent = '0';
+                            updatePagination(0, 0, 0);
+                            if(page===1) localStorage.removeItem(cacheKey);
+                         }
+                    }
                 } else {
                     grid.innerHTML = `<div class="col-span-full py-20 text-center text-slate-500">
                         <span class="material-symbols-outlined text-4xl mb-2">verified_user</span>
@@ -189,12 +234,24 @@
                     </div>`;
                     document.getElementById('pending-reports-count').textContent = '0';
                     updatePagination(0, 0, 0);
+                    if(page===1) localStorage.removeItem(cacheKey);
                 }
             } catch (e) {
                 console.error(e);
-                grid.innerHTML = `<div class="col-span-full py-20 text-center text-red-500">Error loading reports.</div>`;
+                if(!isAutoRefresh) grid.innerHTML = `<div class="col-span-full py-20 text-center text-red-500">Error loading reports.</div>`;
+            } finally {
+                isFetchingReports = false;
             }
         }
+        
+        // Recursive Polling (only on page 1)
+        async function startReportsPolling() {
+            if(currentPage === 1) {
+                await loadReports(1, true);
+            }
+            setTimeout(startReportsPolling, 3000);
+        }
+        startReportsPolling();
 
         function renderReports(reports) {
             const grid = document.getElementById('reports-grid');

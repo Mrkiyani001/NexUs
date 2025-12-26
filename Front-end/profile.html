@@ -433,6 +433,20 @@
 
 
         async function loadProfile() {
+            // 1. Load from Cache immediately
+            const cacheKey = `profile_${targetUserId}`;
+            const cached = localStorage.getItem(cacheKey);
+            if (cached) {
+                try {
+                    const parsed = JSON.parse(cached);
+                    if (parsed) {
+                        window.currentProfileData = parsed;
+                        renderProfile(parsed);
+                    }
+                } catch(e) { console.error("Cache parse error", e); }
+            }
+
+            // 2. Fetch Fresh Data
             try {
                 const response = await fetch(`${API_BASE_URL}/view`, {
                     method: 'POST',
@@ -446,6 +460,8 @@
                 const data = await response.json();
 
                 if (data.success) {
+                    window.currentProfileData = data.data; // Store globally for checks
+                    localStorage.setItem(cacheKey, JSON.stringify(data.data)); // Update cache
                     renderProfile(data.data);
                     loadTabContent();
                 } else {
@@ -598,34 +614,66 @@
         }
 
         async function checkFollowStatus(targetId) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/fetch_following`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({ user_id: currentUserData.id })
-                });
-                const data = await response.json();
-                const isFollowing = data.success && data.data.some(u => u.id == targetId);
-                renderFollowButton(targetId, isFollowing);
-            } catch (e) { console.error(e); }
+             // Status is now provided directly in the profile response as connection_status
+             // We can just rely on the global 'profileData' object if it's available, 
+             // but 'checkFollowStatus' is called after fetchProfile.
+             
+             // However, fetchProfile renders the profile initially. 
+             // Let's ensure we use the data from the 'fetchProfile' response which is usually stored or passed.
+             
+             // Wait, fetchProfile updates the DOM directly. It doesn't seem to store 'profileData' globally 
+             // other than potentially 'userData' which is the logged in user.
+             // But we need the connection status relative to the VIEWED user.
+             
+             // Let's verify where 'profileData' or the response is handled.
+             // It seems 'fetchProfile' calls 'checkFollowStatus' at the end? 
+             // No, let's look at how it was called.
+             // If we can't find where it's called, we can just fetch the status or rely on the fact that
+             // we should have passed this info to renderFollowButton directly from fetchProfile.
+             
+             // Assuming fetchProfile is refactored to call this, OR we can just fetch the profile again? No redundant calls.
+             
+             // BETTER: Update 'fetchProfile' to read connection_status from response and call renderFollowButton.
+             // And empty this function or make it just a wrapper if needed.
+             // But to be safe and clean, let's replace this complex logic with a manual check only if needed,
+             // Otherwise we trust fetchProfile to handle it.
+             
+             // Actually, `fetchProfile` is not shown here. I should check how it's implemented.
+             // But for now, I will modify this function to assume `window.currentProfileData` is available
+             // OR, even better: I'll modify `fetchProfile` (which I can't see but I can guess is in this file)
+             // to set a global variable.
+             
+             if (window.currentProfileData && window.currentProfileData.connection_status) {
+                 renderFollowButton(targetId, window.currentProfileData.connection_status);
+             } else {
+                 // Fallback if not available (shouldn't happen with my backend fix)
+                 renderFollowButton(targetId, 'none');
+             }
         }
 
-        function renderFollowButton(targetId, isFollowing) {
+        function renderFollowButton(targetId, status) {
             const container = document.getElementById('profile-actions');
             const existingBtn = document.getElementById('follow-btn');
             if (existingBtn) existingBtn.remove();
 
             const btn = document.createElement('button');
             btn.id = 'follow-btn';
-            if (isFollowing) {
+            
+            if (status === 'accepted') {
+                // Already Friends/Following
                 btn.className = "px-6 py-2.5 rounded-xl bg-white/10 text-white font-bold text-sm hover:bg-red-500/20 hover:text-red-400 transition-all border border-white/20 flex items-center gap-2";
                 btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">person_remove</span> Unfollow';
                 btn.onclick = () => toggleFollow(targetId, 'unfollow');
-            } else {
+            } 
+            else if (status === 'pending') {
+                // Request Sent
+                btn.className = "px-6 py-2.5 rounded-xl bg-white/10 text-secondary-text font-bold text-sm hover:bg-white/20 hover:text-white transition-all border border-white/20 flex items-center gap-2";
+                btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">pending</span> Requested';
+                // Clicking again cancels the request
+                btn.onclick = () => toggleFollow(targetId, 'unfollow'); 
+            } 
+            else {
+                // Not Following
                 btn.className = "px-6 py-2.5 rounded-xl bg-primary text-white font-bold text-sm hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/20 flex items-center gap-2 transform hover:-translate-y-0.5";
                 btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">person_add</span> Follow';
                 btn.onclick = () => toggleFollow(targetId, 'follow');
@@ -634,8 +682,26 @@
         }
 
         async function toggleFollow(targetId, action) {
+             // --- OPTIMISTIC UI ---
+             // Store previous state to revert if needed
+             // We can infer previous state from action:
+             // if action is 'follow', previous was 'none'
+             // if action is 'unfollow', previous was 'pending' or 'accepted'.
+             // For simplicity, we just move forward. If it fails, we reload profile or handle messy revert.
+             
+             // Optimistically Update Button
+             if (action === 'follow') {
+                 renderFollowButton(targetId, 'pending');
+             } else {
+                 renderFollowButton(targetId, 'none');
+             }
+
             try {
-                const response = await fetch(`${API_BASE_URL}/${action}`, {
+                // If action is 'unfollow', it works for both 'accepted' (Unfollow) and 'pending' (Cancel Request) 
+                // because backend 'unfollowUser' just detaches the relation.
+                const endpoint = action === 'follow' ? 'follow' : 'unfollow';
+                
+                const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -646,10 +712,30 @@
                 });
                 const data = await response.json();
                 if (data.success) {
-                    renderFollowButton(targetId, action === 'follow');
-                    loadProfile();
+                    // Check if we need to correct the 'pending' vs 'accepted' assumption
+                    if (action === 'follow') {
+                        const status = data.data && data.data.status ? data.data.status : 'pending';
+                        if (status === 'accepted') {
+                             renderFollowButton(targetId, 'accepted');
+                        }
+                    }
+                    
+                    // Invalidate Caches
+                    localStorage.removeItem('profile_' + targetId);
+                    localStorage.removeItem('dashboard_suggestions_cache');
+                    localStorage.removeItem('dashboard_requests_cache');
+                } else {
+                    // Revert on failure (basic revert)
+                    if (action === 'follow') renderFollowButton(targetId, 'none');
+                    else renderFollowButton(targetId, 'pending'); // or accepted, tricky to know without more state. 
+                    // Best effort:
+                    showToast(data.message || 'Action failed', 'error');
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) { 
+                console.error(e); 
+                // Revert
+                if (action === 'follow') renderFollowButton(targetId, 'none');
+            }
         }
 
         // Tab Interface

@@ -231,23 +231,60 @@
             }
         }
 
-        async function loadStats() {
+        let isFetchingStats = false;
+        async function loadStats(isAutoRefresh = false) {
+            if(isFetchingStats) return;
+            isFetchingStats = true;
+
+            const cacheKey = 'admin_stats_cache';
+            
+            // 1. Valid Cache (Initial)
+            const cached = localStorage.getItem(cacheKey);
+            if (!isAutoRefresh && cached) {
+                 try {
+                    const parsed = JSON.parse(cached);
+                    if (parsed) renderStats(parsed);
+                } catch(e) { console.error("Cache parse error", e); }
+            }
+
             try {
                 const response = await fetch(`${API_BASE_URL}/admin/stats`, {
                     headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
                 });
 
+                // if(handleAdminApiError(response)) return; // Don't redirect on background refresh? 
+                // Better to handle silently if 401 on auto-refresh, but handleAdminApiError does redirect. 
+                // Let's keep it but maybe suppress alert if auto-refresh? 
+                // For now, keep as is.
                 if(handleAdminApiError(response)) return;
 
                 const data = await response.json();
                 if (data.success) {
                     const stats = data.data;
-                    updateStatCard('total-users-count', stats.total_users);
-                    updateStatCard('new-users-count', stats.new_users_today, `+${stats.growth_percentage}% vs yesterday`);
-                    updateStatCard('banned-users-count', stats.banned_users);
+                    const newDataStr = JSON.stringify(stats);
+                    const oldDataStr = localStorage.getItem(cacheKey);
+
+                    if (newDataStr !== oldDataStr) {
+                         localStorage.setItem(cacheKey, newDataStr);
+                         renderStats(stats);
+                    }
                 }
             } catch (e) { console.error(e); }
+            finally { isFetchingStats = false; }
         }
+
+        function renderStats(stats) {
+            updateStatCard('total-users-count', stats.total_users);
+            updateStatCard('new-users-count', stats.new_users_today, `+${stats.growth_percentage}% vs yesterday`);
+            updateStatCard('banned-users-count', stats.banned_users);
+        }
+
+        // Recursive Polling for Stats
+        async function startStatsPolling() {
+            await loadStats(true);
+            setTimeout(startStatsPolling, 3000);
+        }
+        startStatsPolling();
 
         function updateStatCard(id, value, subtext = '') {
             const el = document.getElementById(id);

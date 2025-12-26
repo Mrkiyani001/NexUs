@@ -207,26 +207,67 @@
              }
         });
 
-        async function loadNotifications() {
+        let isFetching = false;
+        async function loadNotifications(isAutoRefresh = false) {
+            if(isFetching) return;
+            isFetching = true;
+            
             const list = document.getElementById('notifications-list');
+            if(!list) { isFetching = false; return; }
+
+            // 1. Load from Cache (Only on initial load)
+            const cached = localStorage.getItem('notifications_cache');
+            if (!isAutoRefresh && cached && list.innerHTML.trim() === "") {
+                try {
+                    const parsed = JSON.parse(cached);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        list.innerHTML = parsed.map(notif => renderNotificationItem(notif)).join('');
+                        updateUnreadCountText(parsed.filter(n => n.read_status === 'N').length);
+                    }
+                } catch(e) { console.error("Cache parse error", e); }
+            }
+
+            // 2. Fetch Fresh
             try {
                 const response = await fetch(`${API_BASE_URL}/get_user_notifications`, {
                     headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
                 });
                 const data = await response.json();
                 
-                if (data.success && data.data.items && data.data.items.length > 0) {
-                    list.innerHTML = data.data.items.map(notif => renderNotificationItem(notif)).join('');
-                    updateUnreadCountText(data.data.items.filter(n => n.read_status === 'N').length);
-                } else {
-                    list.innerHTML = '<div class="glass-panel rounded-2xl p-12 text-center text-secondary-text">No notifications found yet.</div>';
-                    updateUnreadCountText(0);
+                if (data.success && data.data.items) {
+                    const newDataStr = JSON.stringify(data.data.items);
+                    const oldDataStr = localStorage.getItem('notifications_cache');
+                    
+                    // SMART REFRESH: Only update URL if changed
+                     if (newDataStr !== oldDataStr) {
+                         if(data.data.items.length > 0) {
+                            localStorage.setItem('notifications_cache', newDataStr);
+                            list.innerHTML = data.data.items.map(notif => renderNotificationItem(notif)).join('');
+                            updateUnreadCountText(data.data.items.filter(n => n.read_status === 'N').length);
+                         } else {
+                            if(cached) localStorage.removeItem('notifications_cache');
+                            list.innerHTML = '<div class="glass-panel rounded-2xl p-12 text-center text-secondary-text">No notifications found yet.</div>';
+                            updateUnreadCountText(0);
+                         }
+                     }
                 }
             } catch (error) {
                 console.error(error);
-                list.innerHTML = '<div class="text-red-400 text-center py-10">Error loading notifications.</div>';
+                if (!cached && !isAutoRefresh) list.innerHTML = '<div class="text-red-400 text-center py-10">Error loading notifications.</div>';
+            } finally {
+                isFetching = false;
+                // Spinner removal if it exists on first load
+                const spinner = list.querySelector('.animate-spin');
+                if(spinner && !cached) spinner.parentElement.remove();
             }
         }
+        
+        // Recursive Polling
+        async function startNotificationPolling() {
+            await loadNotifications(true);
+            setTimeout(startNotificationPolling, 3000);
+        }
+        startNotificationPolling();
 
         function updateUnreadCountText(count) {
             const el = document.getElementById('notif-count-text');
