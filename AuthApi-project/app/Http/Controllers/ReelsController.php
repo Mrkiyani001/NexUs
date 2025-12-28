@@ -91,8 +91,8 @@ class ReelsController extends BaseController
             if ($reel->user_id != $user->id) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Unauthorized.',
-                ], 401);
+                    'message' => 'You are not authorized to update this reel.',
+                ], 403);
             }
             $reel->update([
                 'caption' => $request->caption ?? $reel->caption,

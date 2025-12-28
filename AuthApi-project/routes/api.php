@@ -39,35 +39,35 @@ Route::get('/debug-config', function () {
     ]);
 });
 
-Route::get('/test-gemini', function () {
-    try {
-        $response = Prism::text()
-            ->using(Provider::Gemini, 'gemini-flash-latest')
-            ->withPrompt('Is this text safe? "I want to kill them." Answer with just Safe or Unsafe.')
-            ->generate();
+// Route::get('/test-gemini', function () {
+//     try {
+//         $response = Prism::text()
+//             ->using(Provider::Gemini, 'gemini-flash-latest')
+//             ->withPrompt('Is this text safe? "I want to kill them." Answer with just Safe or Unsafe.')
+//             ->generate();
 
-        return response()->json(['response' => $response->text]);
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()], 500);
-    }
-});
+//         return response()->json(['response' => $response->text]);
+//     } catch (\Exception $e) {
+//         return response()->json(['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()], 500);
+//     }
+// });
 
-Route::get('/gemini-models', function () {
-    $key = env('GEMINI_API_KEY');
-    $url = "https://generativelanguage.googleapis.com/v1beta/models?key=$key";
-    $json = file_get_contents($url);
-    $data = json_decode($json, true);
+// Route::get('/gemini-models', function () {
+//     $key = env('GEMINI_API_KEY');
+//     $url = "https://generativelanguage.googleapis.com/v1beta/models?key=$key";
+//     $json = file_get_contents($url);
+//     $data = json_decode($json, true);
 
-    $availableModels = [];
-    if (isset($data['models'])) {
-        foreach ($data['models'] as $model) {
-            if (isset($model['supportedGenerationMethods']) && in_array('generateContent', $model['supportedGenerationMethods'])) {
-                $availableModels[] = $model['name'];
-            }
-        }
-    }
-    return response()->json(['models' => $availableModels]);
-});
+//     $availableModels = [];
+//     if (isset($data['models'])) {
+//         foreach ($data['models'] as $model) {
+//             if (isset($model['supportedGenerationMethods']) && in_array('generateContent', $model['supportedGenerationMethods'])) {
+//                 $availableModels[] = $model['name'];
+//             }
+//         }
+//     }
+//     return response()->json(['models' => $availableModels]);
+// });
 
 Route::group(['middleware' => ['api', 'auth:api']], function () {
 

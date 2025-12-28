@@ -497,12 +497,9 @@
 
         </div>
     </main>
+    <script src="js/config.js"></script>
     <script>
-        window.API_BASE_URL = 'http://127.0.0.1:8000/api';
-        window.PUBLIC_URL = 'http://127.0.0.1:8000';
-        // Keep const for local scope convenience if needed, or just rely on window
-        const API_BASE_URL = window.API_BASE_URL;
-        const PUBLIC_URL = window.PUBLIC_URL;
+        // API_BASE_URL and PUBLIC_URL are loaded from config.js
 
         const token = localStorage.getItem('auth_token');
         const userData = JSON.parse(localStorage.getItem('user_data') || '{}');

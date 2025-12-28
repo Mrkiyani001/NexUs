@@ -3,8 +3,7 @@
  * Handles fetching and displaying reels from the API
  */
 
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
-const PUBLIC_URL = 'http://127.0.0.1:8000';
+// Config loaded from config.js
 
 document.addEventListener('DOMContentLoaded', () => {
     fetchReels();

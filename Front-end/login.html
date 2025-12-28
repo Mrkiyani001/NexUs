@@ -210,13 +210,13 @@
                 icon.textContent = 'visibility';
             } else {
                 input.type = 'password';
-                icon.textContent = 'visibility_off';
+        icon.textContent = 'visibility_off';
             }
         }
     </script>
 </body>
-<script>
-    const API_BASE_URL = 'http://127.0.0.1:8000/api';
+    <script src="js/config.js"></script>
+    <script>
 
     document.getElementById('login-btn').addEventListener('click', async () => {
         const email = document.getElementById('email').value;
