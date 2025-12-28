@@ -6,8 +6,10 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Site Settings - Admin</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap"
+        rel="stylesheet" />
     <script>
         tailwind.config = {
             darkMode: "class",
@@ -20,37 +22,63 @@
         }
     </script>
     <style>
-        .glass-panel { background: rgba(30, 35, 50, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .input-dark { background-color: rgba(255, 255, 255, 0.03) !important; border: 1px solid rgba(255, 255, 255, 0.1); color: white; transition: all 0.2s; }
-        .input-dark:focus { border-color: #215bed; outline: none; background-color: rgba(255, 255, 255, 0.08) !important; box-shadow: 0 0 0 4px rgba(33, 91, 237, 0.1); }
-        select option { background-color: #101522; color: white; }
+        .glass-panel {
+            background: rgba(30, 35, 50, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .input-dark {
+            background-color: rgba(255, 255, 255, 0.03) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.2s;
+        }
+
+        .input-dark:focus {
+            border-color: #215bed;
+            outline: none;
+            background-color: rgba(255, 255, 255, 0.08) !important;
+            box-shadow: 0 0 0 4px rgba(33, 91, 237, 0.1);
+        }
+
+        select option {
+            background-color: #101522;
+            color: white;
+        }
     </style>
 </head>
 
 <body class="bg-background-dark text-white font-display h-screen w-full flex overflow-hidden">
     <!-- Sidebar -->
-    <aside id="admin-sidebar" class="hidden md:flex w-20 lg:w-72 flex-col border-r border-white/5 bg-[#111318]/90 z-20"></aside>
+    <aside id="admin-sidebar" class="hidden md:flex w-20 lg:w-72 flex-col border-r border-white/5 bg-[#111318]/90 z-20">
+    </aside>
 
     <main class="flex-1 flex flex-col relative overflow-hidden">
         <!-- Header -->
-        <header class="h-20 flex items-center justify-between px-6 border-b border-white/5 bg-background-dark/30 backdrop-blur-sm sticky top-0 z-20">
+        <header
+            class="h-20 flex items-center justify-between px-6 border-b border-white/5 bg-background-dark/30 backdrop-blur-sm sticky top-0 z-20">
             <div class="flex items-center gap-3">
-                <button onclick="toggleSidebar()" class="md:hidden text-white p-2"><span class="material-symbols-outlined">menu</span></button>
+                <button onclick="toggleSidebar()" class="md:hidden text-white p-2"><span
+                        class="material-symbols-outlined">menu</span></button>
                 <div>
                     <h2 class="text-xl font-bold">Site Settings</h2>
                     <p class="text-xs text-slate-400">Manage global website configuration</p>
                 </div>
             </div>
-            <button onclick="saveSiteSettings()" id="save-btn" class="bg-primary hover:bg-blue-600 px-6 py-2 rounded-lg text-sm font-bold shadow-lg shadow-primary/20 transition">Save Changes</button>
+            <button onclick="saveSiteSettings()" id="save-btn"
+                class="bg-primary hover:bg-blue-600 px-6 py-2 rounded-lg text-sm font-bold shadow-lg shadow-primary/20 transition">Save
+                Changes</button>
         </header>
 
         <!-- Content -->
         <div class="flex-1 overflow-y-auto p-6 lg:p-10 custom-scrollbar">
             <div class="max-w-4xl mx-auto space-y-8 pb-20">
-                
+
                 <!-- General Section -->
                 <div class="glass-panel p-6 rounded-2xl">
-                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-primary">settings</span> General Information</h3>
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><span
+                            class="material-symbols-outlined text-primary">settings</span> General Information</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="text-xs font-bold text-slate-400 uppercase">Website Name</label>
@@ -58,49 +86,71 @@
                         </div>
                         <div>
                             <label class="text-xs font-bold text-slate-400 uppercase">Support Email</label>
-                            <input type="email" id="support_email" class="w-full mt-2 rounded-lg p-3 input-dark text-sm">
+                            <input type="email" id="support_email"
+                                class="w-full mt-2 rounded-lg p-3 input-dark text-sm">
                         </div>
                         <div class="col-span-full">
                             <label class="text-xs font-bold text-slate-400 uppercase">Site Description</label>
-                            <textarea id="site_description" rows="3" class="w-full mt-2 rounded-lg p-3 input-dark text-sm"></textarea>
+                            <textarea id="site_description" rows="3"
+                                class="w-full mt-2 rounded-lg p-3 input-dark text-sm"></textarea>
                         </div>
                     </div>
                 </div>
 
                 <!-- Branding Section -->
                 <div class="glass-panel p-6 rounded-2xl">
-                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-primary">palette</span> Branding & Appearance</h3>
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><span
+                            class="material-symbols-outlined text-primary">palette</span> Branding & Appearance</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div>
                             <label class="text-xs font-bold text-slate-400 uppercase mb-2 block">Logo</label>
-                            <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-white/10 rounded-xl cursor-pointer hover:bg-white/5 hover:border-primary/50 transition relative overflow-hidden group">
-                                <img id="logo-preview" class="absolute inset-0 w-full h-full object-contain p-4 opacity-50 group-hover:opacity-40 transition" src="">
+                            <label
+                                class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-white/10 rounded-xl cursor-pointer hover:bg-white/5 hover:border-primary/50 transition relative overflow-hidden group">
+                                <img id="logo-preview"
+                                    class="absolute inset-0 w-full h-full object-contain p-4 opacity-50 group-hover:opacity-40 transition"
+                                    src="">
                                 <div class="z-10 flex flex-col items-center transition-transform group-hover:scale-110">
-                                    <span class="material-symbols-outlined text-3xl text-primary mb-2 shadow-lg bg-background-dark/50 rounded-full p-2">cloud_upload</span>
-                                    <span class="text-xs text-slate-300 font-medium bg-background-dark/50 px-2 py-1 rounded">Click to upload</span>
+                                    <span
+                                        class="material-symbols-outlined text-3xl text-primary mb-2 shadow-lg bg-background-dark/50 rounded-full p-2">cloud_upload</span>
+                                    <span
+                                        class="text-xs text-slate-300 font-medium bg-background-dark/50 px-2 py-1 rounded">Click
+                                        to upload</span>
                                 </div>
-                                <input type="file" id="logo" class="hidden" accept="image/*" onchange="previewImage(this, 'logo-preview')">
+                                <input type="file" id="logo" class="hidden" accept="image/*"
+                                    onchange="previewImage(this, 'logo-preview')">
                             </label>
                             <p class="text-[10px] text-slate-500 mt-2 text-center">Recommended: PNG, 200x50px</p>
                         </div>
                         <div>
                             <label class="text-xs font-bold text-slate-400 uppercase mb-2 block">Favicon</label>
-                            <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-white/10 rounded-xl cursor-pointer hover:bg-white/5 hover:border-primary/50 transition relative overflow-hidden group">
-                                <img id="favicon-preview" class="absolute inset-0 w-full h-full object-contain p-4 opacity-50 group-hover:opacity-40 transition" src="">
+                            <label
+                                class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-white/10 rounded-xl cursor-pointer hover:bg-white/5 hover:border-primary/50 transition relative overflow-hidden group">
+                                <img id="favicon-preview"
+                                    class="absolute inset-0 w-full h-full object-contain p-4 opacity-50 group-hover:opacity-40 transition"
+                                    src="">
                                 <div class="z-10 flex flex-col items-center transition-transform group-hover:scale-110">
-                                    <span class="material-symbols-outlined text-3xl text-primary mb-2 shadow-lg bg-background-dark/50 rounded-full p-2">cloud_upload</span>
-                                    <span class="text-xs text-slate-300 font-medium bg-background-dark/50 px-2 py-1 rounded">Click to upload</span>
+                                    <span
+                                        class="material-symbols-outlined text-3xl text-primary mb-2 shadow-lg bg-background-dark/50 rounded-full p-2">cloud_upload</span>
+                                    <span
+                                        class="text-xs text-slate-300 font-medium bg-background-dark/50 px-2 py-1 rounded">Click
+                                        to upload</span>
                                 </div>
-                                <input type="file" id="favicon" class="hidden" accept="image/*" onchange="previewImage(this, 'favicon-preview')">
+                                <input type="file" id="favicon" class="hidden" accept="image/*"
+                                    onchange="previewImage(this, 'favicon-preview')">
                             </label>
                             <p class="text-[10px] text-slate-500 mt-2 text-center">Recommended: ICO/PNG, 32x32px</p>
                         </div>
                         <div class="flex flex-col gap-2">
                             <label class="text-xs font-bold text-slate-400 uppercase">Theme Color</label>
-                            <div class="h-12 w-full rounded-lg input-dark flex items-center px-2 gap-3 relative overflow-hidden">
-                                <input type="color" id="theme_color" class="h-8 w-8 rounded cursor-pointer bg-transparent border-0 p-0" value="#3b82f6">
-                                <span id="theme_color_text" class="text-sm text-slate-300 font-mono tracking-wider">#3b82f6</span>
-                                <div class="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background-dark to-transparent pointer-events-none"></div>
+                            <div
+                                class="h-12 w-full rounded-lg input-dark flex items-center px-2 gap-3 relative overflow-hidden">
+                                <input type="color" id="theme_color"
+                                    class="h-8 w-8 rounded cursor-pointer bg-transparent border-0 p-0" value="#3b82f6">
+                                <span id="theme_color_text"
+                                    class="text-sm text-slate-300 font-mono tracking-wider">#3b82f6</span>
+                                <div
+                                    class="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background-dark to-transparent pointer-events-none">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -108,57 +158,73 @@
 
                 <!-- Social Links -->
                 <div class="glass-panel p-6 rounded-2xl">
-                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-primary">share</span> Social Links</h3>
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><span
+                            class="material-symbols-outlined text-primary">share</span> Social Links</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
                             <label class="text-xs font-bold text-slate-400 uppercase">Facebook URL</label>
-                            <input type="url" id="facebook_url" class="w-full mt-2 rounded-lg p-3 input-dark text-sm" placeholder="https://facebook.com/...">
+                            <input type="url" id="facebook_url" class="w-full mt-2 rounded-lg p-3 input-dark text-sm"
+                                placeholder="https://facebook.com/...">
                         </div>
                         <div>
                             <label class="text-xs font-bold text-slate-400 uppercase">Instagram URL</label>
-                            <input type="url" id="instagram_url" class="w-full mt-2 rounded-lg p-3 input-dark text-sm" placeholder="https://instagram.com/...">
+                            <input type="url" id="instagram_url" class="w-full mt-2 rounded-lg p-3 input-dark text-sm"
+                                placeholder="https://instagram.com/...">
                         </div>
                         <div>
                             <label class="text-xs font-bold text-slate-400 uppercase">Twitter (X) URL</label>
-                            <input type="url" id="twitter_url" class="w-full mt-2 rounded-lg p-3 input-dark text-sm" placeholder="https://x.com/...">
+                            <input type="url" id="twitter_url" class="w-full mt-2 rounded-lg p-3 input-dark text-sm"
+                                placeholder="https://x.com/...">
                         </div>
                     </div>
                 </div>
 
                 <!-- System Controls -->
                 <div class="glass-panel p-6 rounded-2xl border-l-4 border-l-orange-500">
-                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-orange-400">admin_panel_settings</span> System Controls</h3>
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><span
+                            class="material-symbols-outlined text-orange-400">admin_panel_settings</span> System
+                        Controls</h3>
                     <div class="space-y-4">
-                        <div class="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition">
+                        <div
+                            class="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition">
                             <div>
                                 <p class="font-bold text-sm">Allow Registration</p>
                                 <p class="text-xs text-slate-400">New users can sign up.</p>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" id="allow_registration" class="sr-only peer">
-                                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                                <div
+                                    class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500">
+                                </div>
                             </label>
                         </div>
 
-                        <div class="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition">
+                        <div
+                            class="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition">
                             <div>
                                 <p class="font-bold text-sm">Email Verification</p>
-                                <p class="text-xs text-slate-400">Require email verification for new accounts (Coming Soon).</p>
+                                <p class="text-xs text-slate-400">Require email verification for new accounts (Coming
+                                    Soon).</p>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" id="email_verification" class="sr-only peer">
-                                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                                <div
+                                    class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500">
+                                </div>
                             </label>
                         </div>
 
-                        <div class="flex items-center justify-between p-3 rounded-lg bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition">
+                        <div
+                            class="flex items-center justify-between p-3 rounded-lg bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition">
                             <div>
                                 <p class="font-bold text-sm text-red-400">Maintenance Mode</p>
                                 <p class="text-xs text-red-300/70">Disable the site for all users except admins.</p>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" id="maintenance_mode" class="sr-only peer">
-                                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
+                                <div
+                                    class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500">
+                                </div>
                             </label>
                         </div>
                     </div>
@@ -166,19 +232,23 @@
 
                 <!-- SEO -->
                 <div class="glass-panel p-6 rounded-2xl">
-                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-primary">search</span> SEO & Localization</h3>
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><span
+                            class="material-symbols-outlined text-primary">search</span> SEO & Localization</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                         <div>
+                        <div>
                             <label class="text-xs font-bold text-slate-400 uppercase">Default Language</label>
-                            <select id="default_language" class="w-full mt-2 rounded-lg p-3 input-dark text-sm bg-background-dark">
+                            <select id="default_language"
+                                class="w-full mt-2 rounded-lg p-3 input-dark text-sm bg-background-dark">
                                 <option value="en">English</option>
                                 <option value="ur">Urdu (Coming Soon)</option>
                                 <option value="es">Spanish (Coming Soon)</option>
                             </select>
                         </div>
                         <div class="col-span-full">
-                            <label class="text-xs font-bold text-slate-400 uppercase">Meta Keywords (Comma separated)</label>
-                            <input type="text" id="meta_keywords" class="w-full mt-2 rounded-lg p-3 input-dark text-sm" placeholder="social, best app, connect">
+                            <label class="text-xs font-bold text-slate-400 uppercase">Meta Keywords (Comma
+                                separated)</label>
+                            <input type="text" id="meta_keywords" class="w-full mt-2 rounded-lg p-3 input-dark text-sm"
+                                placeholder="social, best app, connect">
                         </div>
                     </div>
                 </div>
@@ -195,29 +265,31 @@
     <script src="../js/admin_utils.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-             renderAdminSidebar('settings');
-             loadSettings();
-             
-             // Color picker sync
-             document.getElementById('theme_color').addEventListener('input', (e) => {
-                 document.getElementById('theme_color_text').textContent = e.target.value;
-             });
+            renderAdminSidebar('settings');
+            loadSettings();
+
+            // Color picker sync
+            document.getElementById('theme_color').addEventListener('input', (e) => {
+                document.getElementById('theme_color_text').textContent = e.target.value;
+            });
         });
 
         async function loadSettings() {
-             try {
+            try {
                 const response = await fetch(`${API_BASE_URL}/settings`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-                         'Accept': 'application/json'
+                        'Accept': 'application/json'
                     }
                 });
 
-                if(handleAdminApiError(response)) return;
+                if (handleAdminApiError(response)) return;
 
                 const res = await response.json();
-                if(res.success) {
-                    const s = res.data;
+                if (res.success) {
+                    let s = res.data;
+                    if (Array.isArray(s)) s = s[0] || {};
+
                     document.getElementById('site_name').value = s.site_name || '';
                     document.getElementById('site_description').value = s.site_description || '';
                     document.getElementById('support_email').value = s.support_email || '';
@@ -228,25 +300,25 @@
                     document.getElementById('theme_color_text').textContent = s.theme_color || '#3b82f6';
                     document.getElementById('meta_keywords').value = s.meta_keywords || '';
                     document.getElementById('default_language').value = s.default_language || 'en';
-                    
+
                     document.getElementById('maintenance_mode').checked = !!s.maintenance_mode;
                     document.getElementById('allow_registration').checked = !!s.allow_registration;
                     document.getElementById('email_verification').checked = !!s.email_verification;
 
-                    if(s.logo) {
+                    if (s.logo) {
                         const img = document.getElementById('logo-preview');
                         img.src = `http://127.0.0.1:8000/storage/${s.logo}`;
                         img.classList.remove('opacity-50'); // Show full opacity if loaded
                         img.classList.add('opacity-100');
                     }
-                    if(s.favicon) {
+                    if (s.favicon) {
                         const img = document.getElementById('favicon-preview');
                         img.src = `http://127.0.0.1:8000/storage/${s.favicon}`;
                         img.classList.remove('opacity-50');
                         img.classList.add('opacity-100');
                     }
                 }
-            } catch(e) {
+            } catch (e) {
                 console.error("Failed to load settings", e);
             }
         }
@@ -254,7 +326,7 @@
         function previewImage(input, previewId) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = function (e) {
                     const img = document.getElementById(previewId);
                     img.src = e.target.result;
                     img.classList.remove('opacity-50');
@@ -285,10 +357,10 @@
             formData.append('email_verification', document.getElementById('email_verification').checked ? '1' : '0');
 
             const logoFile = document.getElementById('logo').files[0];
-            if(logoFile) formData.append('logo', logoFile);
-            
+            if (logoFile) formData.append('logo', logoFile);
+
             const favFile = document.getElementById('favicon').files[0];
-            if(favFile) formData.append('favicon', favFile);
+            if (favFile) formData.append('favicon', favFile);
 
             try {
                 const response = await fetch(`${API_BASE_URL}/admin/settings`, {
@@ -300,14 +372,14 @@
                     body: formData
                 });
                 const data = await response.json();
-                
-                if(data.success) {
+
+                if (data.success) {
                     alert('Settings updated successfully!');
                     loadSettings(); // Reload to see new images
                 } else {
                     alert('Failed: ' + JSON.stringify(data.message));
                 }
-            } catch(e) {
+            } catch (e) {
                 console.error(e);
                 alert('An error occurred.');
             } finally {
@@ -317,4 +389,5 @@
         }
     </script>
 </body>
+
 </html>

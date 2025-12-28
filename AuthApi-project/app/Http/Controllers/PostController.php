@@ -321,6 +321,12 @@ class PostController extends BaseController
             if (!$user) {
                 return $this->unauthorized();
             }
+            if($user->hasRole(['admin','moderator','super admin']) == false){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You are not authorized to perform this action',
+                ], 403);
+            }
             $post = Post::withoutGlobalScopes()->find($request->id);
 
             if (!$post) {
@@ -334,12 +340,12 @@ class PostController extends BaseController
             
             // Notify the Post Creator
             SendNotification::dispatch(
-                $post->user_id, // Recipient: Post Creator
+                $post->user_id, // Creator: Admin who rejected
                 'Post Rejected',
                 'Your post has been rejected due to content violations.',
-                $user->id,      // Trigger: Admin
-                $post,
-                'N'
+                $post->user_id, // Recipient: Post Creator
+                $post,          // Notifiable: The Post
+                'N'             // For Admin: No
             );
 
             return response()->json([

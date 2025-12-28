@@ -11,6 +11,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ReelsController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\ShareController;
 use Illuminate\Support\Facades\Route;
@@ -29,6 +30,14 @@ Route::get('settings', [SettingsController::class, 'index']);
 
 Route::post('forget_password', [AuthController::class, 'forget_password']);
 Route::post('reset_password', [AuthController::class, 'reset_password']);
+
+Route::get('/debug-config', function () {
+    return response()->json([
+        'php_ini_path' => php_ini_loaded_file(),
+        'upload_max_filesize' => ini_get('upload_max_filesize'),
+        'post_max_size' => ini_get('post_max_size'),
+    ]);
+});
 
 Route::get('/test-gemini', function () {
     try {
@@ -118,12 +127,22 @@ Route::group(['middleware' => ['api', 'auth:api']], function () {
 
     // Post Routes
     Route::post('create_post', [PostController::class, 'create'])->middleware('permission:create posts');
+    Route::post('create_reel', [ReelsController::class, 'create_reel'])->middleware('permission:create posts');
     Route::post('update_post', [PostController::class, 'update'])->middleware('permission:update posts');
     Route::delete('delete_post', [PostController::class, 'destroy'])->middleware('permission:delete posts');
     Route::post('get_post', [PostController::class, 'get_post'])->middleware('permission:view posts');
     Route::get('get_all_posts', [PostController::class, 'get_all_posts'])->middleware('permission:view posts');
     Route::post('get_posts_by_user', [PostController::class, 'get_posts_by_user'])->middleware('permission:view posts');
     Route::post('get_liked_posts', [PostController::class, 'get_liked_posts'])->middleware('permission:view posts');
+
+    // Reel Routes
+    Route::post('create_reel', [ReelsController::class, 'create_reel'])->middleware('permission:create posts');
+    Route::post('update_reel', [ReelsController::class, 'update_reel'])->middleware('permission:update posts');
+    Route::delete('delete_reel', [ReelsController::class, 'destroy_reel'])->middleware('permission:delete posts');
+    Route::post('get_reels_by_user', [ReelsController::class, 'getreelofuser'])->middleware('permission:view posts');
+    Route::get('get_all_reels', [ReelsController::class, 'getreelofall'])->middleware('permission:view posts');
+    Route::post('get_liked_reels', [ReelsController::class, 'get_liked_reels'])->middleware('permission:view posts');
+    
     // Comment Routes
     Route::post('create_comment', [CommentsController::class, 'create'])->middleware('permission:comments create');
     Route::post('update_comment', [CommentsController::class, 'update'])->middleware('permission:comments update');

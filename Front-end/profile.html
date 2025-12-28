@@ -93,12 +93,13 @@
         class="glass-nav fixed top-0 w-full z-50 h-[70px] md:h-[80px] flex items-center justify-between px-4 md:px-8 transition-all duration-300">
         <div class="flex items-center gap-3 cursor-pointer group select-none min-w-fit"
             onclick="window.location.href='homefeed-dashboard.html'">
-            <div
-                class="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center shadow-lg shadow-primary/20 group-hover:shadow-primary/40 group-hover:scale-105 transition-all duration-300">
-                <span class="material-symbols-outlined text-[22px] md:text-[26px]">token</span>
+            <div id="site-logo-img"
+                class="w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center group-hover:scale-105 transition-all duration-300 bg-cover bg-center bg-no-repeat overflow-hidden">
+                <span class="material-symbols-outlined text-[22px] md:text-[26px] text-primary">token</span>
             </div>
             <div class="flex flex-col">
-                <span id="site-logo-text" class="text-lg md:text-xl font-bold tracking-tight text-white leading-none"></span>
+                <span id="site-logo-text"
+                    class="text-lg md:text-xl font-bold tracking-tight text-white leading-none"></span>
                 <span
                     class="text-[9px] md:text-[10px] font-semibold text-slate-500 uppercase tracking-widest leading-none mt-1 hidden sm:block">User
                     Profile</span>
@@ -178,7 +179,7 @@
                     </div>
                     <div class="relative">
                         <img id="header-user-avatar" alt="Avatar"
-                            class="w-9 h-9 md:w-10 md:h-10 rounded-full border-2 border-white/10 group-hover/profile:border-primary/50 transition-all object-cover bg-slate-700"
+                            class="w-9 h-9 md:w-10 md:h-10 rounded-full border-2 border-white/10 group-hover/profile:border-primary/50 transition-all object-cover"
                             src="">
                         <div
                             class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-[#0f111a] rounded-full">
@@ -225,7 +226,7 @@
                             <div
                                 class="size-32 md:size-36 rounded-full border-[6px] border-[#181a20] bg-[#181a20] p-1 relative z-10 shadow-xl">
                                 <img id="profile-avatar-display"
-                                    class="w-full h-full rounded-full object-cover bg-slate-700" src="">
+                                    class="w-full h-full rounded-full object-cover" src="">
                             </div>
                             <div class="absolute bottom-4 right-2 md:right-4 z-20 bg-green-500 size-5 rounded-full border-4 border-[#181a20]"
                                 title="Online"></div>
@@ -383,7 +384,7 @@
     <script>
 
         // Initialize state variables early
-        let currentTab = 'posts'; 
+        let currentTab = 'posts';
 
         // Global Fetch Interceptor for Token Expiration (401)
         const originalFetch = window.fetch;
@@ -443,7 +444,7 @@
                         window.currentProfileData = parsed;
                         renderProfile(parsed);
                     }
-                } catch(e) { console.error("Cache parse error", e); }
+                } catch (e) { console.error("Cache parse error", e); }
             }
 
             // 2. Fetch Fresh Data
@@ -560,7 +561,7 @@
             // Interaction Handlers
             followersEl.parentElement.onclick = () => openUserListModal('Followers', user.followers || []);
             followingEl.parentElement.onclick = () => openUserListModal('Following', user.following || []);
-            
+
             postsEl.parentElement.onclick = () => {
                 document.getElementById('user-posts-container').scrollIntoView({ behavior: 'smooth' });
             };
@@ -614,41 +615,41 @@
         }
 
         async function checkFollowStatus(targetId) {
-             // Status is now provided directly in the profile response as connection_status
-             // We can just rely on the global 'profileData' object if it's available, 
-             // but 'checkFollowStatus' is called after fetchProfile.
-             
-             // However, fetchProfile renders the profile initially. 
-             // Let's ensure we use the data from the 'fetchProfile' response which is usually stored or passed.
-             
-             // Wait, fetchProfile updates the DOM directly. It doesn't seem to store 'profileData' globally 
-             // other than potentially 'userData' which is the logged in user.
-             // But we need the connection status relative to the VIEWED user.
-             
-             // Let's verify where 'profileData' or the response is handled.
-             // It seems 'fetchProfile' calls 'checkFollowStatus' at the end? 
-             // No, let's look at how it was called.
-             // If we can't find where it's called, we can just fetch the status or rely on the fact that
-             // we should have passed this info to renderFollowButton directly from fetchProfile.
-             
-             // Assuming fetchProfile is refactored to call this, OR we can just fetch the profile again? No redundant calls.
-             
-             // BETTER: Update 'fetchProfile' to read connection_status from response and call renderFollowButton.
-             // And empty this function or make it just a wrapper if needed.
-             // But to be safe and clean, let's replace this complex logic with a manual check only if needed,
-             // Otherwise we trust fetchProfile to handle it.
-             
-             // Actually, `fetchProfile` is not shown here. I should check how it's implemented.
-             // But for now, I will modify this function to assume `window.currentProfileData` is available
-             // OR, even better: I'll modify `fetchProfile` (which I can't see but I can guess is in this file)
-             // to set a global variable.
-             
-             if (window.currentProfileData && window.currentProfileData.connection_status) {
-                 renderFollowButton(targetId, window.currentProfileData.connection_status);
-             } else {
-                 // Fallback if not available (shouldn't happen with my backend fix)
-                 renderFollowButton(targetId, 'none');
-             }
+            // Status is now provided directly in the profile response as connection_status
+            // We can just rely on the global 'profileData' object if it's available, 
+            // but 'checkFollowStatus' is called after fetchProfile.
+
+            // However, fetchProfile renders the profile initially. 
+            // Let's ensure we use the data from the 'fetchProfile' response which is usually stored or passed.
+
+            // Wait, fetchProfile updates the DOM directly. It doesn't seem to store 'profileData' globally 
+            // other than potentially 'userData' which is the logged in user.
+            // But we need the connection status relative to the VIEWED user.
+
+            // Let's verify where 'profileData' or the response is handled.
+            // It seems 'fetchProfile' calls 'checkFollowStatus' at the end? 
+            // No, let's look at how it was called.
+            // If we can't find where it's called, we can just fetch the status or rely on the fact that
+            // we should have passed this info to renderFollowButton directly from fetchProfile.
+
+            // Assuming fetchProfile is refactored to call this, OR we can just fetch the profile again? No redundant calls.
+
+            // BETTER: Update 'fetchProfile' to read connection_status from response and call renderFollowButton.
+            // And empty this function or make it just a wrapper if needed.
+            // But to be safe and clean, let's replace this complex logic with a manual check only if needed,
+            // Otherwise we trust fetchProfile to handle it.
+
+            // Actually, `fetchProfile` is not shown here. I should check how it's implemented.
+            // But for now, I will modify this function to assume `window.currentProfileData` is available
+            // OR, even better: I'll modify `fetchProfile` (which I can't see but I can guess is in this file)
+            // to set a global variable.
+
+            if (window.currentProfileData && window.currentProfileData.connection_status) {
+                renderFollowButton(targetId, window.currentProfileData.connection_status);
+            } else {
+                // Fallback if not available (shouldn't happen with my backend fix)
+                renderFollowButton(targetId, 'none');
+            }
         }
 
         function renderFollowButton(targetId, status) {
@@ -658,20 +659,20 @@
 
             const btn = document.createElement('button');
             btn.id = 'follow-btn';
-            
+
             if (status === 'accepted') {
                 // Already Friends/Following
                 btn.className = "px-6 py-2.5 rounded-xl bg-white/10 text-white font-bold text-sm hover:bg-red-500/20 hover:text-red-400 transition-all border border-white/20 flex items-center gap-2";
                 btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">person_remove</span> Unfollow';
                 btn.onclick = () => toggleFollow(targetId, 'unfollow');
-            } 
+            }
             else if (status === 'pending') {
                 // Request Sent
                 btn.className = "px-6 py-2.5 rounded-xl bg-white/10 text-secondary-text font-bold text-sm hover:bg-white/20 hover:text-white transition-all border border-white/20 flex items-center gap-2";
                 btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">pending</span> Requested';
                 // Clicking again cancels the request
-                btn.onclick = () => toggleFollow(targetId, 'unfollow'); 
-            } 
+                btn.onclick = () => toggleFollow(targetId, 'unfollow');
+            }
             else {
                 // Not Following
                 btn.className = "px-6 py-2.5 rounded-xl bg-primary text-white font-bold text-sm hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/20 flex items-center gap-2 transform hover:-translate-y-0.5";
@@ -682,25 +683,25 @@
         }
 
         async function toggleFollow(targetId, action) {
-             // --- OPTIMISTIC UI ---
-             // Store previous state to revert if needed
-             // We can infer previous state from action:
-             // if action is 'follow', previous was 'none'
-             // if action is 'unfollow', previous was 'pending' or 'accepted'.
-             // For simplicity, we just move forward. If it fails, we reload profile or handle messy revert.
-             
-             // Optimistically Update Button
-             if (action === 'follow') {
-                 renderFollowButton(targetId, 'pending');
-             } else {
-                 renderFollowButton(targetId, 'none');
-             }
+            // --- OPTIMISTIC UI ---
+            // Store previous state to revert if needed
+            // We can infer previous state from action:
+            // if action is 'follow', previous was 'none'
+            // if action is 'unfollow', previous was 'pending' or 'accepted'.
+            // For simplicity, we just move forward. If it fails, we reload profile or handle messy revert.
+
+            // Optimistically Update Button
+            if (action === 'follow') {
+                renderFollowButton(targetId, 'pending');
+            } else {
+                renderFollowButton(targetId, 'none');
+            }
 
             try {
                 // If action is 'unfollow', it works for both 'accepted' (Unfollow) and 'pending' (Cancel Request) 
                 // because backend 'unfollowUser' just detaches the relation.
                 const endpoint = action === 'follow' ? 'follow' : 'unfollow';
-                
+
                 const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
                     method: 'POST',
                     headers: {
@@ -716,10 +717,10 @@
                     if (action === 'follow') {
                         const status = data.data && data.data.status ? data.data.status : 'pending';
                         if (status === 'accepted') {
-                             renderFollowButton(targetId, 'accepted');
+                            renderFollowButton(targetId, 'accepted');
                         }
                     }
-                    
+
                     // Invalidate Caches
                     localStorage.removeItem('profile_' + targetId);
                     localStorage.removeItem('dashboard_suggestions_cache');
@@ -731,8 +732,8 @@
                     // Best effort:
                     showToast(data.message || 'Action failed', 'error');
                 }
-            } catch (e) { 
-                console.error(e); 
+            } catch (e) {
+                console.error(e);
                 // Revert
                 if (action === 'follow') renderFollowButton(targetId, 'none');
             }

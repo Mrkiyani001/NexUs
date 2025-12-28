@@ -10,13 +10,15 @@ use App\Models\Attachments;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use App\Models\Comments;
+use App\Models\Reel;
 
 class CommentsController extends BaseController
 {
     public function create(Request $request)
     {
         $this->validateRequest($request, [
-            'post_id' => 'required|integer|exists:post,id',
+            'post_id' => 'nullable|integer|exists:post,id|required_without:reel_id',
+            'reel_id' => 'nullable|integer|exists:reels,id|required_without:post_id',
             'comment' => 'required|string',
             'attachments' => 'array',
             'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,gif,mp4,avi,mov,pdf,doc,docx|max:51200',
@@ -28,6 +30,7 @@ class CommentsController extends BaseController
             }
 
             $post_id = $request->post_id;
+            $reel_id = $request->reel_id;
             $comment = $request->comment;
             $uploadFiles = [];
             if ($request->hasFile('attachments')) {
@@ -40,25 +43,39 @@ class CommentsController extends BaseController
             AddComment::dispatch(
                 $user->id,
                 $post_id,
+                $reel_id,
                 $comment,
                 $uploadFiles
             );
 
             // Notification Logic
-            $post = Post::find($post_id);
-            if ($post && $post->user_id != $user->id) {
-                SendNotification::dispatch(
-                    $user->id,
-                    'New Comment',
-                    $user->name . ' commented on your post.',
-                    $post->user_id,
-                    $post,
-                    'N'
-                );
+            if ($post_id) {
+                $post = Post::find($post_id);
+                if ($post && $post->user_id != $user->id) {
+                    SendNotification::dispatch(
+                        $user->id,
+                        'New Comment',
+                        $user->name . ' commented on your post.',
+                        $post->user_id,
+                        $post,
+                        'N'
+                    );
+                }
+            } elseif ($reel_id) {
+                $reel = Reel::find($reel_id);
+                if ($reel && $reel->user_id != $user->id) {
+                    SendNotification::dispatch(
+                        $user->id,
+                        'New Reel Comment',
+                        $user->name . ' commented on your reel.',
+                        $reel->user_id,
+                        $reel, // Assuming notification model supports reel morph or generic
+                        'N'
+                    );
+                }
             }
             //     $comment = Comments::create([
             //         'post_id'=>$request->post_id,
-            //         'user_id'=>$user->id,
             //         'comment'=>$request->comment,
             //         'created_by'=>$user->id,
             //         'updated_by'=>$user->id,

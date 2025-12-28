@@ -55,6 +55,25 @@ class BaseController extends Controller
             'file_type' => $type,
         ]);
     }
+    public function uploadReel($file, $folder, $model, $extraData = [])
+    {
+        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        $filepath = $file->storeAs($folder, $filename, 'public');
+        $extension = strtolower($file->getClientOriginalExtension());
+        $type = $this->getFileType($extension);
+        
+        $data = array_merge([
+            'file_name' => $filename,
+            // $filepath from storeAs is usually 'reels/filename.mp4'. 
+            // If we access via storage link, we might need 'storage/' prefix in frontend or symlink handling.
+            // keeping it as returned by storeAs for now.
+            'video_path' => $filepath, 
+            'file_type' => $type,
+            'duration' => null, 
+        ], $extraData);
+
+        return $model->reels()->create($data);
+    }
     private function getFileType($extension)
     {
         $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'];

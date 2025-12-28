@@ -9,6 +9,7 @@ class Comments extends Model
     protected $table = "comments";
     protected $fillable = [
         'post_id',
+        'reel_id',
         'user_id',
         'comment',
         'created_by',
@@ -34,6 +35,10 @@ class Comments extends Model
     public function attachments()
     {
         return $this->morphMany(Attachments::class, 'attachable');
+    }
+    public function reel()
+    {
+        return $this->belongsTo(Reel::class, 'reel_id');
     }
     public function reactions()
     {

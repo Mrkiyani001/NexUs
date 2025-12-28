@@ -133,8 +133,10 @@ class ProfileController extends BaseController
             // Handle Avatar Upload
             if ($request->hasFile('avatar')) {
                 // Delete old avatar if exists
-                if ($profile->avatar) {
-                    $this->deleteAttachment($profile->avatar);
+                // Use relation method to avoid collision with 'avatar' column string value
+                $oldAvatar = $profile->avatar()->first();
+                if ($oldAvatar) {
+                    $this->deleteAttachment($oldAvatar);
                 }
 
                 $file = $request->file('avatar');
@@ -176,7 +178,12 @@ class ProfileController extends BaseController
             $fullPath = public_path($attachment->file_path);
 
             if (file_exists($fullPath)) {
-                unlink($fullPath);
+                if (is_file($fullPath)) {
+                    unlink($fullPath);
+                } elseif (is_dir($fullPath)) {
+                    // Safety: If it's a directory (bug case), try to remove it if empty
+                    @rmdir($fullPath);
+                }
             }
             $attachment->delete();
         }

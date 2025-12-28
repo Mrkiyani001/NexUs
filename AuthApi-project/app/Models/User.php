@@ -78,6 +78,11 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(Share::class);
     }
 
+    public function reels()
+    {
+        return $this->hasMany(Reel::class);
+    }
+
     /**
      * Check the follow status towards another user.
      * Returns: 'none', 'pending', 'accepted', 'rejected'

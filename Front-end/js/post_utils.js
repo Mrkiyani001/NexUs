@@ -6,15 +6,32 @@ const DEFAULT_AVATAR = window.DEFAULT_AVATAR || ((name) => `https://ui-avatars.c
 if (!window.DEFAULT_AVATAR) window.DEFAULT_AVATAR = DEFAULT_AVATAR;
 
 function getAvatarUrl(user) {
-    if (user && user.profile && user.profile.avatar && user.profile.avatar.file_path) {
-        let path = user.profile.avatar.file_path;
+    if (!user || !user.profile) {
+        // Fallback for flat user object with avatar_url
+        if(user && user.avatar_url) return user.avatar_url;
+        return null;
+    }
+
+    let avatar = user.profile.avatar;
+    let path = '';
+
+    if (avatar) {
+        if (typeof avatar === 'string') {
+            path = avatar;
+        } else if (avatar.file_path) {
+            path = avatar.file_path;
+        }
+    }
+
+    if (path) {
         if (path.startsWith('/')) path = path.substring(1);
         if (path.startsWith('http')) return path;
-        return `${PUBLIC_URL}/${path}`;
+        // Ensure PUBLIC_URL is available
+        const baseUrl = (typeof PUBLIC_URL !== 'undefined') ? PUBLIC_URL : window.PUBLIC_URL;
+        if (baseUrl) return `${baseUrl}/${path}`;
     }
-    // Handle case where user is flat object with avatar_url or similar if API inconsistency exists (fallback)
-    if(user && user.avatar_url) return user.avatar_url; 
-    return null; // Return null to indicate no custom avatar
+
+    return null; 
 }
 
 /**
@@ -30,11 +47,11 @@ function renderAvatarHTML(user, classes = "size-10 rounded-full object-cover bor
 
     // If we have an avatar URL, try loading it, with initials as onerror fallback
     if (avatarUrl) {
-        return `<img src="${avatarUrl}" class="${classes} bg-slate-700" ${extraAttrs} onerror="this.onerror=null; this.src='${initialsUrl}';">`;
+        return `<img src="${avatarUrl}" class="${classes}" ${extraAttrs} onerror="this.onerror=null; this.src='${initialsUrl}';">`;
     }
 
     // If no avatar URL, use initials directly
-    return `<img src="${initialsUrl}" class="${classes} bg-slate-700" ${extraAttrs}>`;
+    return `<img src="${initialsUrl}" class="${classes}" ${extraAttrs}>`;
 }
 
 

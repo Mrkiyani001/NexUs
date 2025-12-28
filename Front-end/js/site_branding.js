@@ -25,9 +25,35 @@ document.addEventListener('DOMContentLoaded', async () => {
         logoTextElements.forEach(el => el.textContent = siteName);
 
         // 3. Update Logo Image
-        const logoPath = settings.logo ? `${PUBLIC_URL}/storage/${settings.logo}` : `${PUBLIC_URL}/storage/logo.png`;
+        // 3. Update Logo Image
+        // Fallback to a transparent pixel or empty if no logo is set, to avoid 404s for 'logo.png'
+        const logoPath = settings.logo ? `${PUBLIC_URL}/storage/${settings.logo}` : ''; 
 
         const logoImgElements = document.querySelectorAll('#site-logo-img');
+        logoImgElements.forEach(img => {
+            // Determine if it's an <img> tag or a div with background
+            if (img.tagName === 'IMG') {
+                if (logoPath) {
+                    img.src = logoPath;
+                    img.style.display = 'block'; 
+                } else {
+                    // Hide or show a default "No Logo" state if desired, but for now just hide to prevent broken image icon
+                    // OR set to a generic placeholder if you have one. 
+                    // Given the user's complaint about "blocking", avoiding a 404 request is key.
+                    // Let's use the material icon as fallback if it was a div structure (reels page method)
+                     img.style.display = 'none';
+                }
+            } else {
+                // If it's a div (like in some dashboards), set background
+                if (logoPath) {
+                    img.style.backgroundImage = `url('${logoPath}')`;
+                    img.textContent = '';
+                } else {
+                     // Keep default content (likely material symbol) if no logo is provided
+                     img.style.backgroundImage = '';
+                }
+            }
+        });
         logoImgElements.forEach(img => {
             // Determine if it's an <img> tag or a div with background
             if (img.tagName === 'IMG') {

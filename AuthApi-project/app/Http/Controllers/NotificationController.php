@@ -22,7 +22,7 @@ class NotificationController extends BaseController
             // Strict User ID Check (No shared admin stream)
             Log::info('Fetching Notifications for User: ' . $user->id); 
             $notifications = Notification::where('user_id', $user->id)
-                ->with('notifiable')
+                ->with(['notifiable', 'creator.profile.avatar'])
                 ->latest()
                 ->paginate($limit);
             

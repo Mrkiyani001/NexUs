@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Reels - NexUs</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#215bed",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101522",
+                        "surface-dark": "#1c1f27",
+                        "glass-dark": "rgba(28, 31, 39, 0.7)",
+                        "glass-border": "rgba(255, 255, 255, 0.08)",
+                    },
+                    fontFamily: {
+                        "display": ["Spline Sans", "sans-serif"],
+                        "body": ["Spline Sans", "sans-serif"],
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px" },
+                    backdropBlur: {
+                        'xs': '2px',
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .glass-panel {
+            background: rgba(28, 31, 39, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .reel-overlay-gradient {
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.4) 30%, rgba(0, 0, 0, 0) 100%);
+        }
+
+        .snap-y-mandatory {
+            scroll-snap-type: y mandatory;
+        }
+
+        .snap-center {
+            scroll-snap-align: center;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display antialiased selection:bg-primary selection:text-white overflow-hidden">
+    <div class="flex h-screen w-full overflow-hidden">
+        <aside
+            class="hidden w-64 flex-col border-r border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-[#111318] lg:flex flex-shrink-0 z-20">
+            <div class="flex h-full flex-col justify-between p-4">
+                <div class="flex flex-col gap-6">
+                    <div class="flex items-center gap-3 cursor-pointer group select-none min-w-fit px-2"
+                        onclick="window.location.href='homefeed-dashboard.html'">
+                        <div id="site-logo-img"
+    class="w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-105 transition-all duration-300 bg-cover bg-center bg-no-repeat overflow-hidden">
+    <span class="material-symbols-outlined text-[24px] text-primary">token</span>
+</div>
+<div class="flex flex-col">
+    <span id="site-logo-text"
+        class="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-none ml-2"></span>
+                        </div>
+                    </div>
+                    <nav class="flex flex-col gap-2">
+                        <a class="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-[#1c1f27] transition-colors"
+                            href="homefeed-dashboard.html">
+                            <span class="material-symbols-outlined">home</span>
+                            <span class="text-sm font-medium">Home</span>
+                        </a>
+
+                        <a class="flex items-center gap-3 rounded-xl bg-primary/10 px-4 py-3 text-primary dark:bg-primary/20 dark:text-white font-semibold transition-colors"
+                            href="#">
+                            <span class="material-symbols-outlined text-primary dark:text-white"
+                                style="font-variation-settings: 'FILL' 1;">movie</span>
+                            <span class="text-sm font-medium">Reels</span>
+                        </a>
+                        <a class="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-[#1c1f27] transition-colors"
+                            href="notification.html">
+                            <span class="material-symbols-outlined">notifications</span>
+                            <span class="text-sm font-medium">Notifications</span>
+                            <!-- Badge could be dynamic, but static for now is fine or remove it -->
+                        </a>
+                        <a class="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-[#1c1f27] transition-colors"
+                            href="#">
+                            <span class="material-symbols-outlined">mail</span>
+                            <span class="text-sm font-medium">Messages</span>
+                        </a>
+                        <a class="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-[#1c1f27] transition-colors"
+                            href="#">
+                            <span class="material-symbols-outlined">bookmark</span>
+                            <span class="text-sm font-medium">Saved</span>
+                        </a>
+                        <a class="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-[#1c1f27] transition-colors"
+                            href="profile.html">
+                            <span class="material-symbols-outlined">person</span>
+                            <span class="text-sm font-medium">Profile</span>
+                        </a>
+                    </nav>
+                </div>
+                <div class="flex flex-col gap-4">
+                    <button
+                        class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary hover:bg-blue-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-primary/25 transition-all hover:scale-[1.02]">
+                        <span class="material-symbols-outlined text-[20px]">add_circle</span>
+                        <span>Create Reel</span>
+                    </button>
+                    <div
+                        class="flex items-center gap-3 rounded-xl border border-slate-200 p-3 dark:border-slate-800 dark:bg-[#1c1f27]">
+                        <div class="h-10 w-10 overflow-hidden rounded-full bg-slate-200">
+                            <img alt="User Profile Picture" class="h-full w-full object-cover"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzTUAdzunKgIZpdtmL0B4Dv5QatWGOQP5H_z47SPvtO8krFaBfpE-0D5M3r2UZskE_NBsQ3fiQTbMo44ayrLv4a5W6169GQ7oiV8ZMXj0XbAm-Ii-xmW6wjDk2arOdCTkbYPAB8cXObHVWGW3ebeK5m1czZUldOwo2qTqfheUGgyrYYvyJuf84kzz5qsmlICkH_2nyMe9Xw6wKxhrVkvjPfy00MXL7ohQPugHS16J7rO1nohdPKPKHeLBOqcEdNRuOgEygJt_hBqY" />
+                        </div>
+                        <div class="flex flex-col overflow-hidden">
+                            <p class="truncate text-sm font-bold text-slate-900 dark:text-white">Alex Morgan</p>
+                            <p class="truncate text-xs text-slate-500 dark:text-slate-400">@alexm</p>
+                        </div>
+                        <button class="ml-auto text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                            <span class="material-symbols-outlined">more_horiz</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <main class="flex flex-1 flex-col overflow-hidden bg-background-light dark:bg-background-dark relative">
+            <div
+                class="pointer-events-none absolute left-0 top-0 -z-10 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/20 blur-[120px]">
+            </div>
+            <div
+                class="pointer-events-none absolute right-0 bottom-0 -z-10 h-[400px] w-[400px] translate-x-1/3 translate-y-1/3 rounded-full bg-purple-500/10 blur-[100px]">
+            </div>
+            <header
+                class="absolute top-0 z-30 flex w-full flex-col gap-4 bg-gradient-to-b from-black/60 to-transparent p-4 transition-all duration-300 pointer-events-none">
+                <div class="flex w-full items-center justify-between gap-4 pointer-events-auto">
+                    <div class="lg:hidden">
+                        <button class="flex items-center justify-center rounded-lg p-2 text-white hover:bg-white/10">
+                            <span class="material-symbols-outlined">menu</span>
+                        </button>
+                    </div>
+                    <div
+                        class="relative flex w-full max-w-sm flex-1 items-center mx-auto lg:mx-0 opacity-0 pointer-events-none">
+                    </div>
+                    <div class="hidden lg:flex items-center gap-2">
+                        <button
+                            class="px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md text-xs font-semibold text-white hover:bg-white/20 border border-white/10 transition-all">For
+                            You</button>
+                        <button
+                            class="px-4 py-1.5 rounded-full bg-transparent text-xs font-semibold text-white/70 hover:bg-white/10 transition-all">Following</button>
+
+                    </div>
+                </div>
+            </header>
+            <div class="flex-1 flex justify-center h-full overflow-hidden relative">
+                <div id="reels-container"
+                    class="flex w-full max-w-[500px] flex-col items-center gap-0 pt-4 pb-20 overflow-y-auto scroll-smooth snap-y snap-mandatory no-scrollbar h-full">
+                    <!-- Loading Spinner -->
+                    <div class="h-full w-full flex items-center justify-center">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <div
+            class="hidden xl:flex w-96 flex-col gap-6 pl-10 pt-20 overflow-y-auto no-scrollbar h-full pb-20 border-l border-white/5">
+            <div class="glass-panel overflow-hidden rounded-2xl p-5" id="suggestion-widget-container">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-white">Suggested for you</h3>
+                    <a href="friendreq.html?tab=suggestions" class="text-xs font-semibold text-primary hover:text-blue-400">See All</a>
+                </div>
+                <div class="flex flex-col gap-4" id="reels-suggestions-list">
+                    <!-- Dynamic suggestions will be injected here -->
+                    <div class="text-center text-xs text-slate-500 py-4">Loading suggestions...</div>
+                </div>
+            </div>
+            <footer class="flex flex-wrap gap-x-4 gap-y-2 px-2 text-xs text-slate-500 dark:text-slate-500">
+                <a class="hover:underline" href="#">Terms</a>
+                <a class="hover:underline" href="#">Privacy</a>
+                <a class="hover:underline" href="#">Guidelines</a>
+                <a class="hover:underline" href="#">Ad Choices</a>
+                <a class="hover:underline" href="#">More</a>
+                <span>© 2024 NexUs</span>
+            </footer>
+        </div>
+    </div>
+    </div>
+    </main>
+    <nav
+        class="fixed bottom-0 left-0 z-40 flex w-full items-center justify-between border-t border-slate-200 bg-white px-6 py-3 dark:border-slate-800 dark:bg-[#101522] lg:hidden">
+        <a class="flex flex-col items-center gap-1 text-slate-500 dark:text-slate-400" href="#">
+            <span class="material-symbols-outlined">home</span>
+            <span class="text-[10px]">Home</span>
+        </a>
+
+        <div
+            class="relative -top-5 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/40">
+            <span class="material-symbols-outlined">add</span>
+        </div>
+        <a class="flex flex-col items-center gap-1 text-primary" href="#">
+            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">movie</span>
+            <span class="text-[10px]">Reels</span>
+        </a>
+        <a class="flex flex-col items-center gap-1 text-slate-500 dark:text-slate-400" href="#">
+            <span class="material-symbols-outlined">person</span>
+            <span class="text-[10px]">Profile</span>
+        </a>
+    </nav>
+    </div>
+
+
+    <script src="js/site_branding.js"></script>
+    <script src="js/reels.js"></script>
+</body>
+
+</html>

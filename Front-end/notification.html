@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html class="dark" lang="en">
+
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
@@ -7,8 +8,11 @@
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com" rel="preconnect" />
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script id="tailwind-config">
@@ -28,42 +32,79 @@
         }
     </script>
     <style>
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #282d39; border-radius: 10px; }
-        .glass-panel { background: rgba(22, 27, 38, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .glass-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); transition: all 0.2s ease; }
-        .glass-card:hover { background: rgba(255, 255, 255, 0.06); border-color: rgba(33, 91, 237, 0.3); }
-        .glass-nav { background: rgba(15, 17, 26, 0.85); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #282d39;
+            border-radius: 10px;
+        }
+
+        .glass-panel {
+            background: rgba(22, 27, 38, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(33, 91, 237, 0.3);
+        }
+
+        .glass-nav {
+            background: rgba(15, 17, 26, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
     </style>
 </head>
+
 <body class="bg-background-dark text-white font-display overflow-x-hidden pt-20">
-    <header class="glass-nav fixed top-0 w-full z-50 h-[70px] md:h-[80px] flex items-center justify-between px-4 md:px-8 transition-all duration-300">
-        <div class="flex items-center gap-3 cursor-pointer group select-none min-w-fit" onclick="window.location.href='homefeed-dashboard.html'">
-            <div class="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center shadow-lg shadow-primary/20 group-hover:shadow-primary/40 group-hover:scale-105 transition-all duration-300">
-                <span class="material-symbols-outlined text-[22px] md:text-[26px]">token</span>
+    <header
+        class="glass-nav fixed top-0 w-full z-50 h-[70px] md:h-[80px] flex items-center justify-between px-4 md:px-8 transition-all duration-300">
+        <div class="flex items-center gap-3 cursor-pointer group select-none min-w-fit"
+            onclick="window.location.href='homefeed-dashboard.html'">
+            <div id="site-logo-img"
+                class="w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center group-hover:scale-105 transition-all duration-300 bg-cover bg-center bg-no-repeat overflow-hidden">
+                <span class="material-symbols-outlined text-[22px] md:text-[26px] text-primary">token</span>
             </div>
             <div class="flex flex-col">
-                <span id="site-logo-text" class="text-lg md:text-xl font-bold tracking-tight text-white leading-none"></span>
-                <span class="text-[9px] md:text-[10px] font-semibold text-slate-500 uppercase tracking-widest leading-none mt-1 hidden sm:block">Notifications</span>
+                <span id="site-logo-text"
+                    class="text-lg md:text-xl font-bold tracking-tight text-white leading-none"></span>
+                <span
+                    class="text-[9px] md:text-[10px] font-semibold text-slate-500 uppercase tracking-widest leading-none mt-1 hidden sm:block">Notifications</span>
             </div>
         </div>
 
         <nav class="hidden md:flex items-center gap-1 lg:gap-2 absolute left-1/2 -translate-x-1/2 z-10">
             <a class="flex items-center gap-2 px-3 lg:px-4 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
                 href="homefeed-dashboard.html">
-                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">home</span>
+                <span
+                    class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">home</span>
                 <span class="hidden lg:block font-medium">Home</span>
             </a>
             <a class="flex items-center gap-2 px-3 lg:px-4 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
                 href="#">
-                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">explore</span>
+                <span
+                    class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">explore</span>
                 <span class="hidden lg:block font-medium">Explore</span>
             </a>
             <a class="relative flex items-center gap-2 px-4 lg:px-6 py-2.5 rounded-full bg-gradient-to-r from-primary/10 to-blue-600/10 border border-primary/20 text-primary font-semibold transition-all group shadow-[0_0_15px_rgba(59,130,246,0.15)]"
                 href="notification.html">
                 <div class="relative">
-                    <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">notifications</span>
+                    <span class="material-symbols-outlined text-[24px]"
+                        style="font-variation-settings: 'FILL' 1;">notifications</span>
                     <span id="notif-badge-desktop"
                         class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-[#0f111a] flex items-center justify-center animate-pulse"></span>
                 </div>
@@ -71,52 +112,67 @@
             </a>
             <a class="flex items-center gap-2 px-3 lg:px-4 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
                 href="#">
-                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">mail</span>
+                <span
+                    class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">mail</span>
                 <span class="hidden lg:block font-medium">Messages</span>
             </a>
         </nav>
-        
+
         <div class="flex items-center gap-2 md:gap-4 justify-end flex-1 md:flex-initial min-w-0">
             <!-- Search Bar -->
-            <div class="relative group hidden sm:block w-32 md:w-36 lg:w-48 transition-all focus-within:w-48 md:focus-within:w-52 lg:focus-within:w-64 shrink">
+            <div
+                class="relative group hidden sm:block w-32 md:w-36 lg:w-48 transition-all focus-within:w-48 md:focus-within:w-52 lg:focus-within:w-64 shrink">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span class="material-symbols-outlined text-slate-500 text-[20px] group-focus-within:text-primary transition-colors">search</span>
+                    <span
+                        class="material-symbols-outlined text-slate-500 text-[20px] group-focus-within:text-primary transition-colors">search</span>
                 </div>
-                <input id="global-search-input" class="bg-white/5 border-transparent focus:bg-white/10 focus:border-primary/50 block w-full pl-10 pr-3 py-2 rounded-full text-xs md:text-sm font-medium focus:outline-none transition-all" placeholder="Search..." type="text">
+                <input id="global-search-input"
+                    class="bg-white/5 border-transparent focus:bg-white/10 focus:border-primary/50 block w-full pl-10 pr-3 py-2 rounded-full text-xs md:text-sm font-medium focus:outline-none transition-all"
+                    placeholder="Search..." type="text">
             </div>
 
-            <button class="sm:hidden w-9 h-9 rounded-full hover:bg-white/5 flex items-center justify-center text-slate-300 transition-colors">
+            <button
+                class="sm:hidden w-9 h-9 rounded-full hover:bg-white/5 flex items-center justify-center text-slate-300 transition-colors">
                 <span class="material-symbols-outlined text-[20px]">search</span>
             </button>
             <div class="w-px h-8 bg-white/10 mx-1 hidden md:block"></div>
-            
+
             <!-- Logout button removed -->
             <div class="w-px h-8 bg-white/10 mx-1 hidden md:block"></div>
-            
+
             <div class="relative group/profile shrink-0">
                 <div class="flex items-center gap-3 pl-1 cursor-pointer" onclick="toggleProfileDropdown()">
                     <div class="flex flex-col items-end hidden xl:flex">
-                        <span id="header-user-name" class="text-xs font-bold text-white leading-none initials-name">User</span>
+                        <span id="header-user-name"
+                            class="text-xs font-bold text-white leading-none initials-name">User</span>
                         <div class="flex items-center gap-1">
-                            <span id="header-user-handle" class="text-[9px] text-slate-500 font-medium mt-1">@user</span>
-                            <span class="material-symbols-outlined text-[14px] text-slate-500 mt-1">keyboard_arrow_down</span>
+                            <span id="header-user-handle"
+                                class="text-[9px] text-slate-500 font-medium mt-1">@user</span>
+                            <span
+                                class="material-symbols-outlined text-[14px] text-slate-500 mt-1">keyboard_arrow_down</span>
                         </div>
                     </div>
                     <div class="relative">
                         <img id="header-user-avatar" alt="Avatar"
-                            class="w-9 h-9 md:w-10 md:h-10 rounded-full border-2 border-white/10 group-hover/profile:border-primary/50 transition-all object-cover bg-slate-700" src="">
-                        <div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-[#0f111a] rounded-full"></div>
+                            class="w-9 h-9 md:w-10 md:h-10 rounded-full border-2 border-white/10 group-hover/profile:border-primary/50 transition-all object-cover"
+                            src="">
+                        <div
+                            class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-[#0f111a] rounded-full">
+                        </div>
                     </div>
                 </div>
 
                 <!-- Dropdown Menu -->
-                <div id="profile-dropdown" class="hidden absolute top-full right-0 mt-3 w-48 bg-card-dark border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 animate-fade-in">
-                    <a href="profile.html" class="block px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2">
+                <div id="profile-dropdown"
+                    class="hidden absolute top-full right-0 mt-3 w-48 bg-card-dark border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 animate-fade-in">
+                    <a href="profile.html"
+                        class="block px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2">
                         <span class="material-symbols-outlined text-[18px]">person</span>
                         View Profile
                     </a>
                     <div class="h-px bg-white/5 my-1"></div>
-                    <button onclick="localStorage.removeItem('auth_token'); localStorage.removeItem('user_data'); window.location.href='login.html'" 
+                    <button
+                        onclick="localStorage.removeItem('auth_token'); localStorage.removeItem('user_data'); window.location.href='login.html'"
                         class="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors flex items-center gap-2">
                         <span class="material-symbols-outlined text-[18px]">logout</span>
                         Logout
@@ -130,24 +186,28 @@
         <div class="flex items-end justify-between mb-8 gap-4">
             <div>
                 <h1 class="text-3xl font-black mb-1">Notifications</h1>
-                <p id="notif-count-text" class="text-secondary-text text-sm">Stay updated with your latest interactions.</p>
+                <p id="notif-count-text" class="text-secondary-text text-sm">Stay updated with your latest interactions.
+                </p>
             </div>
-            <button onclick="markAllAsRead()" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-bold transition-all border border-white/5">
+            <button onclick="markAllAsRead()"
+                class="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-bold transition-all border border-white/5">
                 <span class="material-symbols-outlined text-base">done_all</span>
                 Mark all as read
             </button>
         </div>
 
         <div id="notifications-list" class="flex flex-col gap-3">
-             <!-- Spinner -->
-             <div class="flex justify-center py-20">
+            <!-- Spinner -->
+            <div class="flex justify-center py-20">
                 <div class="size-8 border-2 border-white/10 border-t-primary rounded-full animate-spin"></div>
-             </div>
+            </div>
         </div>
     </main>
 
-    <nav class="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around h-16 md:hidden glass-nav border-t border-white/5 bg-background-dark/80 backdrop-blur-lg">
-        <a href="homefeed-dashboard.html" class="flex flex-col items-center justify-center gap-1 p-2 w-16 text-slate-400">
+    <nav
+        class="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around h-16 md:hidden glass-nav border-t border-white/5 bg-background-dark/80 backdrop-blur-lg">
+        <a href="homefeed-dashboard.html"
+            class="flex flex-col items-center justify-center gap-1 p-2 w-16 text-slate-400">
             <span class="material-symbols-outlined text-[24px]">home</span>
             <span class="text-[10px] font-medium">Home</span>
         </a>
@@ -155,10 +215,13 @@
             <span class="material-symbols-outlined text-[24px]">explore</span>
             <span class="text-[10px] font-medium">Explore</span>
         </a>
-        <a href="notification.html" class="flex flex-col items-center justify-center gap-1 p-2 w-16 text-primary relative">
+        <a href="notification.html"
+            class="flex flex-col items-center justify-center gap-1 p-2 w-16 text-primary relative">
             <div class="relative">
-                <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">notifications</span>
-                <span id="notif-badge-mobile" class="hidden absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-background-dark animate-pulse"></span>
+                <span class="material-symbols-outlined text-[24px]"
+                    style="font-variation-settings: 'FILL' 1;">notifications</span>
+                <span id="notif-badge-mobile"
+                    class="hidden absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-background-dark animate-pulse"></span>
             </div>
             <span class="text-[10px] font-medium">Notifications</span>
         </a>
@@ -180,47 +243,47 @@
     <script src="js/notifications.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-             // Init header avatar
-             const avatarEl = document.getElementById('header-user-avatar');
-             
-             const headerName = document.getElementById('header-user-name');
-             const headerHandle = document.getElementById('header-user-handle');
-             if (headerName) headerName.innerText = userData.name || 'User';
-             if (headerHandle) headerHandle.innerText = '@' + (userData.name ? userData.name.toLowerCase().replace(/\s+/g, '') : 'user');
+            // Init header avatar
+            const avatarEl = document.getElementById('header-user-avatar');
 
-             if (avatarEl) {
-                 const name = userData.name || 'User';
-                 const initialsUrl = DEFAULT_AVATAR(name);
-                 avatarEl.src = getAvatarUrl(userData) || initialsUrl;
-                 avatarEl.onerror = () => { avatarEl.onerror=null; avatarEl.src = initialsUrl; };
-             }
-             loadNotifications();
-             setupGlobalSearch();
+            const headerName = document.getElementById('header-user-name');
+            const headerHandle = document.getElementById('header-user-handle');
+            if (headerName) headerName.innerText = userData.name || 'User';
+            if (headerHandle) headerHandle.innerText = '@' + (userData.name ? userData.name.toLowerCase().replace(/\s+/g, '') : 'user');
 
-             const logoutBtn = document.getElementById('logout-btn');
-             if(logoutBtn) {
-                 logoutBtn.onclick = () => {
-                     localStorage.removeItem('auth_token');
-                     localStorage.removeItem('user_data');
-                     window.location.href = 'login.html';
-                 };
-             }
+            if (avatarEl) {
+                const name = userData.name || 'User';
+                const initialsUrl = DEFAULT_AVATAR(name);
+                avatarEl.src = getAvatarUrl(userData) || initialsUrl;
+                avatarEl.onerror = () => { avatarEl.onerror = null; avatarEl.src = initialsUrl; };
+            }
+            loadNotifications();
+            setupGlobalSearch();
+
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.onclick = () => {
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('user_data');
+                    window.location.href = 'login.html';
+                };
+            }
         });
 
         let isFetching = false;
         async function loadNotifications(isAutoRefresh = false) {
-            if(isFetching) return;
+            if (isFetching) return;
             isFetching = true;
-            
+
             const list = document.getElementById('notifications-list');
-            if(!list) { isFetching = false; return; }
+            if (!list) { isFetching = false; return; }
 
             // 1. Load from Cache (Only on initial load)
             const cached = localStorage.getItem('notifications_cache');
             if (!isAutoRefresh && cached && list.innerHTML.trim() !== "") { // Check if list is empty properly
-                 // Reset list if we have cache to show
+                // Reset list if we have cache to show
             }
-            
+
             // Render Cache Immediately if available
             if (!isAutoRefresh && cached) {
                 try {
@@ -234,7 +297,7 @@
                             updateUnreadCountText(0);
                         }
                     }
-                } catch(e) { console.error("Cache parse error", e); }
+                } catch (e) { console.error("Cache parse error", e); }
             }
 
             // 2. Fetch Fresh
@@ -242,42 +305,42 @@
                 const response = await fetch(`${API_BASE_URL}/get_user_notifications`, {
                     headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
                 });
-                
+
                 if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
 
                 const data = await response.json();
-                
+
                 if (data.success && data.data.items) {
                     const newDataStr = JSON.stringify(data.data.items);
                     const oldDataStr = localStorage.getItem('notifications_cache');
-                    
+
                     // SMART REFRESH: Update if data changed OR if list is showing spinner (first load with no cache)
-                     if (newDataStr !== oldDataStr || list.querySelector('.animate-spin')) {
-                         if(data.data.items.length > 0) {
+                    if (newDataStr !== oldDataStr || list.querySelector('.animate-spin')) {
+                        if (data.data.items.length > 0) {
                             localStorage.setItem('notifications_cache', newDataStr);
                             list.innerHTML = data.data.items.map(notif => renderNotificationItem(notif)).join('');
                             updateUnreadCountText(data.data.items.filter(n => n.read_status === 'N').length);
-                         } else {
+                        } else {
                             localStorage.setItem('notifications_cache', '[]');
                             list.innerHTML = '<div class="glass-panel rounded-2xl p-12 text-center text-secondary-text">No notifications found yet.</div>';
                             updateUnreadCountText(0);
-                         }
-                     }
+                        }
+                    }
                 }
             } catch (error) {
                 console.error(error);
                 // If we are showing spinner (no cache rendered), show error
                 if (list.querySelector('.animate-spin')) {
-                     list.innerHTML = '<div class="text-red-400 text-center py-10">Error loading notifications. Please try again.</div>';
+                    list.innerHTML = '<div class="text-red-400 text-center py-10">Error loading notifications. Please try again.</div>';
                 }
             } finally {
                 isFetching = false;
                 // Double check to ensure spinner is gone if logic slipped
                 const spinner = list.querySelector('.animate-spin');
-                if(spinner) spinner.parentElement.remove();
+                if (spinner) spinner.parentElement.remove();
             }
         }
-        
+
         // Recursive Polling
         async function startNotificationPolling() {
             await loadNotifications(true);
@@ -306,7 +369,7 @@
             const date = new Date(notif.created_at);
             const timeAgo = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-            
+
             let icon = 'notifications';
             let iconBg = 'bg-primary/10';
             let iconColor = 'text-primary';
@@ -325,14 +388,41 @@
                 iconColor = 'text-green-500';
             }
 
-            return `
-                <div class="glass-card rounded-2xl p-4 flex gap-4 cursor-pointer relative overflow-hidden group ${isRead ? 'opacity-80' : ''}" 
-                     onclick="NotificationService.handleNotificationClick(${JSON.stringify(notif).replace(/"/g, '&quot;')})">
-                    ${!isRead ? '<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary shadow-[0_0_10px_rgba(33,91,237,0.5)]"></div>' : ''}
+            // Avatar Logic
+            const creator = notif.creator;
+            // Use custom avatar OR default initials if creator exists
+            const avatarUrl = creator ? (getAvatarUrl(creator) || DEFAULT_AVATAR(creator.name)) : null;
+
+            let visualHTML;
+            if (avatarUrl) {
+                // Avatar with Icon Badge
+                visualHTML = `
+                    <div class="shrink-0 relative size-12 group-hover:scale-105 transition-transform">
+                        <img src="${avatarUrl}" class="size-12 rounded-full object-cover border border-white/10" 
+                             onerror="this.onerror=null; this.src='${creator ? DEFAULT_AVATAR(creator.name) : ''}'">
+                        <div class="absolute -bottom-1 -right-1 size-5 rounded-full ${iconBg} border border-[#161b26] flex items-center justify-center">
+                            <span class="material-symbols-outlined ${iconColor} text-[12px] font-bold" style="font-variation-settings: 'FILL' 1;">${icon}</span>
+                        </div>
+                        ${!isRead ? '<span class="absolute top-0 right-0 size-3 bg-red-500 rounded-full border-2 border-background-dark animate-pulse"></span>' : ''}
+                    </div>
+                `;
+            } else {
+                // Default Icon Circle (System or No Avatar)
+                visualHTML = `
                     <div class="shrink-0 flex items-center justify-center size-12 rounded-full ${iconBg} border border-white/5 relative transition-transform group-hover:scale-110">
                         <span class="material-symbols-outlined ${iconColor} text-xl font-variation-settings-fill-1">${icon}</span>
                         ${!isRead ? '<span class="absolute top-0 right-0 size-3 bg-red-500 rounded-full border-2 border-background-dark animate-pulse"></span>' : ''}
                     </div>
+                `;
+            }
+
+            return `
+                <div class="glass-card rounded-2xl p-4 flex gap-4 cursor-pointer relative overflow-hidden group ${isRead ? 'opacity-80' : ''}" 
+                     onclick="NotificationService.handleNotificationClick(${JSON.stringify(notif).replace(/"/g, '&quot;')})">
+                    ${!isRead ? '<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary shadow-[0_0_10px_rgba(33,91,237,0.5)]"></div>' : ''}
+                    
+                    ${visualHTML}
+
                     <div class="flex-1">
                         <div class="flex justify-between items-start mb-0.5">
                             <h4 class="text-sm font-bold text-white transition-colors group-hover:text-primary">${notif.title}</h4>
@@ -350,4 +440,5 @@
     </script>
     <script src="js/site_branding.js"></script>
 </body>
+
 </html>

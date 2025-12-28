@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Comments;
 use App\Models\Post;
+use App\Models\Reel;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
@@ -14,17 +15,19 @@ use Illuminate\Support\Facades\Log;
 class AddComment implements ShouldQueue
 {
     use Queueable, Dispatchable, SerializesModels, InteractsWithQueue;
-public $user_id;
-public $post_id;
-public  $comment;
-public $attachments;
+    public $user_id;
+    public $post_id;
+    public $reel_id;
+    public $comment;
+    public $attachments;
     /**
      * Create a new job instance.
      */
-    public function __construct($user_id, $post_id, $comment, $attachments = [])
+    public function __construct($user_id, $post_id = null, $reel_id = null, $comment, $attachments = [])
     {
         $this->user_id = $user_id;
         $this->post_id = $post_id;
+        $this->reel_id = $reel_id;
         $this->comment = $comment;
         $this->attachments = $attachments;
     }
@@ -34,13 +37,26 @@ public $attachments;
      */
     public function handle(): void
     {
-        $PostExists = Post::where('id',$this->post_id)->exists();
-        if (!$PostExists) {
-            Log::error("Post not found: " . $this->post_id);
+        if ($this->post_id) {
+            $exists = Post::where('id', $this->post_id)->exists();
+            if (!$exists) {
+                Log::error("Post not found: " . $this->post_id);
+                return;
+            }
+        } elseif ($this->reel_id) {
+            $exists = Reel::where('id', $this->reel_id)->exists();
+            if (!$exists) {
+                Log::error("Reel not found: " . $this->reel_id);
+                return;
+            }
+        } else {
+            Log::error("No Post ID or Reel ID provided for comment.");
             return;
         }
+
         $comment = Comments::create([
             'post_id' => $this->post_id,
+            'reel_id' => $this->reel_id,
             'user_id' => $this->user_id,
             'comment' => $this->comment,
             'created_by' => $this->user_id,
@@ -65,7 +81,7 @@ public $attachments;
                 ]);
             }
         } catch (\Exception $e) {
-            \Log::error("Failed to upload attachments for comment ID " . $comment->id . ": " . $e->getMessage());
+            Log::error("Failed to upload attachments for comment ID " . $comment->id . ": " . $e->getMessage());
         }
     }
 }

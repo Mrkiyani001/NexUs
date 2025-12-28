@@ -226,10 +226,10 @@
                 <span class="hidden lg:inline">Home</span>
             </a>
             <a class="flex items-center gap-2 px-3 lg:px-4 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
-                href="#">
+                href="reels.html">
                 <span
-                    class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">explore</span>
-                <span class="hidden lg:block font-medium">Explore</span>
+                    class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">movie</span>
+                <span class="hidden lg:block font-medium">Reels</span>
             </a>
             <a class="flex items-center gap-2 px-3 lg:px-4 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group relative"
                 href="notification.html">
@@ -289,7 +289,7 @@
                     </div>
                     <div class="relative">
                         <img id="header-user-avatar" alt="Avatar"
-                            class="w-9 h-9 md:w-10 md:h-10 rounded-full border-2 border-white/10 group-hover/profile:border-primary/50 transition-all object-cover bg-slate-700"
+                            class="w-9 h-9 md:w-10 md:h-10 rounded-full border-2 border-white/10 group-hover/profile:border-primary/50 transition-all object-cover"
                             src="">
                         <div
                             class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-[#0f111a] rounded-full">
@@ -498,8 +498,12 @@
         </div>
     </main>
     <script>
-        const API_BASE_URL = 'http://127.0.0.1:8000/api';
-        const PUBLIC_URL = 'http://127.0.0.1:8000';
+        window.API_BASE_URL = 'http://127.0.0.1:8000/api';
+        window.PUBLIC_URL = 'http://127.0.0.1:8000';
+        // Keep const for local scope convenience if needed, or just rely on window
+        const API_BASE_URL = window.API_BASE_URL;
+        const PUBLIC_URL = window.PUBLIC_URL;
+
         const token = localStorage.getItem('auth_token');
         const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
         window.currentUserData = userData;
@@ -554,11 +558,40 @@
         };
 
         // --- 2. HEADER & UI INITIALIZATION ---
-        function initHeader() {
+        async function refreshUserProfile() {
+            if (!window.currentUserData || !window.currentUserData.id) return;
+            
+            try {
+                // Fetch fresh data
+                const response = await fetch(`${API_BASE_URL}/getUser`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: window.currentUserData.id })
+                });
+                const data = await response.json();
+                
+                if (data.success && data.data) {
+                    // Update Local Storage & Global State
+                    localStorage.setItem('user_data', JSON.stringify(data.data));
+                    window.currentUserData = data.data;
+                    log('User profile refreshed', data.data);
+                    
+                    // Re-init Header with fresh data
+                    initHeader(true);
+                }
+            } catch (e) {
+                console.error("Failed to refresh user profile", e);
+            }
+        }
+
+        function initHeader(isRefresh = false) {
             if (window.currentUserData && window.currentUserData.name) {
                 const userData = window.currentUserData;
-                const initialsUrl = window.DEFAULT_AVATAR(userData.name); // from post_utils.js
+                const initialsUrl = window.DEFAULT_AVATAR(userData.name); 
                 const avatarUrl = getAvatarUrl(userData) || initialsUrl;
+                
+                if(isRefresh) log("Header Avatar URL (Fresh):", avatarUrl);
+                else log("Header Avatar URL (Cached):", avatarUrl);
 
                 // Desktop and Mobile Header Avatars
                 const headerAvatar = document.getElementById('header-user-avatar');
@@ -567,8 +600,17 @@
 
                 [headerAvatar, createPostAvatar, mobileNavAvatar].forEach(img => {
                     if (img) {
-                        img.src = avatarUrl;
-                        img.onerror = function () { this.src = initialsUrl; };
+                        // Force cache busting if refreshing, but respect existing query params
+                        if (isRefresh && !avatarUrl.includes('ui-avatars.com')) {
+                            const separator = avatarUrl.includes('?') ? '&' : '?';
+                            img.src = `${avatarUrl}${separator}t=${new Date().getTime()}`;
+                        } else {
+                            img.src = avatarUrl;
+                        }
+                        img.onerror = function () { 
+                            this.onerror = null; 
+                            this.src = initialsUrl; 
+                        };
                     }
                 });
 
@@ -1232,6 +1274,7 @@
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
             initHeader();
+            refreshUserProfile(); // Fetch fresh data to ensure avatar is sync
             initPostCreation();
             initPullToRefresh();
             loadPosts();
@@ -1258,9 +1301,9 @@
             <span class="material-symbols-outlined text-[28px] group-hover:scale-110 transition-transform filled-icon"
                 style="font-variation-settings: 'FILL' 1;">home</span>
         </a>
-        <a href="#" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors group">
+        <a href="reels.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors group">
             <span
-                class="material-symbols-outlined text-[28px] group-hover:scale-110 transition-transform">explore</span>
+                class="material-symbols-outlined text-[28px] group-hover:scale-110 transition-transform">movie</span>
         </a>
         <a href="friendreq.html"
             class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors group relative">
@@ -1278,7 +1321,7 @@
         <a href="profile.html"
             class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors group">
             <img id="mobile-nav-avatar" src=""
-                class="w-7 h-7 rounded-full object-cover border border-white/10 group-hover:border-primary/50 transition-colors bg-slate-700">
+                class="w-7 h-7 rounded-full object-cover border border-white/10 group-hover:border-primary/50 transition-colors">
         </a>
     </nav>
 </body>

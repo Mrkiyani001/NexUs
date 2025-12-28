@@ -110,22 +110,37 @@ class AuthController extends BaseController
             'id' => 'required|integer|exists:users,id',
         ]);
         try {
-            $user = auth('api')->user();
-            if (!$user) {
+            $login_user = auth('api')->user();
+            if (!$login_user) {
                 return $this->unauthorized();
             }
-            $user = User::with('roles')->find($request->id);
+            $user = User::with(['roles', 'profile.avatar'])->find($request->id);
             if (is_null($user)) {
                 return response()->json([
                     'success' => false,
                     'message' => 'User not found',
                 ], 404);
-            } else {
+            } 
+            if($user->is_banned==1){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User is banned',
+                ], 403);
+            }
+            $fieldsToHide = ['password', 'remember_token', 'email_verified_at', 'show_email', 'roles'];
+            // roles might be needed, but strictly hiding password/tokens is key.
+            // Let's keep roles for now as frontend might need it for badges, but hide email if kept private.
+            
+            if ($login_user->id !== $user->id && !$user->show_email) {
+                $fieldsToHide[] = 'email';
+            }
+
+            $user->makeHidden($fieldsToHide);
                 return response()->json([
                     'success' => true,
                     'data' => $user,
                 ], 200);
-            }
+            
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -275,8 +290,8 @@ class AuthController extends BaseController
             'id' => 'required|integer|exists:users,id',
         ]);
         try {
-            $user = auth('api')->user();
-            if (!$user) {
+            $login_user = auth('api')->user();
+            if (!$login_user) {
                 return $this->unauthorized();
             }
             $user = User::find($request->id);
@@ -286,8 +301,16 @@ class AuthController extends BaseController
                     'message' => 'User not found',
                 ], 404);
             } else {
-                $user->delete();
-                return response()->json([
+                if($login_user->id != $user->id){
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'You are not authorized to delete this user',
+                    ], 401);
+                }
+                    $user->posts()->delete();
+                    $user->reels()->delete();
+                    $user->delete();
+                    return response()->json([
                     'success' => true,
                     'message' => 'User deleted successfully',
                 ], 200);
