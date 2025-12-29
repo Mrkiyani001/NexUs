@@ -29,8 +29,17 @@ function renderAdminSidebar(activePageId) {
     if (!sidebar) return;
 
     const initials = (ADMIN_USER_DATA.name || 'A')[0].toUpperCase();
-    const avatarUrl = (ADMIN_USER_DATA.profile && ADMIN_USER_DATA.profile.avatar)
-        ? `${PUBLIC_URL}/${ADMIN_USER_DATA.profile.avatar}`
+    let avatarPath = null;
+    if (ADMIN_USER_DATA.profile && ADMIN_USER_DATA.profile.avatar) {
+        if (typeof ADMIN_USER_DATA.profile.avatar === 'object') {
+            avatarPath = ADMIN_USER_DATA.profile.avatar.file_path; // Handle object format
+        } else {
+            avatarPath = ADMIN_USER_DATA.profile.avatar; // Handle string format
+        }
+    }
+
+    const avatarUrl = avatarPath 
+        ? (avatarPath.startsWith('http') ? avatarPath : `${window.PUBLIC_URL}/${avatarPath}`)
         : `https://ui-avatars.com/api/?name=${encodeURIComponent(ADMIN_USER_DATA.name)}&background=215bed&color=fff`;
 
     const menuItems = [

@@ -253,4 +253,49 @@ class CommentsController extends BaseController
             ], 500);
         }
     }
+    public function get_comments_by_reel(Request $request)
+    {
+        $this->validateRequest($request, [
+            'reel_id' => 'required|integer|exists:reels,id',
+        ]);
+        try {
+            $user = auth('api')->user();
+            $limit = (int) $request->input('limit', 10);
+            if (!$user) {
+                return $this->unauthorized();
+            }
+            $comments = Comments::with('attachments', 'creator.profile.avatar', 'updator', 'user.profile.avatar', 'reel')
+                ->where('reel_id', $request->reel_id)
+                ->withExists(['reactions as is_liked' => function ($q) use ($user) {
+                    $q->where('created_by', $user->id)->where('type', 1);
+                }])
+                ->withCount(['reactions as like_count' => function ($q) {
+                    $q->where('type', 1);
+                }])
+                ->withCount('replies')
+                ->with(['replies' => function($q) use ($user) {
+                    $q->with('creator.profile.avatar')
+                      ->withExists(['reactions as is_liked' => function ($q2) use ($user) {
+                          $q2->where('created_by', $user->id)->where('type', 1);
+                      }])
+                      ->withCount(['reactions as like_count' => function ($q2) {
+                          $q2->where('type', 1);
+                      }]);
+                }])
+                ->orderby('created_at', 'desc')
+                ->paginate($limit);
+
+            $data = $this->paginateData($comments, $comments->items());
+            return response()->json([
+                'success' => true,
+                'message' => 'Comments retrieved successfully',
+                'data' => $data,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }

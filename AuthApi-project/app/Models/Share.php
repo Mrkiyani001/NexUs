@@ -10,6 +10,7 @@ class Share extends Model
     protected $fillable = [
         'user_id',
         'post_id',
+        'reel_id',
     ];
     public function user()
     {
@@ -18,6 +19,10 @@ class Share extends Model
     public function post()
     {
         return $this->belongsTo(Post::class);
+    }
+    public function reel()
+    {
+        return $this->belongsTo(Reel::class);
     }
 
 }

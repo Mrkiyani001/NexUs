@@ -141,13 +141,17 @@ Route::group(['middleware' => ['api', 'auth:api']], function () {
     Route::delete('delete_reel', [ReelsController::class, 'destroy_reel'])->middleware('permission:delete posts');
     Route::post('get_reels_by_user', [ReelsController::class, 'getreelofuser'])->middleware('permission:view posts');
     Route::get('get_all_reels', [ReelsController::class, 'getreelofall'])->middleware('permission:view posts');
+    Route::get('get_following_reels', [ReelsController::class, 'get_following_reels'])->middleware('permission:view posts');
     Route::post('get_liked_reels', [ReelsController::class, 'get_liked_reels'])->middleware('permission:view posts');
+    Route::post('save_reel', [ReelsController::class, 'saveReel'])->middleware('permission:create posts');
+    Route::get('get_saved_reels', [ReelsController::class, 'getSavedReels'])->middleware('permission:view posts');
     
     // Comment Routes
     Route::post('create_comment', [CommentsController::class, 'create'])->middleware('permission:comments create');
     Route::post('update_comment', [CommentsController::class, 'update'])->middleware('permission:comments update');
     Route::delete('delete_comment', [CommentsController::class, 'destroy'])->middleware('permission:comments delete');
     Route::post('get_comment', [CommentsController::class, 'get_comments_by_post'])->middleware('permission:view posts');
+    Route::post('get_reel_comments', [CommentsController::class, 'get_comments_by_reel'])->middleware('permission:view posts');
     // Comment Reply Routes
     Route::post('create_comment_reply', [CommentsRepliesController::class, 'create'])->middleware('permission:replies create');
     Route::post('update_comment_reply', [CommentsRepliesController::class, 'update'])->middleware('permission:replies update');
@@ -156,6 +160,7 @@ Route::group(['middleware' => ['api', 'auth:api']], function () {
 
     // Reaction Routes
     Route::post('add_reaction_to_post', [ReactionController::class, 'addReactiontoPost'])->middleware('permission:react on post');
+    Route::post('add_reaction_to_reel', [ReactionController::class, 'addReactiontoReel'])->middleware('permission:react on post');
     Route::post('add_reaction_to_comment', [ReactionController::class, 'addReactiontoComment'])->middleware('permission:react on comment');
     Route::post('add_reaction_to_comment_reply', [ReactionController::class, 'addReactiontoCommentReply'])->middleware('permission:react on reply');
     Route::post('get_post_reactions', [ReactionController::class, 'getPostReactions']);
@@ -163,6 +168,7 @@ Route::group(['middleware' => ['api', 'auth:api']], function () {
     Route::post('get_reply_reactions', [ReactionController::class, 'getReplyReactions']);
 
     Route::post('share_post', [ShareController::class, 'sharePost']);
+    Route::post('share_reel', [ShareController::class, 'shareReel']);
 
     // View Routes
     Route::post('add_view_to_post', [AddViewController::class, 'addView'])->middleware('permission:view posts');

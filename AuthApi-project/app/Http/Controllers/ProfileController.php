@@ -173,17 +173,15 @@ class ProfileController extends BaseController
 
     private function deleteAttachment($attachment)
     {
-        if ($attachment) {
+        if ($attachment && !empty($attachment->file_path)) {
             // file_path already contains the full relative path including filename
             $fullPath = public_path($attachment->file_path);
 
             if (file_exists($fullPath)) {
                 if (is_file($fullPath)) {
                     unlink($fullPath);
-                } elseif (is_dir($fullPath)) {
-                    // Safety: If it's a directory (bug case), try to remove it if empty
-                    @rmdir($fullPath);
                 }
+                // Removed is_dir check to prevent accidental directory deletion
             }
             $attachment->delete();
         }
@@ -337,7 +335,7 @@ class ProfileController extends BaseController
             }
             // Get users who have a 'pending' follow status towards the current user
             $limit = $request->input('limit', 10);
-            
+
             $query = $user->followers()
                 ->wherePivot('status', 'pending')
                 ->with('profile.avatar');
@@ -351,13 +349,13 @@ class ProfileController extends BaseController
         }
     }
 
-    public function fetchFollowing(Request $request) 
+    public function fetchFollowing(Request $request)
     {
         // Renamed/Used as 'fetchMyFriends' logic if user_id not passed
         // Or specific user friends if id passed
         try {
             $targetUserId = $request->input('user_id') ?? auth('api')->id();
-            
+
             $user = User::find($targetUserId);
             if (!$user) {
                 return $this->Response(false, 'User not found', null, 404);
@@ -402,11 +400,11 @@ class ProfileController extends BaseController
 
             // Get random users not in excluded list
             $limit = $request->input('limit', 20);
-            
+
             $query = User::whereNotIn('id', $excluded)
                 ->with('profile.avatar')
                 ->inRandomOrder(); // Random order for suggestions
-            
+
             $paginator = $query->paginate($limit);
             $data = $this->paginateData($paginator, $paginator->items());
 
@@ -416,7 +414,7 @@ class ProfileController extends BaseController
         }
     }
 
-    public function fetchWhoToFollow(Request $request) 
+    public function fetchWhoToFollow(Request $request)
     {
         try {
             $user = auth('api')->user();
@@ -428,7 +426,7 @@ class ProfileController extends BaseController
 
             // Get IDs of people I am already following (Accepted or Pending)
             $iamFollowingIds = $user->following()->pluck('users.id')->toArray();
-            
+
             // Also exclude myself
             $excluded = array_merge([$user->id], $iamFollowingIds);
 

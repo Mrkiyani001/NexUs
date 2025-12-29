@@ -4,7 +4,7 @@
  * Uses localStorage for instant loading.
  */
 document.addEventListener('DOMContentLoaded', async () => {
-    const PUBLIC_URL = 'http://127.0.0.1:8000'; // Define public URL for assets
+    // const PUBLIC_URL = 'http://127.0.0.1:8000'; // Removed to use global config
 
     // Function to apply settings to UI
     const applySettings = (settings) => {
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 3. Update Logo Image
         // 3. Update Logo Image
         // Fallback to a transparent pixel or empty if no logo is set, to avoid 404s for 'logo.png'
-        const logoPath = settings.logo ? `${PUBLIC_URL}/storage/${settings.logo}` : ''; 
+        const logoPath = settings.logo ? `${window.PUBLIC_URL}/storage/${settings.logo}` : ''; 
 
         const logoImgElements = document.querySelectorAll('#site-logo-img');
         logoImgElements.forEach(img => {
@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             console.log("Fetching site settings...");
             // Add timestamp to prevent browser caching
-            const response = await fetch(`${PUBLIC_URL}/api/settings?t=${new Date().getTime()}`, {
+            const response = await fetch(`${window.PUBLIC_URL}/api/settings?t=${new Date().getTime()}`, {
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
             });
             console.log("Settings API Response Status:", response.status);

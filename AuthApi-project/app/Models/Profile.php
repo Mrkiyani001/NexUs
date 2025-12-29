@@ -24,6 +24,11 @@ class Profile extends Model
         return $this->morphOne(Attachments::class, 'attachable');
     }
 
+    public function user_avatar()
+    {
+        return $this->morphOne(Attachments::class, 'attachable');
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');

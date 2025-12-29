@@ -8,6 +8,7 @@ use App\Jobs\SendNotification;
 use App\Models\CommentReply;
 use App\Models\Comments;
 use App\Models\Post;
+use App\Models\Reel;
 use Exception;
 use Illuminate\Http\Request;
 
@@ -228,6 +229,41 @@ class ReactionController extends BaseController
       return $this->response(true, 'Reactions fetched successfully', $data, 200);
     } catch (Exception $e) {
       return $this->response(false, $e->getMessage(), null, 500);
+    }
+  }
+  public function addReactiontoReel(Request $request)
+  {
+    $this->validateRequest($request, [
+      'reel_id' => 'required|integer|exists:reels,id',
+      'type' => 'required|integer|in:1,0',
+    ]);
+    try {
+      $user = auth('api')->user();
+      if (!$user) {
+        return $this->response(false, 'Unauthorized', 401);
+      }
+      \App\Jobs\AddReelReaction::dispatch(
+        (int) $user->id,
+        (int) $request->reel_id,
+        (int) $request->type,
+      );
+
+      // Notification Logic: Notify Reel Owner
+      $reel = Reel::find($request->reel_id);
+      if ($reel && $reel->user_id != $user->id) {
+          SendNotification::dispatch(
+              $user->id,
+              'New Reaction',
+              $user->name . ' reacted to your reel.',
+              $reel->user_id,
+              $reel,
+              'N'
+          );
+      }
+
+      return $this->response(true, 'Reaction added successfully', null, 200);
+    } catch (Exception $e) {
+      return $this->response(false, $e->getMessage(), null, 400);
     }
   }
 }

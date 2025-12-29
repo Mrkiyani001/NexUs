@@ -6,12 +6,57 @@
 // Config loaded from config.js
 
 document.addEventListener('DOMContentLoaded', () => {
-    fetchReels();
+    setupTabs();
+    fetchReels('foryou');
     populateUserProfile();
     fetchSuggestions();
 });
 
-async function fetchReels() {
+let currentMode = 'foryou';
+
+function setupTabs() {
+    const tabForYou = document.getElementById('tab-foryou');
+    const tabFollowing = document.getElementById('tab-following');
+
+    if (!tabForYou || !tabFollowing) return;
+
+    tabForYou.addEventListener('click', () => switchTab('foryou'));
+    tabFollowing.addEventListener('click', () => switchTab('following'));
+}
+
+function switchTab(mode) {
+    if (currentMode === mode) return;
+    currentMode = mode;
+
+    const tabForYou = document.getElementById('tab-foryou');
+    const tabFollowing = document.getElementById('tab-following');
+    
+    // Active classes
+    const activeClass = "bg-white/10 backdrop-blur-md text-white border-white/10 border";
+    const inactiveClass = "bg-transparent text-white/70";
+
+    // Clean classes
+    const removeActive = (el) => {
+        el.className = el.className.replace(activeClass, "").replace(inactiveClass, "").trim();
+        el.classList.add("px-4", "py-1.5", "rounded-full", "text-xs", "font-semibold", "transition-all", "hover:bg-white/10");
+    };
+
+    removeActive(tabForYou);
+    removeActive(tabFollowing);
+
+    // Apply new state
+    if (mode === 'foryou') {
+        tabForYou.classList.add(...activeClass.split(" "));
+        tabFollowing.classList.add(...inactiveClass.split(" "));
+    } else {
+        tabFollowing.classList.add(...activeClass.split(" "));
+        tabForYou.classList.add(...inactiveClass.split(" "));
+    }
+
+    fetchReels(mode);
+}
+
+async function fetchReels(mode = 'foryou') {
     const container = document.getElementById('reels-container');
     const token = localStorage.getItem('auth_token');
 
@@ -28,7 +73,12 @@ async function fetchReels() {
             </div>
         `;
 
-        const response = await fetch(`${API_BASE_URL}/get_all_reels`, {
+        // Determine Endpoint
+        const endpoint = mode === 'following' 
+            ? `${API_BASE_URL}/get_following_reels` 
+            : `${API_BASE_URL}/get_all_reels`;
+
+        const response = await fetch(endpoint, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -41,12 +91,25 @@ async function fetchReels() {
         if (response.ok && data.success) {
             renderReels(data.data);
         } else {
+            // Handle empty state specifically for Following
+            if (mode === 'following' && (!data.data || data.data.length === 0)) {
+                 container.innerHTML = `
+                    <div class="h-full w-full flex flex-col items-center justify-center text-slate-500 min-h-[500px]">
+                        <span class="material-symbols-outlined text-5xl mb-4 opacity-50">group_off</span>
+                        <p class="text-lg font-medium text-white/80">No following reels</p>
+                        <p class="text-sm opacity-60 text-center px-8">Follow people to see their reels here!</p>
+                        <a href="homefeed-dashboard.html" class="mt-4 px-4 py-2 bg-primary/20 text-primary rounded-lg text-sm hover:bg-primary/30 transition">Find People</a>
+                    </div>
+                `;
+                return;
+            }
+
             console.error('Failed to fetch reels:', data.message);
             container.innerHTML = `
                 <div class="h-full w-full flex flex-col items-center justify-center text-slate-500">
                     <span class="material-symbols-outlined text-4xl mb-2">error</span>
                     <p>Failed to load reels</p>
-                    <button onclick="fetchReels()" class="mt-4 text-primary hover:underline">Try Again</button>
+                    <button onclick="fetchReels('${mode}')" class="mt-4 text-primary hover:underline">Try Again</button>
                 </div>
             `;
         }
@@ -112,46 +175,82 @@ function renderReels(reels) {
     });
 }
 
+// Helper to construct URL (Centralized Logic)
+const getProfilePicture = (user) => {
+    if (!user) return `https://ui-avatars.com/api/?name=User&background=random`;
+
+    // 1. Try new user_avatar relationship (Object)
+    if (user.profile && user.profile.user_avatar && user.profile.user_avatar.file_path) {
+        return getStorageUrl(user.profile.user_avatar.file_path);
+    }
+    
+    // 2. Try old avatar (String or Object)
+    if (user.profile && user.profile.avatar) {
+        if (typeof user.profile.avatar === 'string') {
+            if (user.profile.avatar.startsWith('http')) return user.profile.avatar;
+            return getStorageUrl(user.profile.avatar);
+        } 
+        else if (user.profile.avatar.file_path) {
+            return getStorageUrl(user.profile.avatar.file_path);
+        }
+    }
+
+    // 3. Fallback
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=random`;
+};
+
+const getStorageUrl = (path) => {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    
+    // If path is in known public folders (profiles, posts) dont prepend storage
+    if (cleanPath.startsWith('profiles/') || cleanPath.startsWith('posts/')) {
+         return `${window.PUBLIC_URL}/${cleanPath}`;
+    }
+    return `${window.PUBLIC_URL}/storage/${cleanPath}`;
+};
+
 function createReelElement(reel) {
     const div = document.createElement('div');
-    div.className = 'snap-center relative shrink-0 w-full h-[85vh] min-h-[600px] rounded-2xl overflow-hidden shadow-2xl bg-black border border-white/5 mb-6 group';
+div.className = 'snap-center relative shrink-0 w-full h-[calc(100vh-80px)] md:h-[calc(100vh-40px)] rounded-xl overflow-hidden shadow-2xl bg-black border border-white/5 mb-4 group';
 
-    // Construct URLs
-    // Ensure video path is correct. If it's a full URL, use it. If it's a relative path, prepend storage URL.
-    // Also remove any double slashes if present
-    let videoUrl = '';
-    if (reel.video_path) {
-        if (reel.video_path.startsWith('http')) {
-            videoUrl = reel.video_path;
-        } else {
-            // Clean path: remove leading slash if present
-            const cleanPath = reel.video_path.startsWith('/') ? reel.video_path.substring(1) : reel.video_path;
-            videoUrl = `${PUBLIC_URL}/storage/${cleanPath}`;
-        }
+// Construct URLs
+// Ensure video path is correct. If it's a full URL, use it. If it's a relative path, prepend storage URL.
+// Also remove any double slashes if present
+let videoUrl = '';
+if (reel.video_path) {
+    if (reel.video_path.startsWith('http')) {
+        videoUrl = reel.video_path;
+    } else {
+        // Clean path: remove leading slash if present
+        const cleanPath = reel.video_path.startsWith('/') ? reel.video_path.substring(1) : reel.video_path;
+        videoUrl = `${window.PUBLIC_URL}/storage/${cleanPath}`;
     }
+}
 
-    let thumbUrl = '';
-    if (reel.thumbnail_path) {
-        if (reel.thumbnail_path.startsWith('http')) {
-            thumbUrl = reel.thumbnail_path;
-        } else {
-            const cleanThumb = reel.thumbnail_path.startsWith('/') ? reel.thumbnail_path.substring(1) : reel.thumbnail_path;
-            thumbUrl = `${PUBLIC_URL}/storage/${cleanThumb}`;
-        }
+let thumbUrl = '';
+if (reel.thumbnail_path) {
+    if (reel.thumbnail_path.startsWith('http')) {
+        thumbUrl = reel.thumbnail_path;
+    } else {
+        const cleanThumb = reel.thumbnail_path.startsWith('/') ? reel.thumbnail_path.substring(1) : reel.thumbnail_path;
+        thumbUrl = `${window.PUBLIC_URL}/storage/${cleanThumb}`;
     }
+}
 
-    const userAvatar = reel.user && reel.user.profile_picture ?
-        (reel.user.profile_picture.startsWith('http') ? reel.user.profile_picture : `${PUBLIC_URL}/storage/${reel.user.profile_picture}`)
-        : `https://ui-avatars.com/api/?name=${encodeURIComponent(reel.user ? reel.user.name : 'User')}&background=random`;
-    const userName = reel.user ? reel.user.name : 'Unknown User';
+// Unified Avatar Logic
+const userAvatar = getProfilePicture(reel.user);
+const userName = reel.user ? reel.user.name : 'Unknown User';
 
-    div.innerHTML = `
+div.innerHTML = `
         <video 
-            class="h-full w-full object-cover"
+            class="h-full w-full object-cover bg-black"
             src="${videoUrl}" 
-            ${thumbUrl ? `poster="${thumbUrl}"` : ''}
             loop 
-            playsinline
+            playsinline>
+        </video>
+        ${thumbUrl ? `<img src="${thumbUrl}" class="absolute inset-0 h-full w-full object-cover z-10 transition-opacity duration-500 pointer-events-none" id="thumb-${reel.id}">` : ''}
             muted 
             onclick="togglePlay(this)"
             onerror="console.error('Video failed to load:', this.src)"
@@ -162,19 +261,30 @@ function createReelElement(reel) {
         
         <!-- Action Buttons -->
         <div class="absolute right-4 bottom-24 flex flex-col items-center gap-5 z-20">
-            <button class="group/btn flex flex-col items-center gap-1" onclick="likeReel(${reel.id})">
-                <div class="flex items-center justify-center w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/10 transition-all group-hover/btn:bg-white/20 group-hover/btn:scale-110 active:scale-95">
-                    <span class="material-symbols-outlined text-white text-[28px]">favorite</span>
-                </div>
-                <span class="text-xs font-bold text-white drop-shadow-md">${reel.likes_count || 0}</span>
-            </button>
-            <button class="group/btn flex flex-col items-center gap-1" onclick="openComments(${reel.id})">
+        <!-- Like Button -->
+        <button onclick="toggleLike(this, ${reel.id})" class="flex flex-col items-center gap-1 group/btn">
+            <div class="p-2.5 rounded-full bg-white/10 backdrop-blur-md group-hover/btn:bg-red-500/20 transition-all border border-white/10 group-active/btn:scale-90">
+                <span class="material-symbols-outlined text-white text-[28px] group-hover/btn:text-red-500 transition-colors ${reel.is_liked ? 'text-red-500 fill-current' : ''}" style="${reel.is_liked ? "font-variation-settings: 'FILL' 1;" : ''}">favorite</span>
+            </div>
+            <span class="text-white font-medium text-xs drop-shadow-md">${formatNumber(reel.likes_count || 0)}</span>
+        </button>
+
+        <!-- Save Button -->
+        <button onclick="toggleSave(this, ${reel.id})" class="flex flex-col items-center gap-1 group/btn">
+            <div class="p-2.5 rounded-full bg-white/10 backdrop-blur-md group-hover/btn:bg-yellow-500/20 transition-all border border-white/10 group-active/btn:scale-90">
+                <span class="material-symbols-outlined text-white text-[28px] group-hover/btn:text-yellow-500 transition-colors ${reel.is_saved ? 'text-yellow-500 fill-current' : ''}" style="${reel.is_saved ? "font-variation-settings: 'FILL' 1;" : ''}">bookmark</span>
+            </div>
+             <span class="text-white font-medium text-xs drop-shadow-md">Save</span>
+        </button>
+
+        <!-- Comment Button -->
+        <button onclick="openComments(${reel.id})" class="flex flex-col items-center gap-1 group/btn">
                 <div class="flex items-center justify-center w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/10 transition-all group-hover/btn:bg-white/20 group-hover/btn:scale-110 active:scale-95">
                     <span class="material-symbols-outlined text-white text-[28px]">chat_bubble</span>
                 </div>
                 <span class="text-xs font-bold text-white drop-shadow-md">${reel.comments_count || 0}</span>
             </button>
-            <button class="group/btn flex flex-col items-center gap-1">
+            <button onclick="shareReel(${reel.id})" class="group/btn flex flex-col items-center gap-1">
                 <div class="flex items-center justify-center w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/10 transition-all group-hover/btn:bg-white/20 group-hover/btn:scale-110 active:scale-95">
                     <span class="material-symbols-outlined text-white text-[28px]">send</span>
                 </div>
@@ -185,6 +295,13 @@ function createReelElement(reel) {
                     <span class="material-symbols-outlined text-white text-[24px]">more_horiz</span>
                 </div>
             </button>
+        </div>
+
+        <!-- Mute Toggle (Top Right) -->
+        <div class="absolute top-4 right-4 z-30">
+             <button onclick="toggleMute(this, ${reel.id})" class="h-8 w-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/10 hover:bg-black/60 transition-colors">
+                <span class="material-symbols-outlined text-white/70 text-[18px]">volume_off</span>
+             </button>
         </div>
 
         <!-- User Info & Caption -->
@@ -220,38 +337,468 @@ function createReelElement(reel) {
         </div>
     `;
 
+    // Thumbnail Logic
+    const video = div.querySelector('video');
+    const thumbOverlay = div.querySelector(`[id^="thumb-"]`);
+
+    if (video && thumbOverlay) {
+        // Allow clicking on thumb to play
+        thumbOverlay.style.pointerEvents = 'auto'; // Enable clicks
+        thumbOverlay.onclick = () => togglePlay(video);
+        
+        video.addEventListener('timeupdate', () => {
+            if (video.currentTime > 0.2) { // 0.2s delay to ensure first frame rendered
+                thumbOverlay.style.opacity = '0';
+            }
+        });
+        
+        // Also hide on play just in case, but timeupdate is safer against black frames
+        video.addEventListener('playing', () => {
+            // setTimeout(() => thumbOverlay.style.opacity = '0', 200);
+        });
+    }
+
     return div;
 }
 
-function togglePlay(video) {
+const togglePlay = (video) => {
     if (video.paused) {
         const playPromise = video.play();
         if (playPromise !== undefined) {
-            playPromise.catch(error => { console.error("Play failed:", error); });
+             playPromise.catch(error => { console.error("Play failed:", error); });
         }
-        // Update UI
         const container = video.parentElement;
         const playIcon = container.querySelector(`[id^="play-icon-"]`);
         if (playIcon) playIcon.style.opacity = '0';
     } else {
         video.pause();
-        // Update UI
         const container = video.parentElement;
         const playIcon = container.querySelector(`[id^="play-icon-"]`);
         if (playIcon) playIcon.style.opacity = '1';
     }
+};
+window.togglePlay = togglePlay;
+
+// Toggle Save
+const toggleSave = async (btn, reelId) => {
+    // Optimistic UI Update
+    const icon = btn.querySelector('.material-symbols-outlined');
+    const isSaved = icon.classList.contains('text-yellow-500');
+    
+    if (isSaved) {
+        icon.classList.remove('text-yellow-500', 'fill-current');
+        icon.classList.add('text-white');
+        icon.style.fontVariationSettings = "'FILL' 0";
+    } else {
+        icon.classList.add('text-yellow-500', 'fill-current');
+        icon.classList.remove('text-white');
+        icon.style.fontVariationSettings = "'FILL' 1";
+    }
+
+    try {
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch(`${window.API_BASE_URL}/save_reel`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ reel_id: reelId })
+        });
+        const data = await response.json();
+        
+        if (!data.success) {
+            // Revert on failure
+             if (isSaved) {
+                icon.classList.add('text-yellow-500', 'fill-current');
+                icon.classList.remove('text-white');
+                icon.style.fontVariationSettings = "'FILL' 1";
+            } else {
+                icon.classList.remove('text-yellow-500', 'fill-current');
+                icon.classList.add('text-white');
+                icon.style.fontVariationSettings = "'FILL' 0";
+            }
+            console.error('Save failed:', data.message);
+        }
+    } catch (error) {
+        console.error('Error saving reel:', error);
+    }
+};
+
+const toggleMute = (btn, videoId) => {
+    // Navigate up to find the container, then find the video
+    // Or closer: btn is in the action container.
+    // The video is a sibling of the overlays.
+    // Let's use the reel ID to find the video if possible, or traverse DOM.
+    // Since we are inside the 'div', we can traverse up.
+    
+    // Easier: find the video relative to the button
+    const container = btn.closest('.relative.shrink-0'); // The main reel container
+    const video = container.querySelector('video');
+    const icon = btn.querySelector('.material-symbols-outlined');
+
+    if (video) {
+        video.muted = !video.muted;
+        if (video.muted) {
+            icon.textContent = 'volume_off';
+            icon.classList.add('text-white/70');
+            icon.classList.remove('text-white');
+        } else {
+            icon.textContent = 'volume_up';
+            icon.classList.remove('text-white/70');
+            icon.classList.add('text-white');
+        }
+    }
+    // Prevent bubbling to togglePlay
+    if(event) event.stopPropagation();
+};
+
+// Toggle Like
+const toggleLike = async (btn, reelId) => {
+    // Optimistic UI
+    const icon = btn.querySelector('.material-symbols-outlined');
+    const label = btn.querySelector('span:last-child');
+    let count = parseInt(label.textContent.replace('k', '000').replace('M', '000000')) || 0; // Simple parse
+    // Better parse? formatNumber does the reverse. 
+    // Actually we should store raw count or just increment/decrement
+    
+    // Check state
+    const isLiked = icon.classList.contains('text-red-500');
+    
+    if (isLiked) {
+        icon.classList.remove('text-red-500', 'fill-current');
+        icon.classList.add('text-white');
+        icon.style.fontVariationSettings = "'FILL' 0";
+        // Decrement (visual only initially)
+        // label.textContent = formatNumber(Math.max(0, count - 1)); // Hard to reverse formatNumber correctly without raw data. 
+        // Let's assume we don't update count optimistically OR we rely on API to return new count? 
+        // Reel API usually returns list.
+        // We will just toggle icon.
+    } else {
+        icon.classList.add('text-red-500', 'fill-current');
+        icon.classList.remove('text-white');
+        icon.style.fontVariationSettings = "'FILL' 1";
+    }
+
+    try {
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch(`${window.API_BASE_URL}/add_reaction_to_reel`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ reel_id: reelId, type: 1 })
+        });
+        const data = await response.json();
+        
+        if (!data.success) {
+            // Revert
+             if (isLiked) {
+                icon.classList.add('text-red-500', 'fill-current');
+                icon.classList.remove('text-white');
+                icon.style.fontVariationSettings = "'FILL' 1";
+            } else {
+                icon.classList.remove('text-red-500', 'fill-current');
+                icon.classList.add('text-white');
+                icon.style.fontVariationSettings = "'FILL' 0";
+            }
+        }
+    } catch (e) {
+        console.error(e);
+    }
 }
 
-// TODO: Implement Like functionality
-function likeReel(id) {
-    console.log('Like reel', id);
-    // Call API to like
+// Share Reel
+const shareReel = async (reelId) => {
+    try {
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch(`${window.API_BASE_URL}/share_reel`, {
+            method: 'POST',
+            headers: { 
+                 'Content-Type': 'application/json',
+                 'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ reel_id: reelId })
+        });
+        const data = await response.json();
+        if(data.success) {
+            alert('Reel shared successfully!');
+        } else {
+            alert('Failed to share reel');
+        }
+    } catch (e) {
+        console.error(e);
+        alert('Error sharing reel');
+    }
 }
 
-// TODO: Implement Comments functionality
-function openComments(id) {
-    console.log('Open comments for reel', id);
-    // Show modal or redirect
+
+// --- Comments Logic ---
+
+let currentReelIdForComments = null;
+
+function openComments(reelId) {
+    currentReelIdForComments = reelId;
+    const drawer = document.getElementById('comments-drawer');
+    const backdrop = document.getElementById('comments-backdrop');
+    
+    // Show
+    backdrop.classList.remove('hidden');
+    requestAnimationFrame(() => {
+        backdrop.classList.remove('opacity-0');
+        drawer.classList.remove('translate-y-full');
+    });
+
+    // Populate user avatar in input
+    const user = JSON.parse(localStorage.getItem('user_data') || '{}');
+    const avatarImg = document.getElementById('comment-user-avatar');
+    if (avatarImg) {
+        avatarImg.src = getProfilePicture(user);
+        avatarImg.style.opacity = '1';
+    }
+
+    // Load Comments
+    fetchComments(reelId);
+}
+
+function closeComments() {
+    const drawer = document.getElementById('comments-drawer');
+    const backdrop = document.getElementById('comments-backdrop');
+    
+    drawer.classList.add('translate-y-full');
+    backdrop.classList.add('opacity-0');
+    
+    setTimeout(() => {
+        backdrop.classList.add('hidden');
+        currentReelIdForComments = null;
+    }, 300);
+}
+
+async function fetchComments(reelId) {
+    const list = document.getElementById('comments-list');
+    list.innerHTML = '<div class="text-center text-slate-500 py-10">Loading...</div>';
+    
+    try {
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch(`${API_BASE_URL}/get_reel_comments`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ reel_id: reelId, limit: 50 })
+        });
+        const data = await response.json();
+        
+        if (data.success && data.data && data.data.items) {
+           renderComments(data.data.items);
+        } else {
+           list.innerHTML = '<div class="text-center text-slate-500 py-10">No comments yet.</div>';
+        }
+    } catch (e) {
+        console.error(e);
+        list.innerHTML = '<div class="text-center text-red-500 py-10">Error loading comments.</div>';
+    }
+}
+
+function renderComments(comments) {
+    const list = document.getElementById('comments-list');
+    if (comments.length === 0) {
+        list.innerHTML = '<div class="text-center text-slate-500 py-10">No comments yet.</div>';
+        return;
+    }
+    
+    list.innerHTML = comments.map(comment => {
+        const user = comment.user || { name: 'Unknown' };
+        const avatar = getProfilePicture(user);
+        const replyCount = comment.replies_count || 0; // Assuming backend sends this, or we default 0
+        
+        return `
+            <div class="flex gap-3 items-start" id="comment-${comment.id}">
+                 <img src="${avatar}" class="w-8 h-8 rounded-full border border-white/10 object-cover mt-1">
+                 <div class="flex-1 space-y-1">
+                     <div class="flex items-baseline gap-2">
+                         <span class="text-xs font-bold text-white">${user.name}</span>
+                         <span class="text-[10px] text-slate-500">${timeAgo(comment.created_at)}</span>
+                     </div>
+                     <p class="text-sm text-slate-300 leading-snug">${comment.comment}</p>
+                     
+                     <div class="flex items-center gap-4 mt-1">
+                        <button onclick="initiateReply(${comment.id}, '${user.name.replace(/'/g, "\\'")}')" class="text-xs font-bold text-slate-500 hover:text-white transition-colors">Reply</button>
+                        ${replyCount > 0 ? `
+                            <button onclick="toggleReplies(${comment.id})" class="text-xs font-bold text-slate-500 hover:text-white transition-colors flex items-center gap-1">
+                                <span class="w-4 h-[1px] bg-slate-600"></span> 
+                                View ${replyCount} replies
+                            </button>
+                        ` : ''}
+                     </div>
+                     
+                     <!-- Replies Container -->
+                     <div id="replies-${comment.id}" class="hidden pl-8 pt-2 space-y-3"></div>
+                 </div>
+                 <button onclick="toggleCommentLike(this, ${comment.id})" class="text-slate-500 hover:text-red-500 transition-colors p-1 group/like">
+                     <span class="material-symbols-outlined text-[14px] ${comment.is_liked ? 'text-red-500 fill-current' : ''}">favorite</span>
+                 </button>
+            </div>
+        `;
+    }).join('');
+}
+
+// ... Reply Logic ... (existing)
+
+function renderReplies(commentId, replies) {
+     const container = document.getElementById(`replies-${commentId}`);
+     if (!container) return;
+     
+     container.innerHTML = replies.map(reply => {
+        const user = reply.user || { name: 'Unknown' };
+        const avatar = getProfilePicture(user);
+        
+        return `
+            <div class="flex gap-3 items-start">
+                 <img src="${avatar}" class="w-6 h-6 rounded-full border border-white/10 object-cover mt-1">
+                 <div class="flex-1 space-y-1">
+                     <div class="flex items-baseline gap-2">
+                         <span class="text-xs font-bold text-white">${user.name}</span>
+                         <span class="text-[10px] text-slate-500">${timeAgo(reply.reply_created_at || reply.created_at)}</span>
+                     </div>
+                     <p class="text-sm text-slate-300 leading-snug">${reply.reply}</p>
+                 </div>
+                 <button onclick="toggleReplyLike(this, ${reply.id})" class="text-slate-500 hover:text-red-500 transition-colors p-1 group/like">
+                     <span class="material-symbols-outlined text-[12px] ${reply.is_liked ? 'text-red-500 fill-current' : ''}">favorite</span>
+                 </button>
+            </div>
+        `;
+     }).join('');
+}
+
+// Comment Like Logic
+async function toggleCommentLike(btn, id) {
+    const icon = btn.querySelector('span');
+    const isLiked = icon.classList.contains('text-red-500');
+    
+    // Optimistic
+    if (isLiked) {
+        icon.classList.remove('text-red-500', 'fill-current');
+        icon.style.fontVariationSettings = "'FILL' 0";
+    } else {
+        icon.classList.add('text-red-500', 'fill-current');
+        icon.style.fontVariationSettings = "'FILL' 1";
+    }
+
+    try {
+        const token = localStorage.getItem('auth_token');
+        await fetch(`${API_BASE_URL}/add_reaction_to_comment`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ comment_id: id, type: 1 })
+        });
+    } catch(e) { console.error(e); }
+}
+
+async function toggleReplyLike(btn, id) {
+    const icon = btn.querySelector('span');
+    const isLiked = icon.classList.contains('text-red-500');
+    
+    // Optimistic
+    if (isLiked) {
+        icon.classList.remove('text-red-500', 'fill-current');
+        icon.style.fontVariationSettings = "'FILL' 0";
+    } else {
+        icon.classList.add('text-red-500', 'fill-current');
+        icon.style.fontVariationSettings = "'FILL' 1";
+    }
+
+    try {
+        const token = localStorage.getItem('auth_token');
+        await fetch(`${API_BASE_URL}/add_reaction_to_comment_reply`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ comment_reply_id: id, type: 1 })
+        });
+    } catch(e) { console.error(e); }
+}
+
+
+// Send Comment
+const sendBtn = document.getElementById('send-comment-btn');
+const commentInput = document.getElementById('comment-input');
+
+if (sendBtn && commentInput) {
+    const sendHandler = async () => {
+        const text = commentInput.value.trim();
+        if (!text || !currentReelIdForComments) return;
+        
+        const originalIcon = sendBtn.innerHTML;
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>';
+        
+        try {
+            const token = localStorage.getItem('auth_token');
+            let endpoint = `${API_BASE_URL}/create_comment`;
+            let body = { reel_id: currentReelIdForComments, comment: text };
+            
+            if (replyingTo) {
+                endpoint = `${API_BASE_URL}/create_comment_reply`;
+                body = { comment_id: replyingTo.id, reply: text };
+            }
+
+            const response = await fetch(endpoint, {
+                 method: 'POST',
+                 headers: {
+                     'Authorization': `Bearer ${token}`,
+                     'Content-Type': 'application/json'
+                 },
+                 body: JSON.stringify(body)
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                commentInput.value = '';
+                if (replyingTo) {
+                     // Reload replies for that comment
+                     const commentId = replyingTo.id;
+                     // Reset UI
+                     replyingTo = null;
+                     commentInput.placeholder = "Add a comment...";
+                     // Refresh replies
+                     const repliesContainer = document.getElementById(`replies-${commentId}`);
+                     if(repliesContainer) {
+                         repliesContainer.classList.remove('hidden');
+                         repliesContainer.innerHTML = ''; // Clear to force reload or manually append
+                         toggleReplies(commentId); // Will re-fetch
+                     }
+                } else {
+                    fetchComments(currentReelIdForComments); // Reload all
+                }
+            }
+        } catch(e) {
+            console.error(e);
+        } finally {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = originalIcon;
+        }
+    };
+    
+    sendBtn.addEventListener('click', sendHandler);
+    commentInput.addEventListener('keypress', (e) => {
+        if(e.key === 'Enter') sendHandler();
+    });
+}
+
+// Simple timeAgo helper if not existing or can use existing if standardized
+function timeAgo(dateString) { 
+    // Reuse existing if possible, else minimal
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+    if (seconds < 60) return 'Just now';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h`;
+    return Math.floor(hours / 24) + 'd';
 }
 
 // --- User Profile & Suggestions Logic ---
@@ -269,7 +816,7 @@ const populateUserProfile = () => {
         const name = sidebarResult.querySelector('p.font-bold');
         const handle = sidebarResult.querySelector('p.text-xs');
 
-        if (img) img.src = user.profile?.avatar ? (typeof user.profile.avatar === 'string' ? `${PUBLIC_URL}/${user.profile.avatar}` : `${PUBLIC_URL}/${user.profile.avatar.file_path}`) : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}`;
+        if (img) img.src = user.profile?.avatar ? (typeof user.profile.avatar === 'string' ? `${window.PUBLIC_URL}/${user.profile.avatar}` : `${window.PUBLIC_URL}/${user.profile.avatar.file_path}`) : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}`;
 
         // Handle "blocked by orb" or 404
         if (img) {
@@ -313,9 +860,9 @@ const fetchSuggestions = async () => {
                 let avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`;
                 if (user.profile && user.profile.avatar) {
                     if (typeof user.profile.avatar === 'string') {
-                        avatar = `${PUBLIC_URL}/${user.profile.avatar}`;
+                        avatar = `${window.PUBLIC_URL}/${user.profile.avatar}`;
                     } else if (user.profile.avatar.file_path) {
-                        avatar = `${PUBLIC_URL}/${user.profile.avatar.file_path}`;
+                        avatar = `${window.PUBLIC_URL}/${user.profile.avatar.file_path}`;
                     }
                 }
 
@@ -386,3 +933,15 @@ window.followUser = async (userId, btn) => {
         btn.disabled = false;
     }
 };
+
+// Helper for formatting numbers (e.g. 1.2k)
+function formatNumber(num) {
+    if (!num) return '0';
+    if (num >= 1000000) {
+        return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+    }
+    if (num >= 1000) {
+        return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+    }
+    return num.toString();
+}

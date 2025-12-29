@@ -114,10 +114,10 @@
                 <span class="hidden lg:block font-medium">Home</span>
             </a>
             <a class="flex items-center gap-2 px-3 lg:px-4 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
-                href="#">
+                href="reels.html">
                 <span
-                    class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">explore</span>
-                <span class="hidden lg:block font-medium">Explore</span>
+                    class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">movie</span>
+                <span class="hidden lg:block font-medium">Reels</span>
             </a>
             <a class="flex items-center gap-2 px-3 lg:px-4 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group relative"
                 href="notification.html">
@@ -298,7 +298,7 @@
                 <div class="px-8 flex gap-8 border-t border-white/5 bg-white/[0.02]">
                     <button class="tab-btn py-4 text-sm font-bold text-primary border-b-2 border-primary relative"
                         data-tab="posts">
-                        My Posts
+                        My Media
                     </button>
                     <button
                         class="tab-btn py-4 text-sm font-medium text-secondary-text hover:text-white transition-colors relative group"
@@ -314,6 +314,15 @@
                         <span
                             class="absolute bottom-0 left-0 w-full h-0.5 bg-white/20 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
                     </button>
+                    <!-- Saved Reels Tab (Hidden by default, visible only to owner) -->
+                    <button
+                        id="saved-reels-tab"
+                        class="tab-btn py-4 text-sm font-medium text-secondary-text hover:text-white transition-colors relative group hidden"
+                        data-tab="saved">
+                        Saved
+                        <span
+                            class="absolute bottom-0 left-0 w-full h-0.5 bg-white/20 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
+                    </button>
                 </div>
             </div>
             <div id="user-posts-container" class="space-y-6">
@@ -326,27 +335,32 @@
     </main>
 
     <nav
-        class="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around h-16 md:hidden glass-nav border-t border-white/5 bg-background-dark/80 backdrop-blur-lg">
-        <a href="homefeed-dashboard.html"
-            class="flex flex-col items-center justify-center gap-1 p-2 w-16 text-slate-400">
-            <span class="material-symbols-outlined text-[24px]">home</span>
+        class="fixed bottom-0 left-0 z-40 flex w-full items-end justify-between border-t border-slate-200 bg-white px-4 pb-3 pt-2 dark:border-slate-800 dark:bg-background-dark/95 backdrop-blur-lg lg:hidden">
+        
+        <!-- 1. Home -->
+        <a href="homefeed-dashboard.html" class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400">
+            <span class="material-symbols-outlined text-[26px]">home</span>
             <span class="text-[10px] font-medium">Home</span>
         </a>
-        <a href="#" class="flex flex-col items-center justify-center gap-1 p-2 w-16 text-slate-400">
-            <span class="material-symbols-outlined text-[24px]">explore</span>
-            <span class="text-[10px] font-medium">Explore</span>
+
+        <!-- 2. Reels -->
+        <a href="reels.html" class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400">
+            <span class="material-symbols-outlined text-[26px]">movie</span>
+            <span class="text-[10px] font-medium">Reels</span>
         </a>
-        <a href="notification.html"
-            class="flex flex-col items-center justify-center gap-1 p-2 w-16 text-slate-400 relative">
+
+        <!-- 4. Notifications -->
+        <a href="notification.html" class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400 relative">
             <div class="relative">
-                <span class="material-symbols-outlined text-[24px]">notifications</span>
-                <span id="notif-badge-mobile"
-                    class="hidden absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-background-dark animate-pulse"></span>
+                <span class="material-symbols-outlined text-[26px]">notifications</span>
+                <span id="notif-badge-mobile" class="hidden absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#0f111a]"></span>
             </div>
-            <span class="text-[10px] font-medium">Notifications</span>
+            <span class="text-[10px] font-medium">Activity</span>
         </a>
-        <a href="profile.html" class="flex flex-col items-center justify-center gap-1 p-2 w-16 text-primary">
-            <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">person</span>
+
+        <!-- 5. Profile (Active) -->
+        <a href="profile.html" class="flex flex-1 flex-col items-center justify-end gap-1 text-primary">
+            <span class="material-symbols-outlined text-[26px]" style="font-variation-settings: 'FILL' 1;">person</span>
             <span class="text-[10px] font-medium">Profile</span>
         </a>
     </nav>
@@ -593,9 +607,16 @@
             }
 
 
+            // Toggle Saved Tab
+            const savedTab = document.getElementById('saved-reels-tab');
+            if (isOwner) {
+                savedTab.classList.remove('hidden');
+            } else {
+                savedTab.classList.add('hidden');
+            }
+
             const actionsContainer = document.getElementById('profile-actions');
             actionsContainer.innerHTML = '';
-
             if (isOwner) {
                 const editBtn = document.createElement('button');
                 editBtn.className = "px-6 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white font-semibold text-sm hover:bg-white/10 hover:border-white/20 transition-all flex items-center gap-2";
@@ -612,6 +633,188 @@
                 checkFollowStatus(user.id);
             }
         }
+
+        async function loadTabContent() {
+            const container = document.getElementById('user-posts-container');
+            container.innerHTML = '<div class="flex justify-center py-12"><span class="material-symbols-outlined animate-spin text-primary text-4xl">progress_activity</span></div>';
+            container.className = 'space-y-6'; // Default list view
+
+            let body = { user_id: targetUserId };
+
+            try {
+                if (currentTab === 'posts') {
+                     // Fetch Posts AND Reels for "My Media"
+                    const [postsRes, reelsRes] = await Promise.all([
+                        fetch(`${API_BASE_URL}/get_posts_by_user?limit=20`, {
+                             method: 'POST',
+                             headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                             body: JSON.stringify(body)
+                        }).then(r => r.json()),
+                        fetch(`${API_BASE_URL}/get_reels_by_user`, {
+                             method: 'POST',
+                             headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                             body: JSON.stringify(body)
+                        }).then(r => r.json())
+                    ]);
+
+                    let items = [];
+                    let totalCount = 0;
+
+                    if (postsRes.success && postsRes.data && postsRes.data.items) {
+                        items = [...items, ...postsRes.data.items.map(p => ({...p, type: 'post'}))];
+                        totalCount += (postsRes.data.pagination?.total || 0);
+                    }
+                    if (reelsRes.success && reelsRes.data) {
+                        items = [...items, ...reelsRes.data.map(r => ({...r, type: 'reel'}))];
+                        totalCount += reelsRes.data.length;
+                    }
+
+                    document.getElementById('posts-count').textContent = totalCount;
+
+                    // Merged Sort
+                    items.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+                    if (items.length > 0) {
+                        container.innerHTML = items.map(item => {
+                            if (item.type === 'reel') return createReelFeedHTML(item); 
+                            return createPostHTML(item);
+                        }).join('');
+                    } else {
+                        container.innerHTML = '<p class="text-center text-slate-500 py-8">No media found.</p>';
+                    }
+                    return;
+                }
+                
+                // --- OLDER TABS LOGIC ---
+                let endpoint = '';
+                if (currentTab === 'liked') {
+                    endpoint = `${API_BASE_URL}/get_liked_posts?limit=20`;
+                } else if (currentTab === 'saved') {
+                    endpoint = `${API_BASE_URL}/get_saved_reels?limit=20`;
+                    container.className = 'grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4'; // Grid
+                } else if (currentTab === 'media') {
+                    // Filter "Media" from posts manually (Client side only for now, or remove this tab?)
+                    // Reusing get_posts for now if tab persists
+                    endpoint = `${API_BASE_URL}/get_posts_by_user?limit=20`;
+                }
+
+                if (!endpoint) return; // Should not happen
+
+                let method = 'POST';
+                if (currentTab === 'saved') method = 'GET';
+                
+                const fetchOptions = {
+                    method: method,
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                };
+                if (method === 'POST') fetchOptions.body = JSON.stringify(body);
+                
+                const response = await fetch(endpoint, fetchOptions);
+                const data = await response.json();
+                container.innerHTML = '';
+
+                if (data.success && data.data && data.data.items && data.data.items.length > 0) {
+                     let items = data.data.items;
+                     
+                     if (currentTab === 'saved') {
+                        // REEL GRID
+                        container.innerHTML = items.map(reel => {
+                            let thumb = '';
+                             if (reel.thumbnail_path) {
+                                thumb = reel.thumbnail_path.startsWith('http') ? reel.thumbnail_path : `${PUBLIC_URL}/${reel.thumbnail_path}`;
+                            }
+                            return `
+                                <div class="aspect-[9/16] bg-black/50 rounded-xl overflow-hidden relative group cursor-pointer border border-white/5" onclick="window.location.href='reels.html?id=${reel.id}'">
+                                    ${thumb ? `<img src="${thumb}" class="w-full h-full object-cover transition-transform group-hover:scale-105">` : '<div class="flex items-center justify-center h-full text-slate-500"><span class="material-symbols-outlined">movie</span></div>'}
+                                    <div class="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors"></div>
+                                    <div class="absolute bottom-2 left-2 flex items-center gap-1 text-white text-xs font-bold drop-shadow-md">
+                                        <span class="material-symbols-outlined text-[14px]">play_arrow</span>
+                                        <span>${reel.views_count || 0}</span>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                     } else {
+                        // POSTS (Liked or Media)
+                        if (currentTab === 'media') {
+                            items = items.filter(post => post.attachments && post.attachments.length > 0);
+                            if (items.length === 0) {
+                                 container.innerHTML = '<p class="text-center text-slate-500 py-8">No media found.</p>';
+                                 return;
+                            }
+                        }
+                        container.innerHTML = items.map(post => createPostHTML(post)).join('');
+                     }
+                } else {
+                     container.innerHTML = '<p class="text-center text-slate-500 py-8">No items found.</p>';
+                }
+
+            } catch (e) { console.error(e); }
+        }
+
+        function createReelFeedHTML(reel) {
+            const user = reel.user || {};
+            const avatar = getAvatarUrl(user) || DEFAULT_AVATAR(user.name);
+            const time = new Date(reel.created_at).toLocaleDateString();
+            
+            // Construct video URL (Add storage prefix for local files)
+            let videoUrl = reel.video_path;
+            if (videoUrl && !videoUrl.startsWith('http')) {
+                const clean = videoUrl.startsWith('/') ? videoUrl.substring(1) : videoUrl;
+                videoUrl = `${PUBLIC_URL}/storage/${clean}`;
+            }
+
+            let thumbUrl = reel.thumbnail_path;
+            if (thumbUrl && !thumbUrl.startsWith('http')) {
+                 const clean = thumbUrl.startsWith('/') ? thumbUrl.substring(1) : thumbUrl;
+                 thumbUrl = `${PUBLIC_URL}/storage/${clean}`;
+            }
+            
+            return `
+            <article class="bg-white dark:bg-[#1e2330] rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden w-full max-w-xl mx-auto">
+                <div class="p-4 flex items-center justify-between">
+                     <div class="flex items-center gap-3">
+                        <img src="${avatar}" class="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-700" onerror="this.src='https://ui-avatars.com/api/?name=User&background=random'">
+                        <div>
+                             <h3 class="font-bold text-slate-900 dark:text-white text-sm">${user.name || 'Unknown User'}</h3>
+                             <p class="text-xs text-slate-500">${time} • <span class="material-symbols-outlined text-[10px] align-middle">movie</span> Reel</p>
+                        </div>
+                     </div>
+                </div>
+                <div class="relative bg-black aspect-[9/16] max-h-[500px] flex items-center justify-center cursor-pointer group" onclick="window.location.href='reels.html?id=${reel.id}'">
+                     <!-- Just a thumbnail preview for profile feed, link to reels player -->
+                     ${thumbUrl ? `<img src="${thumbUrl}" class="h-full w-full object-contain filter brightness-75 group-hover:brightness-100 transition-all">` : '<div class="h-full w-full flex items-center justify-center"><span class="material-symbols-outlined text-white text-4xl">movie</span></div>'}
+                     <div class="absolute inset-0 flex items-center justify-center">
+                         <div class="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <span class="material-symbols-outlined text-white text-3xl">play_arrow</span>
+                         </div>
+                     </div>
+                </div>
+                <div class="p-4">
+                     <p class="text-slate-900 dark:text-white text-sm mb-2">${reel.caption || ''}</p>
+                     <div class="flex items-center gap-4 text-slate-500">
+                          <div class="flex items-center gap-1">
+                              <span class="material-symbols-outlined text-[20px]">favorite</span>
+                              <span class="text-xs">${reel.reactions_count || 0}</span>
+                          </div>
+                          <div class="flex items-center gap-1">
+                              <span class="material-symbols-outlined text-[20px]">chat_bubble</span>
+                              <span class="text-xs">${reel.comments_count || 0}</span>
+                          </div>
+                          <div class="flex items-center gap-1 ml-auto">
+                               <span class="material-symbols-outlined text-[20px]">visibility</span>
+                               <span class="text-xs">${reel.views || 0}</span>
+                          </div>
+                     </div>
+                </div>
+            </article>
+            `;
+        }
+
 
         async function checkFollowStatus(targetId) {
             // Status is now provided directly in the profile response as connection_status
@@ -760,56 +963,7 @@
             });
         });
 
-        async function loadTabContent() {
-            const container = document.getElementById('user-posts-container');
-            container.innerHTML = '<div class="flex justify-center py-12"><span class="material-symbols-outlined animate-spin text-primary text-4xl">progress_activity</span></div>';
 
-            let endpoint = `${API_BASE_URL}/get_posts_by_user?limit=20`;
-            let body = { user_id: targetUserId };
-
-            if (currentTab === 'liked') {
-                endpoint = `${API_BASE_URL}/get_liked_posts?limit=20`;
-            }
-
-            try {
-                const response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(body)
-                });
-                const data = await response.json();
-                container.innerHTML = '';
-
-                if (data.success && data.data.items.length > 0) {
-                    if (currentTab === 'posts') {
-                        document.getElementById('posts-count').textContent = data.data.pagination.total;
-                    }
-
-                    let items = data.data.items;
-
-                    // Client-side filtering for 'media' tab as we don't have a dedicated endpoint yet
-                    if (currentTab === 'media') {
-                        items = items.filter(post => post.attachments && post.attachments.length > 0);
-                    }
-
-                    if (items.length > 0) {
-                        items.forEach(post => {
-                            container.insertAdjacentHTML('beforeend', createPostHTML(post));
-                        });
-                    } else {
-                        container.innerHTML = '<p class="text-center text-slate-500 py-8">No specific posts found.</p>';
-                    }
-
-                } else {
-                    container.innerHTML = '<p class="text-center text-slate-500 py-8">No posts yet.</p>';
-                    if (currentTab === 'posts') document.getElementById('posts-count').textContent = 0;
-                }
-            } catch (e) { console.error(e); }
-        }
 
     </script>
     <script>

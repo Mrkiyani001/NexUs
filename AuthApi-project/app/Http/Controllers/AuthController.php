@@ -127,7 +127,7 @@ class AuthController extends BaseController
                     'message' => 'User is banned',
                 ], 403);
             }
-            $fieldsToHide = ['password', 'remember_token', 'email_verified_at', 'show_email', 'roles'];
+            $fieldsToHide = ['password', 'remember_token', 'email_verified_at', 'show_email'];
             // roles might be needed, but strictly hiding password/tokens is key.
             // Let's keep roles for now as frontend might need it for badges, but hide email if kept private.
             

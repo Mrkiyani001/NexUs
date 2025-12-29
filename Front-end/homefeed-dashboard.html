@@ -597,13 +597,21 @@
 
                 [headerAvatar, createPostAvatar, mobileNavAvatar].forEach(img => {
                     if (img) {
+                        let targetUrl = avatarUrl;
                         // Force cache busting if refreshing, but respect existing query params
                         if (isRefresh && !avatarUrl.includes('ui-avatars.com')) {
                             const separator = avatarUrl.includes('?') ? '&' : '?';
-                            img.src = `${avatarUrl}${separator}t=${new Date().getTime()}`;
+                            targetUrl = `${avatarUrl}${separator}t=${new Date().getTime()}`;
                         } else {
-                            img.src = avatarUrl;
+                            targetUrl = avatarUrl;
                         }
+
+                        // Only update if changed (ignoring cache buster diffs if base is same might be risky, so simple equality check)
+                        // If we are strictly refreshing, we want the update. But if initHeader is called without refresh...
+                        if (img.src !== targetUrl && !img.src.includes(targetUrl)) {
+                             img.src = targetUrl;
+                        }
+                        
                         img.onerror = function () { 
                             this.onerror = null; 
                             this.src = initialsUrl; 
@@ -619,6 +627,35 @@
                 const headerHandle = document.getElementById('header-user-handle');
                 if (headerName) headerName.innerText = userData.name;
                 if (headerHandle) headerHandle.innerText = '@' + userData.name.toLowerCase().replace(/\s+/g, '');
+
+                // --- Admin Panel Link Logic ---
+                const dropdown = document.getElementById('profile-dropdown');
+                // Check if user has admin role (checking roles array from backend)
+                // Backend returns roles as array of objects: [{id:1, name:'super admin', ...}]
+                const isAdmin = userData.roles && userData.roles.some(r => 
+                    r.name === 'super admin' || r.name === 'admin' || r.name === 'Admin' || r.name === 'Super Admin' || r.name === 'moderator' || r.name === 'Moderator'
+                );
+
+                if (isAdmin && dropdown) {
+                    // Check if link already exists to prevent duplicates
+                    if (!document.getElementById('admin-panel-link')) {
+                        const adminLink = document.createElement('a');
+                        adminLink.id = 'admin-panel-link';
+                        adminLink.href = 'admin%20panel/admin-dashboard.html'; 
+                        adminLink.className = 'block px-4 py-3 text-sm text-yellow-500 hover:bg-white/5 hover:text-yellow-400 transition-colors flex items-center gap-2 font-bold';
+                        adminLink.innerHTML = '<span class="material-symbols-outlined text-[18px]">admin_panel_settings</span>Admin Panel';
+
+                        // Insert before the divider (which is before Logout)
+                        // Structure: [Profile Link] [Divider] [Logout Button]
+                        const divider = dropdown.querySelector('.h-px');
+                        if (divider) {
+                            dropdown.insertBefore(adminLink, divider);
+                        } else {
+                            // Fallback
+                            dropdown.insertBefore(adminLink, dropdown.lastElementChild);
+                        }
+                    }
+                }
             }
         }
 
@@ -906,12 +943,10 @@
         }
 
         function renderPosts(data, container) {
-            container.innerHTML = '';
             const posts = data.data && data.data.items ? data.data.items : [];
             if (posts.length > 0) {
-                posts.forEach(post => {
-                    container.insertAdjacentHTML('beforeend', createPostHTML(post));
-                });
+                 const html = posts.map(post => createPostHTML(post)).join('');
+                 container.innerHTML = html;
             } else {
                 renderEmptyState(container);
             }
@@ -955,18 +990,17 @@
         }
 
         function renderRequestsWidget(items, container, badge) {
-            container.innerHTML = '';
             if (badge) badge.textContent = items.length;
 
-            items.slice(0, 3).forEach(req => {
+            const html = items.slice(0, 3).map(req => {
+                if (!req.id) return '';
                 const avatar = getAvatarUrl(req) || window.DEFAULT_AVATAR(req.name);
-                if (!req.id) return;
 
                 // Safely creating HTML
                 // Note: Using window.location.href for redirection
                 const profileUrl = `profile.html?id=${req.id}`;
 
-                const html = `
+                return `
             <div class="flex flex-col gap-3 p-3 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-all">
                 <div class="flex items-center gap-3">
                     <img src="${avatar}" class="w-10 h-10 rounded-full object-cover border border-white/10 cursor-pointer" onclick="window.location.href='${profileUrl}'">
@@ -980,8 +1014,9 @@
                     <button onclick="handleDashboardRequest(${req.id}, 'reject', this)" class="flex-1 py-1.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white text-xs font-bold rounded-lg transition-colors border border-white/5">Delete</button>
                 </div>
             </div>`;
-                container.insertAdjacentHTML('beforeend', html);
-            });
+            }).join('');
+
+            container.innerHTML = html;
         }
 
         async function handleDashboardRequest(userId, action, btn) {
@@ -1085,10 +1120,9 @@
                 const items = data.data && data.data.items ? data.data.items : (Array.isArray(data.data) ? data.data : []);
 
                 if (data.success && items.length > 0) {
-                    container.innerHTML = '';
-                    items.forEach(user => {
+                    const html = items.map(user => {
                         const avatar = getAvatarUrl(user) || window.DEFAULT_AVATAR(user.name);
-                        const html = `
+                        return `
                     <div class="flex items-center justify-between group">
                         <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='profile.html?id=${user.id}'">
                             <img src="${avatar}" onerror="this.onerror=null;this.src=window.DEFAULT_AVATAR('${user.name}')" class="w-10 h-10 rounded-full object-cover border border-white/10 group-hover:border-primary/50 transition-colors">
@@ -1103,8 +1137,8 @@
                         </button>
                     </div>
                 `;
-                        container.insertAdjacentHTML('beforeend', html);
-                    });
+                    }).join('');
+                    container.innerHTML = html;
                 } else {
                     container.innerHTML = '<div class="text-center text-slate-500 text-xs py-4">No suggestions available</div>';
                 }
@@ -1152,11 +1186,10 @@
         }
 
         function renderSuggestionsWidget(users, container) {
-            container.innerHTML = '';
-            users.forEach(user => {
+            const html = users.map(user => {
                 const avatar = getAvatarUrl(user) || DEFAULT_AVATAR(user.name);
                 const profileUrl = `profile.html?id=${user.id}`;
-                const html = `
+                return `
             <div class="flex items-center justify-between group cursor-pointer">
                 <div class="flex items-center gap-3">
                     <img src="${avatar}" onerror="this.onerror=null;this.src=window.DEFAULT_AVATAR('${user.name}')" class="w-10 h-10 rounded-full object-cover border border-white/10" onclick="window.location.href='${profileUrl}'">
@@ -1170,8 +1203,9 @@
                     <span class="material-symbols-outlined text-[18px]">person_add</span>
                 </button>
             </div>`;
-                container.insertAdjacentHTML('beforeend', html);
-            });
+            }).join('');
+            
+            container.innerHTML = html;
         }
 
         // Global Follow Handler (attached to window for HTML calls)
@@ -1293,32 +1327,33 @@
 
     <!-- Mobile Bottom Navigation -->
     <nav
-        class="md:hidden fixed bottom-0 w-full glass-nav-mobile z-50 px-6 py-3 flex justify-between items-center pb-5 shadow-[0_-10px_40px_rgba(0,0,0,0.4)]">
-        <a href="homefeed-dashboard.html" class="flex flex-col items-center gap-1 text-primary group">
-            <span class="material-symbols-outlined text-[28px] group-hover:scale-110 transition-transform filled-icon"
-                style="font-variation-settings: 'FILL' 1;">home</span>
+        class="fixed bottom-0 left-0 z-40 flex w-full items-end justify-between border-t border-slate-200 bg-white px-4 pb-3 pt-2 dark:border-slate-800 dark:bg-background-dark/95 backdrop-blur-lg lg:hidden">
+        
+        <!-- 1. Home (Active) -->
+        <a href="homefeed-dashboard.html" class="flex flex-1 flex-col items-center justify-end gap-1 text-primary">
+            <span class="material-symbols-outlined text-[26px]" style="font-variation-settings: 'FILL' 1;">home</span>
+            <span class="text-[10px] font-medium">Home</span>
         </a>
-        <a href="reels.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors group">
-            <span
-                class="material-symbols-outlined text-[28px] group-hover:scale-110 transition-transform">movie</span>
+
+        <!-- 2. Reels -->
+        <a href="reels.html" class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400">
+            <span class="material-symbols-outlined text-[26px]">movie</span>
+            <span class="text-[10px] font-medium">Reels</span>
         </a>
-        <a href="friendreq.html"
-            class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors group relative">
-            <span class="material-symbols-outlined text-[28px] group-hover:scale-110 transition-transform">group</span>
-            <span id="mobile-nav-requests-badge"
-                class="hidden absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#0f111a] animate-pulse"></span>
+
+        <!-- 4. Notifications -->
+        <a href="notification.html" class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400 relative">
+            <div class="relative">
+                <span class="material-symbols-outlined text-[26px]">notifications</span>
+                <span id="notif-badge-mobile" class="hidden absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#0f111a]"></span>
+            </div>
+            <span class="text-[10px] font-medium">Activity</span>
         </a>
-        <a href="notification.html"
-            class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors group relative">
-            <span
-                class="material-symbols-outlined text-[28px] group-hover:scale-110 transition-transform">notifications</span>
-            <span id="notif-badge-mobile"
-                class="hidden absolute top-0 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#0f111a] animate-pulse"></span>
-        </a>
-        <a href="profile.html"
-            class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors group">
-            <img id="mobile-nav-avatar" src=""
-                class="w-7 h-7 rounded-full object-cover border border-white/10 group-hover:border-primary/50 transition-colors">
+
+        <!-- 5. Profile -->
+        <a href="profile.html" class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400">
+            <span class="material-symbols-outlined text-[26px]">person</span>
+            <span class="text-[10px] font-medium">Profile</span>
         </a>
     </nav>
 </body>

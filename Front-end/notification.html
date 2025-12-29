@@ -95,10 +95,10 @@
                 <span class="hidden lg:block font-medium">Home</span>
             </a>
             <a class="flex items-center gap-2 px-3 lg:px-4 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
-                href="#">
+                href="reels.html">
                 <span
-                    class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">explore</span>
-                <span class="hidden lg:block font-medium">Explore</span>
+                    class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">movie</span>
+                <span class="hidden lg:block font-medium">Reels</span>
             </a>
             <a class="relative flex items-center gap-2 px-4 lg:px-6 py-2.5 rounded-full bg-gradient-to-r from-primary/10 to-blue-600/10 border border-primary/20 text-primary font-semibold transition-all group shadow-[0_0_15px_rgba(59,130,246,0.15)]"
                 href="notification.html">
@@ -205,28 +205,37 @@
     </main>
 
     <nav
-        class="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around h-16 md:hidden glass-nav border-t border-white/5 bg-background-dark/80 backdrop-blur-lg">
+        class="fixed bottom-0 left-0 z-40 flex w-full items-end justify-between border-t border-slate-200 bg-white px-4 pb-3 pt-2 dark:border-slate-800 dark:bg-background-dark/95 backdrop-blur-lg lg:hidden">
+
+        <!-- 1. Home -->
         <a href="homefeed-dashboard.html"
-            class="flex flex-col items-center justify-center gap-1 p-2 w-16 text-slate-400">
-            <span class="material-symbols-outlined text-[24px]">home</span>
+            class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400">
+            <span class="material-symbols-outlined text-[26px]">home</span>
             <span class="text-[10px] font-medium">Home</span>
         </a>
-        <a href="#" class="flex flex-col items-center justify-center gap-1 p-2 w-16 text-slate-400">
-            <span class="material-symbols-outlined text-[24px]">explore</span>
-            <span class="text-[10px] font-medium">Explore</span>
+
+        <!-- 2. Reels -->
+        <a href="reels.html"
+            class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400">
+            <span class="material-symbols-outlined text-[26px]">movie</span>
+            <span class="text-[10px] font-medium">Reels</span>
         </a>
-        <a href="notification.html"
-            class="flex flex-col items-center justify-center gap-1 p-2 w-16 text-primary relative">
+
+        <!-- 4. Notifications (Active) -->
+        <a href="notification.html" class="flex flex-1 flex-col items-center justify-end gap-1 text-primary relative">
             <div class="relative">
-                <span class="material-symbols-outlined text-[24px]"
+                <span class="material-symbols-outlined text-[26px]"
                     style="font-variation-settings: 'FILL' 1;">notifications</span>
                 <span id="notif-badge-mobile"
-                    class="hidden absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-background-dark animate-pulse"></span>
+                    class="hidden absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#0f111a]"></span>
             </div>
-            <span class="text-[10px] font-medium">Notifications</span>
+            <span class="text-[10px] font-medium">Activity</span>
         </a>
-        <a href="profile.html" class="flex flex-col items-center justify-center gap-1 p-2 w-16 text-slate-400">
-            <span class="material-symbols-outlined text-[24px]">person</span>
+
+        <!-- 5. Profile -->
+        <a href="profile.html"
+            class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400">
+            <span class="material-symbols-outlined text-[26px]">person</span>
             <span class="text-[10px] font-medium">Profile</span>
         </a>
     </nav>

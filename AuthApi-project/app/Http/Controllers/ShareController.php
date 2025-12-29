@@ -24,4 +24,19 @@ class ShareController extends BaseController
         }
 
 }
+    public function shareReel(Request $request){
+        $this->validateRequest($request, [
+        'reel_id' => 'required|exists:reels,id',
+        ]);
+        try{
+            $user = auth('api')->user();
+            $share = Share::create([
+                'user_id' => $user->id,
+                'reel_id' => $request->reel_id,
+            ]);
+            return $this->Response(true, 'Reel shared successfully', $share, 200);
+        }catch(\Exception $e){
+            return $this->Response(false, $e->getMessage(), null, 500);
+        }
+    }
 }

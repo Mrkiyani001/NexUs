@@ -38,4 +38,8 @@ class Reel extends Model
     {
         return $this->morphMany(Reaction::class, 'reactionable');
     }
+    public function savedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'saved_reels', 'reel_id', 'user_id')->withTimestamps();
+    }
 }

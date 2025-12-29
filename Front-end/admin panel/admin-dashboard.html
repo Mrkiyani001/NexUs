@@ -89,9 +89,6 @@
     <div class="relative flex h-screen w-full overflow-hidden z-10">
         <!-- Sidebar Navigation -->
     <script src="../js/config.js"></script>
-    <script>
-        const PUBLIC_URL = 'http://127.0.0.1:8000';
-    </script>
     <script src="../js/site_branding.js"></script>
     <script src="../js/admin_utils.js"></script>
     <script>
@@ -248,19 +245,29 @@
             }
 
             try {
-                console.log('Fetching Stats...'); // Debug Log
+                console.log('Fetching Stats from:', `${API_BASE_URL}/admin/stats`);
                 const response = await fetch(`${API_BASE_URL}/admin/stats`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
                 });
 
-                // if(handleAdminApiError(response)) return; // Don't redirect on background refresh? 
-                // Better to handle silently if 401 on auto-refresh, but handleAdminApiError does redirect. 
-                // Let's keep it but maybe suppress alert if auto-refresh? 
-                // For now, keep as is.
+                console.log('Stats Response Status:', response.status);
+
                 if(handleAdminApiError(response)) return;
 
-                const data = await response.json();
+                const text = await response.text();
+                // console.log('Stats Raw Response:', text); // Uncomment if needed
+
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch(e) {
+                    console.error("JSON Parse Error. Raw text:", text);
+                    console.log("Response text start:", text.substring(0, 100)); // Log first 100 chars
+                    return; // Stop here
+                }
+
                 if (data.success) {
+                    console.log('Stats Data Success:', data.data);
                     const stats = data.data;
                     const newDataStr = JSON.stringify(stats);
                     const oldDataStr = localStorage.getItem(cacheKey);
@@ -268,9 +275,16 @@
                     if (newDataStr !== oldDataStr) {
                          localStorage.setItem(cacheKey, newDataStr);
                          renderStats(stats);
+                    } else {
+                         // Force render even if cache matches, just in case DOM was empty
+                         renderStats(stats);
                     }
+                } else {
+                    console.error('Stats API returned success: false', data);
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) { 
+                console.error("loadStats Error:", e);
+            }
             finally { isFetchingStats = false; }
         }
 
@@ -676,7 +690,7 @@
                                     New Today
                                 </div>
                                 <div>
-                                    <div class="text-3xl md:text-4xl font-bold text-white tracking-tight">128</div>
+                                    <div id="new-users-count" class="text-3xl md:text-4xl font-bold text-white tracking-tight">--</div>
                                     <div class="flex items-center gap-1 text-[#0bda62] text-sm font-semibold mt-1">
                                         <span class="material-symbols-outlined text-[16px]">trending_up</span>
                                         <span>+12% vs yesterday</span>
@@ -697,7 +711,7 @@
                                     Banned Users
                                 </div>
                                 <div>
-                                    <div class="text-3xl md:text-4xl font-bold text-white tracking-tight">45</div>
+                                    <div id="banned-users-count" class="text-3xl md:text-4xl font-bold text-white tracking-tight">--</div>
                                     <div class="flex items-center gap-1 text-[#fa6538] text-sm font-semibold mt-1">
                                         <span class="material-symbols-outlined text-[16px]">trending_down</span>
                                         <span>-2% new bans</span>

@@ -12,6 +12,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
         rel="stylesheet" />
+    <link rel="icon" href="https://ui-avatars.com/api/?name=NexUs&background=2563eb&color=fff&rounded=true&bold=true" type="image/png">
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script id="tailwind-config">
         tailwind.config = {
@@ -82,12 +83,12 @@
                     <div class="flex items-center gap-3 cursor-pointer group select-none min-w-fit px-2"
                         onclick="window.location.href='homefeed-dashboard.html'">
                         <div id="site-logo-img"
-    class="w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-105 transition-all duration-300 bg-cover bg-center bg-no-repeat overflow-hidden">
-    <span class="material-symbols-outlined text-[24px] text-primary">token</span>
-</div>
-<div class="flex flex-col">
-    <span id="site-logo-text"
-        class="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-none ml-2"></span>
+                            class="w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-105 transition-all duration-300 bg-cover bg-center bg-no-repeat overflow-hidden">
+                            <span class="material-symbols-outlined text-[24px] text-primary">token</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span id="site-logo-text"
+                                class="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-none ml-2"></span>
                         </div>
                     </div>
                     <nav class="flex flex-col gap-2">
@@ -130,7 +131,7 @@
                     <button
                         class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary hover:bg-blue-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-primary/25 transition-all hover:scale-[1.02]">
                         <span class="material-symbols-outlined text-[20px]">add_circle</span>
-                        <span>Create Reel</span>
+                        <a href="create-reel.html"><span>Create Reel</span></a>
                     </button>
                     <div
                         class="flex items-center gap-3 rounded-xl border border-slate-200 p-3 dark:border-slate-800 dark:bg-[#1c1f27]">
@@ -159,19 +160,15 @@
             <header
                 class="absolute top-0 z-30 flex w-full flex-col gap-4 bg-gradient-to-b from-black/60 to-transparent p-4 transition-all duration-300 pointer-events-none">
                 <div class="flex w-full items-center justify-between gap-4 pointer-events-auto">
-                    <div class="lg:hidden">
-                        <button class="flex items-center justify-center rounded-lg p-2 text-white hover:bg-white/10">
-                            <span class="material-symbols-outlined">menu</span>
-                        </button>
-                    </div>
+
                     <div
                         class="relative flex w-full max-w-sm flex-1 items-center mx-auto lg:mx-0 opacity-0 pointer-events-none">
                     </div>
                     <div class="hidden lg:flex items-center gap-2">
-                        <button
+                        <button id="tab-foryou"
                             class="px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md text-xs font-semibold text-white hover:bg-white/20 border border-white/10 transition-all">For
                             You</button>
-                        <button
+                        <button id="tab-following"
                             class="px-4 py-1.5 rounded-full bg-transparent text-xs font-semibold text-white/70 hover:bg-white/10 transition-all">Following</button>
 
                     </div>
@@ -192,7 +189,8 @@
             <div class="glass-panel overflow-hidden rounded-2xl p-5" id="suggestion-widget-container">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-sm font-bold text-slate-900 dark:text-white">Suggested for you</h3>
-                    <a href="friendreq.html?tab=suggestions" class="text-xs font-semibold text-primary hover:text-blue-400">See All</a>
+                    <a href="friendreq.html?tab=suggestions"
+                        class="text-xs font-semibold text-primary hover:text-blue-400">See All</a>
                 </div>
                 <div class="flex flex-col gap-4" id="reels-suggestions-list">
                     <!-- Dynamic suggestions will be injected here -->
@@ -212,28 +210,90 @@
     </div>
     </main>
     <nav
-        class="fixed bottom-0 left-0 z-40 flex w-full items-center justify-between border-t border-slate-200 bg-white px-6 py-3 dark:border-slate-800 dark:bg-[#101522] lg:hidden">
-        <a class="flex flex-col items-center gap-1 text-slate-500 dark:text-slate-400" href="#">
-            <span class="material-symbols-outlined">home</span>
-            <span class="text-[10px]">Home</span>
+        class="fixed bottom-0 left-0 z-40 flex w-full items-end justify-between border-t border-slate-200 bg-white px-4 pb-3 pt-2 dark:border-slate-800 dark:bg-[#101522] lg:hidden">
+
+        <!-- 1. Home -->
+        <a href="homefeed-dashboard.html"
+            class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400">
+            <span class="material-symbols-outlined text-[26px]">home</span>
+            <span class="text-[10px] font-medium">Home</span>
         </a>
 
-        <div
-            class="relative -top-5 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/40">
-            <span class="material-symbols-outlined">add</span>
-        </div>
-        <a class="flex flex-col items-center gap-1 text-primary" href="#">
-            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">movie</span>
-            <span class="text-[10px]">Reels</span>
+        <!-- 2. Reels -->
+        <a href="reels.html" class="flex flex-1 flex-col items-center justify-end gap-1 text-primary">
+            <span class="material-symbols-outlined text-[26px]" style="font-variation-settings: 'FILL' 1;">movie</span>
+            <span class="text-[10px] font-medium">Reels</span>
         </a>
-        <a class="flex flex-col items-center gap-1 text-slate-500 dark:text-slate-400" href="#">
-            <span class="material-symbols-outlined">person</span>
-            <span class="text-[10px]">Profile</span>
+
+        <!-- 3. ADD (Floating) -->
+        <div class="relative flex flex-1 flex-col items-center justify-end">
+            <button
+                class="absolute bottom-6 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/40 border-4 border-white dark:border-[#101522] transform transition-transform active:scale-95"
+                onclick="window.location.href='create-reel.html'">
+                <span class="material-symbols-outlined text-[32px]">add</span>
+            </button>
+            <span class="h-6"></span> <!-- Spacer for alignment -->
+        </div>
+
+        <!-- 4. Notifications -->
+        <a href="notification.html"
+            class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400 relative">
+            <div class="relative">
+                <span class="material-symbols-outlined text-[26px]">notifications</span>
+                <span id="notif-badge-mobile"
+                    class="hidden absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#101522]"></span>
+            </div>
+            <span class="text-[10px] font-medium">Activity</span>
+        </a>
+
+        <!-- 5. Profile -->
+        <a href="profile.html"
+            class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400">
+            <span class="material-symbols-outlined text-[26px]">person</span>
+            <span class="text-[10px] font-medium">Profile</span>
         </a>
     </nav>
     </div>
 
 
+    <!-- Comments Drawer -->
+    <div id="comments-backdrop" onclick="closeComments()" class="fixed inset-0 bg-black/50 z-40 hidden transition-opacity duration-300 opacity-0 backdrop-blur-sm"></div>
+    <div id="comments-drawer" class="fixed inset-x-0 bottom-0 z-50 transform translate-y-full transition-transform duration-300 ease-out bg-[#1e2330] rounded-t-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.5)] h-[70vh] flex flex-col border-t border-white/10 max-w-lg mx-auto">
+        <!-- Header -->
+        <div class="flex items-center justify-center p-4 border-b border-white/5 relative">
+            <div class="w-12 h-1 bg-white/20 rounded-full absolute top-2"></div>
+            <h3 class="text-white font-bold text-sm mt-2">Comments</h3>
+            <button onclick="closeComments()" class="absolute right-4 top-4 text-slate-400 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <!-- List -->
+        <div id="comments-list" class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
+            <!-- Dynamic comments -->
+        </div>
+        <!-- Input -->
+        <div class="p-4 border-t border-white/10 bg-[#151921] pb-8 md:pb-4">
+            <div class="flex gap-3 items-center">
+                <div class="h-8 w-8 rounded-full bg-slate-700 overflow-hidden shrink-0">
+                    <img id="comment-user-avatar" class="h-full w-full object-cover opacity-50" src="https://ui-avatars.com/api/?name=User&background=random">
+                </div>
+                <div class="flex-1 relative" id="comment-form-container">
+                    <div id="reply-indicator" class="hidden absolute -top-8 left-0 text-xs text-blue-400 bg-[#1e2330] px-2 py-1 rounded-t-lg border-t border-x border-white/10 flex items-center gap-2">
+                        <span id="replying-to-text">Replying...</span>
+                        <button id="cancel-reply-btn" class="text-slate-400 hover:text-white">
+                            <span class="material-symbols-outlined text-[14px]">close</span>
+                        </button>
+                    </div>
+                    <input type="text" id="comment-input" class="w-full bg-white/5 border border-white/10 rounded-full pl-4 pr-10 py-2.5 text-sm text-white focus:outline-none focus:border-primary/50 focus:bg-white/10 transition-all placeholder:text-slate-500" placeholder="Add a comment...">
+                    <button id="send-comment-btn" class="absolute right-1 top-1 p-1.5 text-primary hover:text-white hover:bg-primary rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span class="material-symbols-outlined text-[20px] filled-icon">send</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
     <script src="js/site_branding.js"></script>
     <script src="js/reels.js"></script>
 </body>

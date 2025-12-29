@@ -101,4 +101,9 @@ class User extends Authenticatable implements JWTSubject
         
         return 'none';
     }
+
+    public function savedReels()
+    {
+        return $this->belongsToMany(Reel::class, 'saved_reels', 'user_id', 'reel_id')->withTimestamps();
+    }
 }
