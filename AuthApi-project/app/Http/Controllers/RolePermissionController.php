@@ -194,7 +194,7 @@ class RolePermissionController extends BaseController
         public function get_all_roles(){
         try{
             $roles = Role::with('permissions')->where('guard_name', 'api')
-            ->whereNotIn('name', ['super-admin', 'user'])
+            ->whereNotIn('name', ['super-admin'])
             ->get();
             return $this->response(true, 'Roles retrieved successfully', $roles, 200);
         }catch(\Exception $e){
