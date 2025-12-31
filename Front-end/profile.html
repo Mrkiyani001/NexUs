@@ -119,7 +119,7 @@
                     class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">movie</span>
                 <span class="hidden lg:block font-medium">Reels</span>
             </a>
-            <a class="flex items-center gap-2 px-3 lg:px-4 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group relative"
+            <a class="flex items-center gap-2 px-3 lg:px-4 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
                 href="notification.html">
                 <div class="relative">
                     <span
@@ -130,7 +130,7 @@
                 <span class="hidden lg:block font-medium">Notifications</span>
             </a>
             <a class="flex items-center gap-2 px-3 lg:px-4 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
-                href="#">
+                href="message.html">
                 <span
                     class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">mail</span>
                 <span class="hidden lg:block font-medium">Messages</span>
@@ -358,6 +358,12 @@
             <span class="text-[10px] font-medium">Activity</span>
         </a>
 
+        <!-- 4. Messages -->
+        <a href="message.html" class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400 relative">
+             <span class="material-symbols-outlined text-[26px]">mail</span>
+             <span class="text-[10px] font-medium">Messages</span>
+        </a>
+
         <!-- 5. Profile (Active) -->
         <a href="profile.html" class="flex flex-1 flex-col items-center justify-end gap-1 text-primary">
             <span class="material-symbols-outlined text-[26px]" style="font-variation-settings: 'FILL' 1;">person</span>
@@ -450,7 +456,7 @@
 
         // Header Init
         if (currentUserData.name) {
-            const initialsUrl = DEFAULT_AVATAR(currentUserData.name);
+            const initialsUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUserData.name)}&background=random`;
             const avatarUrl = getAvatarUrl(currentUserData) || initialsUrl;
 
             const headerAvatar = document.getElementById('header-user-avatar');
@@ -610,7 +616,7 @@
             };
 
             // Avatar handling with fallback
-            const initialsUrl = DEFAULT_AVATAR(user.name);
+            const initialsUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`;
             const avatarUrl = getAvatarUrl(user) || initialsUrl;
 
             const profileAvatar = document.getElementById('profile-avatar-display');
@@ -624,7 +630,7 @@
 
             // Header Avatar Init (Standardize here too)
             if (currentUserData && currentUserData.name) {
-                const hInitials = DEFAULT_AVATAR(currentUserData.name);
+                const hInitials = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUserData.name)}&background=random`;
                 const hAvatar = getAvatarUrl(currentUserData) || hInitials;
                 const headerAvatar = document.getElementById('header-user-avatar');
                 if (headerAvatar) {
@@ -1018,6 +1024,8 @@
     </script>
 
 
+    <script src="js/config.js"></script>
+    <script src="js/post_utils.js"></script>
     <script src="js/site_branding.js"></script>
 </body>
 

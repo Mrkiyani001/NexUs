@@ -39,7 +39,9 @@ function renderAdminSidebar(activePageId) {
     }
 
     const avatarUrl = avatarPath 
-        ? (avatarPath.startsWith('http') ? avatarPath : `${window.PUBLIC_URL}/${avatarPath}`)
+        ? (avatarPath.startsWith('http') 
+            ? avatarPath 
+            : (avatarPath.startsWith('storage/') ? `${window.PUBLIC_URL}/${avatarPath}` : `${window.PUBLIC_URL}/storage/${avatarPath}`))
         : `https://ui-avatars.com/api/?name=${encodeURIComponent(ADMIN_USER_DATA.name)}&background=215bed&color=fff`;
 
     const menuItems = [

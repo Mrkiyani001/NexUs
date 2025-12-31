@@ -20,7 +20,7 @@ class PostController extends BaseController
     {
         $this->validateRequest($request, [
             'original_post_id' => 'nullable|exists:post,id', // For retweet Function 
-            'title' => 'required|string|max:255', 
+            'title' => 'required|string|max:255',
             'body' => 'nullable|string|required_without:original_post_id',
             'attachments' => 'nullable|array',
             'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,gif,mp4,avi,mov,pdf,doc,docx|max:51200',
@@ -37,7 +37,7 @@ class PostController extends BaseController
                 if ($request->hasFile('attachments')) {
                     foreach ($request->file('attachments') as $file) {
                         $filename = time() . "_" . $file->getClientOriginalName();
-                        $file->move(public_path('posts'), $filename);
+                        $file->move(public_path('storage/posts'), $filename);
                         $attachments[] = $filename;
                     }
                 }
@@ -109,7 +109,7 @@ class PostController extends BaseController
             if ($newfilescount > 0) {
                 foreach ($request->file('attachments') as $file) {
                     $filename = time() . "_" . $file->getClientOriginalName();
-                    $file->move(public_path('posts'), $filename);
+                    $file->move(public_path('storage/posts'), $filename);
                     $newuploadfiles[] = $filename;
                 }
             }
@@ -218,7 +218,13 @@ class PostController extends BaseController
             if (!$user) {
                 return $this->unauthorized();
             }
-            $posts = Post::with(['attachments', 'creator', 'updator', 'user.profile.avatar', 'originalPost.creator', 'originalPost.attachments', 
+            $posts = Post::with([
+                'attachments',
+                'creator',
+                'updator',
+                'user.profile.avatar',
+                'originalPost.creator',
+                'originalPost.attachments',
                 'user.followers' => function ($q) use ($user) {
                     $q->where('follower_id', $user->id)->where('status', 'accepted');
                 }
@@ -289,7 +295,7 @@ class PostController extends BaseController
             }
 
             $post->markApproved();
-            
+
             // Notify the Post Creator
             SendNotification::dispatch(
                 $post->user_id, // Recipient: Post Creator
@@ -321,7 +327,7 @@ class PostController extends BaseController
             if (!$user) {
                 return $this->unauthorized();
             }
-            if($user->hasRole(['admin','moderator','super admin']) == false){
+            if ($user->hasRole(['admin', 'moderator', 'super admin']) == false) {
                 return response()->json([
                     'success' => false,
                     'message' => 'You are not authorized to perform this action',
@@ -337,7 +343,7 @@ class PostController extends BaseController
             }
 
             $post->markRejected();
-            
+
             // Notify the Post Creator
             SendNotification::dispatch(
                 $post->user_id, // Creator: Admin who rejected
@@ -399,6 +405,7 @@ class PostController extends BaseController
                         $q->where('created_by', $user->id)->where('type', 1);
                     }])
                     ->withCount('comments')
+                    ->withCount('replies')
                     ->withCount('shares')
                     ->orderby('created_at', 'desc')
                     ->paginate($limit);

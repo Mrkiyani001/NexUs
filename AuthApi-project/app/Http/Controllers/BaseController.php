@@ -46,8 +46,8 @@ class BaseController extends Controller
     public function upload($file, $folder, $model)
     {
         $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-        $file->move(public_path($folder), $filename);
-        $filepath = $folder . '/' . $filename;
+        $file->move(public_path('storage/' . $folder), $filename);
+        $filepath = 'storage/' . $folder . '/' . $filename;
         $extension = strtolower($file->getClientOriginalExtension());
         $type = $this->getFileType($extension);
         $model->attachments()->create([
@@ -59,8 +59,8 @@ class BaseController extends Controller
     public function uploadReel($file, $folder, $model, $extraData = [])
     {
         $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-        $file->move(public_path($folder), $filename);
-        $filepath = $folder . '/' . $filename;
+        $file->move(public_path('storage/' . $folder), $filename);
+        $filepath = 'storage/' . $folder . '/' . $filename;
         $extension = strtolower($file->getClientOriginalExtension());
         $type = $this->getFileType($extension);
         

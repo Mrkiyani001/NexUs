@@ -67,11 +67,11 @@ class AddCommentReply implements ShouldQueue
                 $commentReply->attachments()->create([
                     'file_name' => $filename,
                     'file_type' => $type,
-                    'file_path' => 'comment_replies/' . $filename,
+                    'file_path' => 'storage/comment_replies/' . $filename,
                 ]);
             }
         } catch (\Exception $e) {
-            \Log::error("Failed to upload attachments for comment reply ID " . $commentReply->id . ": " . $e->getMessage());
+            Log::error("Failed to upload attachments for comment reply ID " . $commentReply->id . ": " . $e->getMessage());
         }
     }
 }

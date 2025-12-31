@@ -56,6 +56,10 @@ class Post extends Model
     {
         return $this->morphMany(Reaction::class, 'reactionable');
     }
+    public function replies()
+    {
+        return $this->hasManyThrough(CommentReply::class, Comments::class, 'post_id', 'comment_id');
+    }
     public function flaggable()
     {
         return $this->morphMany(FlagAi::class, 'flaggable');

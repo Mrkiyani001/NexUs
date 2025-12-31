@@ -5,8 +5,7 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Home Feed</title>
-    <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔥</text></svg>">
+
     <link href="https://fonts.googleapis.com" rel="preconnect" />
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap"
@@ -63,7 +62,7 @@
             },
         }
     </script>
-    <style>
+    <style type="text/tailwindcss">
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -242,9 +241,9 @@
                 <span class="hidden lg:block font-medium">Notifications</span>
             </a>
             <a class="flex items-center gap-2 px-3 lg:px-4 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
-                href="#">
+                href="message.html">
                 <span
-                    class="material-symbols-outlined text-[24px] group-hover/btn:scale-110 transition-transform">mail</span>
+                    class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">mail</span>
                 <span class="hidden lg:block font-medium">Messages</span>
             </a>
         </nav>
@@ -584,7 +583,7 @@
         function initHeader(isRefresh = false) {
             if (window.currentUserData && window.currentUserData.name) {
                 const userData = window.currentUserData;
-                const initialsUrl = window.DEFAULT_AVATAR(userData.name); 
+                const initialsUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}&background=random`; 
                 const avatarUrl = getAvatarUrl(userData) || initialsUrl;
                 
                 if(isRefresh) log("Header Avatar URL (Fresh):", avatarUrl);
@@ -1199,11 +1198,11 @@
 
                 if (data.success && items.length > 0) {
                     const html = items.map(user => {
-                        const avatar = getAvatarUrl(user) || window.DEFAULT_AVATAR(user.name);
+                        const avatar = getAvatarUrl(user) || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`;
                         return `
                     <div class="flex items-center justify-between group">
                         <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='profile.html?id=${user.id}'">
-                            <img src="${avatar}" onerror="this.onerror=null;this.src=window.DEFAULT_AVATAR('${user.name}')" class="w-10 h-10 rounded-full object-cover border border-white/10 group-hover:border-primary/50 transition-colors">
+                            <img src="${avatar}" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random'" class="w-10 h-10 rounded-full object-cover border border-white/10 group-hover:border-primary/50 transition-colors">
                             <div class="flex flex-col">
                                 <span class="text-sm font-bold text-white group-hover:text-primary transition-colors">${user.name}</span>
                                 <span class="text-[11px] text-slate-400">@${user.name.toLowerCase().replace(/\s+/g, '')}</span>
@@ -1428,12 +1427,22 @@
             <span class="text-[10px] font-medium">Activity</span>
         </a>
 
+        <!-- 4. Messages -->
+        <a href="message.html" class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400 relative">
+             <span class="material-symbols-outlined text-[26px]">mail</span>
+             <span class="text-[10px] font-medium">Messages</span>
+        </a>
+
         <!-- 5. Profile -->
         <a href="profile.html" class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400">
             <span class="material-symbols-outlined text-[26px]">person</span>
             <span class="text-[10px] font-medium">Profile</span>
         </a>
     </nav>
+    <!-- Utilities -->
+    <script src="js/config.js"></script>
+    <script src="js/post_utils.js"></script>
+    <script src="js/reels.js"></script> <!-- Ensure reels.js or other dependent scripts are loaded if needed, but post_utils is critical -->
+    <script src="js/site_branding.js"></script>
 </body>
-
 </html>

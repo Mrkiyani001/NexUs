@@ -1,151 +1,104 @@
 /**
- * Site Branding Script
- * Fetches site settings from API and updates the UI (Title, Logo, etc.)
- * Uses localStorage for instant loading.
+ * Site Branding Script (Final Fixed Version)
+ * Fetches site settings from API and updates the UI (Title, Logo, Favicon)
  */
 document.addEventListener('DOMContentLoaded', async () => {
-    // const PUBLIC_URL = 'http://127.0.0.1:8000'; // Removed to use global config
+    
+    // 1. Config Check (Fallback to IP if config.js fails)
+    // Agar PUBLIC_URL defined nahi hai to direct IP use karega
+    const BASE_URL = (typeof PUBLIC_URL !== 'undefined') ? PUBLIC_URL : 'http://54.248.199.202';
 
     // Function to apply settings to UI
     const applySettings = (settings) => {
         if (!settings) return;
 
-        const siteName = settings.site_name || 'Social Network';
+        const siteName = settings.site_name || 'NexUs';
 
-        // 1. Update Title
-        if (document.title.includes('-')) {
-            const prefix = document.title.split('-')[0].trim();
-            document.title = `${prefix} - ${siteName}`;
-        } else {
-            document.title = `${document.title} - ${siteName}`;
-        }
+        // A. Update Page Title
+        document.title = siteName;
 
-        // 2. Update Logo Text
-        const logoTextElements = document.querySelectorAll('#site-logo-text'); // Use querySelectorAll for multiple instances if any
+        // B. Update Logo Text
+        const logoTextElements = document.querySelectorAll('#site-logo-text');
         logoTextElements.forEach(el => el.textContent = siteName);
 
-        // 3. Update Logo Image
-        // 3. Update Logo Image
-        // Fallback to a transparent pixel or empty if no logo is set, to avoid 404s for 'logo.png'
-        const logoPath = settings.logo ? `${window.PUBLIC_URL}/storage/${settings.logo}` : ''; 
+        // C. Update Favicon (Browser Tab Icon)
+        const faviconPath = settings.favicon ? `${BASE_URL}/storage/${settings.favicon}` : '';
+        if (faviconPath) {
+            let link = document.querySelector("link[rel*='icon']");
+            if (!link) {
+                link = document.createElement('link');
+                link.rel = 'icon';
+                document.head.appendChild(link);
+            }
+            link.href = faviconPath;
+        }
 
+        // D. Update Logo Image
+        const logoPath = settings.logo ? `${BASE_URL}/storage/${settings.logo}` : '';
         const logoImgElements = document.querySelectorAll('#site-logo-img');
+
         logoImgElements.forEach(img => {
-            // Determine if it's an <img> tag or a div with background
             if (img.tagName === 'IMG') {
+                // Agar <img> tag hai (Dashboard waghaira mein)
                 if (logoPath) {
                     img.src = logoPath;
-                    img.style.display = 'block'; 
+                    img.style.display = 'block';
                 } else {
-                    // Hide or show a default "No Logo" state if desired, but for now just hide to prevent broken image icon
-                    // OR set to a generic placeholder if you have one. 
-                    // Given the user's complaint about "blocking", avoiding a 404 request is key.
-                    // Let's use the material icon as fallback if it was a div structure (reels page method)
-                     img.style.display = 'none';
+                    img.style.display = 'none';
                 }
             } else {
-                // If it's a div (like in some dashboards), set background
+                // Agar <div> tag hai (Login Page case)
                 if (logoPath) {
                     img.style.backgroundImage = `url('${logoPath}')`;
-                    img.textContent = '';
-                } else {
-                     // Keep default content (likely material symbol) if no logo is provided
-                     img.style.backgroundImage = '';
+                    img.style.backgroundSize = 'cover'; // Ensure image fits
+                    img.style.backgroundPosition = 'center';
+                    img.textContent = ''; // Icon hata dein
                 }
-            }
-        });
-        logoImgElements.forEach(img => {
-            // Determine if it's an <img> tag or a div with background
-            if (img.tagName === 'IMG') {
-                img.src = logoPath;
-                img.style.display = 'block'; // Ensure it's visible
-            } else {
-                // If it's a div (like in some dashboards), set background
-                img.style.backgroundImage = `url('${logoPath}')`;
-                img.textContent = '';
             }
         });
 
-        // 4. Update Footer Text
+        // E. Update Footer
         const footerText = document.getElementById('site-footer-text');
         if (footerText) {
             footerText.textContent = `© ${new Date().getFullYear()} ${siteName}. All rights reserved.`;
         }
-
-        // 5. Update Support Email Links
-        if (settings.support_email) {
-            const supportLinks = document.querySelectorAll('.support-link, #support-link');
-            supportLinks.forEach(link => {
-                link.href = `mailto:${settings.support_email}`;
-            });
-        }
-
-        // 6. Update Site Description (Slogan)
-        const descriptionElement = document.getElementById('site-description');
-        if (descriptionElement && settings.site_description) {
-            descriptionElement.textContent = settings.site_description;
-        }
-
-        // 7. Update Favicon
-        let favicon = document.querySelector('link[rel="icon"]') || document.querySelector('link[rel="shortcut icon"]');
-        if (!favicon) {
-            favicon = document.createElement('link');
-            favicon.rel = 'icon';
-            document.head.appendChild(favicon);
-        }
-        favicon.href = logoPath;
     };
 
     // Expose function globally
     window.refreshSiteBranding = async () => {
-        // Cached default
+        // 1. Pehle LocalStorage (Cache) se data uthao (Fast Load)
         const cachedSettings = localStorage.getItem('site_settings');
         if (cachedSettings) {
             try { applySettings(JSON.parse(cachedSettings)); } catch (e) { }
         }
 
-        // Fetch fresh
+        // 2. Phir Server se naya data lao
         try {
-            console.log("Fetching site settings...");
-            // Add timestamp to prevent browser caching
-            const response = await fetch(`${window.PUBLIC_URL}/api/settings?t=${new Date().getTime()}`, {
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+            const response = await fetch(`${BASE_URL}/api/settings?t=${new Date().getTime()}`, {
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'Accept': 'application/json'
+                }
             });
-            console.log("Settings API Response Status:", response.status);
 
             if (response.ok) {
                 const data = await response.json();
-                console.log("Settings API Data:", data);
-
                 if (data.success && data.data) {
-                    let settings = data.data;
-                    if (Array.isArray(settings)) settings = settings[0];
+                    // Array handle karne ke liye check
+                    let settings = Array.isArray(data.data) ? data.data[0] : data.data;
+                    
+                    // Save to Cache
                     localStorage.setItem('site_settings', JSON.stringify(settings));
+                    
+                    // Apply Updates
                     applySettings(settings);
-                } else {
-                    console.error("Settings API returned success:false or no data", data);
                 }
-            } else {
-                console.error("Settings API failed", response.status, response.statusText);
             }
         } catch (error) {
-            console.error("Failed to fetch fresh site settings:", error);
+            console.error("Branding update failed:", error);
         }
     };
 
-    // Attempt to apply immediately if body exists
-    const cached = localStorage.getItem('site_settings');
-    if (cached) {
-        try {
-            console.log("Applying cached settings:", JSON.parse(cached));
-            applySettings(JSON.parse(cached));
-        } catch (e) {
-            console.error("Error parsing cached settings", e);
-        }
-    }
-
-    // Also run on DOMContentLoaded to ensure all elements are caught
-    document.addEventListener('DOMContentLoaded', () => {
-        window.refreshSiteBranding();
-    });
+    // Start Process Immediately
+    window.refreshSiteBranding();
 });

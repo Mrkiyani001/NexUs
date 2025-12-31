@@ -31,8 +31,8 @@ class ReelsController extends BaseController
                 if ($request->hasFile('thumbnail')) {
                     $file = $request->file('thumbnail');
                     $filename = time() . '_thumb_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                    $file->move(public_path('thumbnails'), $filename);
-                    $thumbnailPath = 'thumbnails/' . $filename;
+                    $file->move(public_path('storage/thumbnails'), $filename);
+                    $thumbnailPath = 'storage/thumbnails/' . $filename;
                 }
             } catch (\Exception $e) {
                 Log::error('Thumbnail Upload Error: ' . $e->getMessage());
@@ -188,7 +188,7 @@ class ReelsController extends BaseController
                 ->where('user_id', $request->user_id)
                 ->latest()
                 ->get();
-            
+
             $reels = $this->enrichReels($reels, $user->id);
             return response()->json([
                 'success' => true,
@@ -290,14 +290,14 @@ class ReelsController extends BaseController
     {
         try {
             $user = auth('api')->user();
-            if (!$user){
+            if (!$user) {
                 return $this->unauthorized();
             }
             $savedReels = $user->savedReels()
                 ->with('user.profile.user_avatar') // Eager load relationships
                 ->withCount(['comments', 'reactions'])
                 ->orderBy('pivot_created_at', 'desc')
-                ->get(); 
+                ->get();
 
             $savedReels = $this->enrichReels($savedReels, $user->id);
 
@@ -314,7 +314,7 @@ class ReelsController extends BaseController
     private function enrichReels($reels, $userId)
     {
         if ($reels->isEmpty()) return $reels;
-        
+
         $reelIds = $reels->pluck('id');
         $userIds = $reels->pluck('user_id')->unique();
 
@@ -337,10 +337,10 @@ class ReelsController extends BaseController
 
         // 3. Follow Status
         $follows = DB::table('followers')
-             ->where('follower_id', $userId)
-             ->whereIn('following_id', $userIds)
-             ->pluck('status', 'following_id')
-             ->all();
+            ->where('follower_id', $userId)
+            ->whereIn('following_id', $userIds)
+            ->pluck('status', 'following_id')
+            ->all();
 
         foreach ($reels as $reel) {
             $reel->is_liked = isset($likes[$reel->id]);

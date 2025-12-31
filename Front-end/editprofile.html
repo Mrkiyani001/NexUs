@@ -318,8 +318,9 @@
                     countryInput.value = profile.country || '';
 
                     // Avatar
-                    if (profile.avatar && profile.avatar.file_path) {
-                        avatarPreview.style.backgroundImage = `url('${PUBLIC_URL}/${profile.avatar.file_path}')`;
+                    const avatarUrl = getAvatarUrl(user);
+                    if (avatarUrl) {
+                        avatarPreview.style.backgroundImage = `url('${avatarUrl}')`;
                     } else {
                         avatarPreview.style.backgroundImage = `url('https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random')`;
                     }

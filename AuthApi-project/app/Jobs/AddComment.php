@@ -77,7 +77,7 @@ class AddComment implements ShouldQueue
                 $comment->attachments()->create([
                     'file_name' => $filename,
                     'file_type' => $type,
-                    'file_path' => 'comments/' . $filename,
+                    'file_path' => 'storage/comments/' . $filename,
                 ]);
             }
         } catch (\Exception $e) {

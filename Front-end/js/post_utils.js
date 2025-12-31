@@ -1,9 +1,23 @@
+// Global Default Avatar Helper
+window.DEFAULT_AVATAR = (name) => `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=random&color=fff&size=128`;
 
 // Post Interaction Utilities
 // Requires: API_BASE_URL, token, PUBLIC_URL, currentUserData (or userData) to be defined globally
+console.log('Post Utils Loading...');
 
-const DEFAULT_AVATAR = window.DEFAULT_AVATAR || ((name) => `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=random`);
-if (!window.DEFAULT_AVATAR) window.DEFAULT_AVATAR = DEFAULT_AVATAR;
+function escapeHtml(text) {
+    if (!text) return '';
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function getInitialsUrl(name) {
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=random`;
+}
 
 function getAvatarUrl(user) {
     if (!user || !user.profile) {
@@ -28,6 +42,12 @@ function getAvatarUrl(user) {
         if (path.startsWith('http')) return path;
         // Ensure PUBLIC_URL is available
         const baseUrl = (typeof PUBLIC_URL !== 'undefined') ? PUBLIC_URL : window.PUBLIC_URL;
+        
+        // If path doesn't start with storage/, prepend it
+        if (!path.startsWith('storage/')) {
+            path = `storage/${path}`;
+        }
+        
         if (baseUrl) return `${baseUrl}/${path}`;
     }
 
@@ -42,7 +62,7 @@ function getAvatarUrl(user) {
  */
 function renderAvatarHTML(user, classes = "size-10 rounded-full object-cover border border-white/10", extraAttrs = "") {
     const name = user ? user.name : 'User';
-    const initialsUrl = DEFAULT_AVATAR(name);
+    const initialsUrl = getInitialsUrl(name);
     const avatarUrl = getAvatarUrl(user);
 
     // If we have an avatar URL, try loading it, with initials as onerror fallback
@@ -215,70 +235,72 @@ function checkAndRenderAdminLink() {
 }
 
 // Multi-Account Service
-const MultiAccountService = {
-    STORAGE_KEY: 'saved_accounts',
+// Multi-Account Service
+if (typeof window.MultiAccountService === 'undefined') {
+    window.MultiAccountService = {
+        STORAGE_KEY: 'saved_accounts',
 
-    getAccounts() {
-        try {
-            return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
-        } catch {
-            return [];
-        }
-    },
+        getAccounts() {
+            try {
+                return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
+            } catch {
+                return [];
+            }
+        },
 
-    saveCurrentAccount() {
-        const token = localStorage.getItem('auth_token');
-        const user = JSON.parse(localStorage.getItem('user_data') || '{}');
-        
-        if (!token || !user.id) return;
-
-        let accounts = this.getAccounts();
-        // Remove existing saved entry for this user to avoid dupes
-        accounts = accounts.filter(acc => acc.user.id !== user.id);
-        
-        // Add current
-        accounts.push({ token, user, last_active: new Date().getTime() });
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(accounts));
-    },
-
-    switchAccount(accountId) {
-        // Save current first
-        this.saveCurrentAccount();
-
-        const accounts = this.getAccounts();
-        const target = accounts.find(acc => acc.user.id == accountId);
-
-        if (target) {
-            // Remove target from saved list (it becomes active)
-            const remaining = accounts.filter(acc => acc.user.id !== target.user.id);
-            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(remaining));
-
-            // Set as active
-            localStorage.setItem('auth_token', target.token);
-            localStorage.setItem('user_data', JSON.stringify(target.user));
+        saveCurrentAccount() {
+            const token = localStorage.getItem('auth_token');
+            const user = JSON.parse(localStorage.getItem('user_data') || '{}');
             
-            // Reload
-            window.location.reload();
-        }
-    },
+            if (!token || !user.id) return;
 
-    addAccount() {
-        this.saveCurrentAccount();
-        // Clear active session effectively
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user_data');
-        window.location.href = 'login.html';
-    },
-    
-    logoutCurrent() {
-        // Just remove current, don't save it if user explicitly logs out? 
-        // Or should logout just mean "remove from active"? 
-        // Standard behavior: Logout removes access.
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user_data');
-        window.location.href = 'login.html';
-    }
-};
+            let accounts = this.getAccounts();
+            // Remove existing saved entry for this user to avoid dupes
+            accounts = accounts.filter(acc => acc.user.id !== user.id);
+            
+            // Add current
+            accounts.push({ token, user, last_active: new Date().getTime() });
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(accounts));
+        },
+
+        switchAccount(accountId) {
+            // Save current first
+            this.saveCurrentAccount();
+
+            const accounts = this.getAccounts();
+            const target = accounts.find(acc => acc.user.id == accountId);
+
+            if (target) {
+                // Remove target from saved list (it becomes active)
+                const remaining = accounts.filter(acc => acc.user.id !== target.user.id);
+                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(remaining));
+
+                // Set as active
+                localStorage.setItem('auth_token', target.token);
+                localStorage.setItem('user_data', JSON.stringify(target.user));
+                
+                // Reload
+                window.location.reload();
+            }
+        },
+
+        addAccount() {
+            this.saveCurrentAccount();
+            // Clear active session effectively
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_data');
+            window.location.href = 'login.html';
+        },
+        
+        logoutCurrent() {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_data');
+            window.location.href = 'login.html';
+        }
+    };
+}
+// Expose as global const only if needed, but safe to use window.MultiAccountService everywhere
+// Removed const re-declaration to prevent SyntaxError
 
 // Profile Dropdown Logic
 function toggleProfileDropdown() {
@@ -304,7 +326,7 @@ function renderDropdownContent(container) {
             ${savedAccounts.map(acc => `
                 <div onclick="MultiAccountService.switchAccount(${acc.user.id})" 
                      class="px-4 py-2 hover:bg-white/5 cursor-pointer flex items-center gap-3 transition-colors group">
-                    <img src="${getAvatarUrl(acc.user) || DEFAULT_AVATAR(acc.user.name)}" class="w-8 h-8 rounded-full border border-white/10 object-cover">
+                    <img src="${getAvatarUrl(acc.user) || window.DEFAULT_AVATAR(acc.user.name)}" class="w-8 h-8 rounded-full border border-white/10 object-cover">
                     <div class="flex-1 overflow-hidden">
                         <div class="text-xs font-bold text-white truncate">${acc.user.name}</div>
                         <div class="text-[10px] text-slate-500 truncate">@${acc.user.name.toLowerCase().replace(/\s+/g, '')}</div>
@@ -411,8 +433,7 @@ function timeAgo(dateString) {
     return "Just now";
 }
 
-function createPostHTML(post) {
-    // Determine which user object to use (handle potential variations)
+function ignore_garbage() { /*
     const user = post.user || { name: 'Unknown', id: 0 };
     const avatarUrl = getAvatarUrl(user);
     const timeAgoStr = timeAgo(post.created_at);
@@ -432,8 +453,19 @@ function createPostHTML(post) {
         if (files.length > 0) {
                 const file = files[0];
                 let src = '';
-                if (typeof file === 'object' && file.file_path) src = `${PUBLIC_URL}/${file.file_path}`;
-                else if (typeof file === 'string') src = `${PUBLIC_URL}/posts/${file}`;
+                if (typeof file === 'object' && file.file_path) {
+                    // Check if path has storage, if not add it
+                     let path = file.file_path;
+                     if(!path.startsWith('storage/') && !path.startsWith('http')) path = 'storage/' + path;
+                     src = `${PUBLIC_URL}/${path}`;
+                     console.log('🖼️ Attachment Obj Src:', src);
+                }
+                else if (typeof file === 'string') {
+                    let path = file;
+                    if(!path.startsWith('storage/') && !path.startsWith('http')) path = 'storage/posts/' + path;
+                    src = `${PUBLIC_URL}/${path}`;
+                    console.log('🖼️ Attachment Str Src:', src);
+                }
                 
                 if(src) {
                     mediaHTML = `<div class="mt-4 rounded-xl overflow-hidden border border-white/10 h-64 relative group cursor-pointer">
@@ -485,64 +517,143 @@ function createPostHTML(post) {
                                     const currentRoles = (currentUserData && currentUserData.roles) ? currentUserData.roles.map(r => (typeof r === 'object' ? r.name : r).toLowerCase()) : [];
                                     const isOwner = user.id === currentId;
                                     const isAdmin = currentRoles.some(r => ['admin', 'super admin', 'superadmin', 'moderator'].includes(r));
-                                    
-                                    let items = '';
-                                    
-                                    if (isOwner) {
-                                        items += `
-                                        <button onclick="editPost(${post.id})" class="w-full text-left px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white flex items-center gap-3 transition-colors">
-                                            <span class="material-symbols-outlined text-[18px]">edit</span> Edit Post
-                                        </button>`;
-                                    }
-                                    
-                                    if (isOwner || isAdmin) {
-                                        items += `
-                                        <button onclick="deletePost(${post.id})" class="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-white/5 hover:text-red-300 flex items-center gap-3 transition-colors border-t border-white/5">
-                                            <span class="material-symbols-outlined text-[18px]">delete</span> Delete Post
-                                        </button>`;
-                                    }
-                                    
-                                    if (!isOwner) {
-                                        items += `
-                                        <button onclick="openReportModal(${post.id}, 'post')" class="w-full text-left px-4 py-3 text-sm text-yellow-500 hover:bg-white/5 hover:text-yellow-400 flex items-center gap-3 transition-colors border-t border-white/5">
-                                            <span class="material-symbols-outlined text-[18px]">flag</span> Report Post
-                                        </button>`;
-                                    }
-                                    return items;
-                                })()}
-                            </div>
+                                
+*/ }
+
+function renderAttachmentsHTML(attachments) {
+    if (!attachments || attachments.length === 0) return '';
+    
+    // Ensure array
+    const files = Array.isArray(attachments) ? attachments : [attachments];
+    if (files.length === 0) return '';
+
+    // We basically want grid layout if multiple, or single if one
+    // But for now let's just show the first one or a grid
+    // Logic adapted from previous versions
+    
+    let html = '<div class="mt-3 grid gap-2 grid-cols-2">'; 
+    if(files.length === 1) html = '<div class="mt-3">';
+
+    files.forEach(file => {
+        let src = '';
+        let type = 'image'; // default
+        
+        if (typeof file === 'string') {
+            if(!file.startsWith('storage/') && !file.startsWith('http')) {
+                src = `storage/posts/${file}`;
+            } else {
+                 src = file;
+            }
+            // fix url
+             const baseUrl = (typeof PUBLIC_URL !== 'undefined') ? PUBLIC_URL : window.PUBLIC_URL;
+             if(!src.startsWith('http')) src = `${baseUrl}/${src}`;
+
+        } else if (typeof file === 'object') {
+             let path = file.file_path;
+             if(!path.startsWith('storage/') && !path.startsWith('http')) path = 'storage/' + path;
+             src = path;
+             
+             // fix url
+             const baseUrl = (typeof PUBLIC_URL !== 'undefined') ? PUBLIC_URL : window.PUBLIC_URL;
+             if(!src.startsWith('http')) src = `${baseUrl}/${src}`;
+             
+             if(file.file_type && file.file_type.includes('video')) type = 'video';
+        }
+
+        if(type === 'video') {
+             html += `
+             <div class="rounded-lg overflow-hidden border border-white/10 relative group bg-black">
+                 <video src="${src}" controls class="w-full max-h-96 object-contain"></video>
+             </div>`;
+        } else {
+            // Image
+            html += `
+            <div class="rounded-lg overflow-hidden border border-white/10 relative group cursor-pointer" onclick="openMediaModal('${src}', 'image')">
+                <img src="${src}" class="w-full h-full object-cover max-h-96 hover:scale-105 transition-transform duration-500">
+            </div>`;
+        }
+    });
+
+    html += '</div>';
+    return html;
+}
+
+function createPostHTML(post, passedUserData = null) {
+    const currentUserData = passedUserData || window.currentUserData || window.userData || { id: 0, roles: [] };
+    const isLiked = post.is_liked || false;
+    const likeCount = post.like_count || 0;
+    const likeColorClass = isLiked ? 'text-pink-500' : 'text-secondary-text';
+    const likeFill = isLiked ? 1 : 0;
+    const userData = post.creator || { name: 'Unknown', id: 0, profile: { avatar: DEFAULT_AVATAR } }; // Fallback
+    const totalComments = (post.comments_count || 0) + (post.replies_count || 0);
+
+    // Check if user has avatar
+    const avatarHtml = renderAvatarHTML(userData, "w-10 h-10 rounded-full border border-white/10 cursor-pointer object-cover", `onclick="window.location.href='profile.html?id=${userData.id}'"`);
+
+    return `
+    <article class="bg-card w-full rounded-xl border border-white/5 p-4 mb-4 animate-fade-in group hover:border-white/10 transition-colors" id="post-${post.id}">
+        <div class="flex gap-4">
+            ${avatarHtml}
+            <div class="flex-1 min-w-0">
+                <div class="flex justify-between items-start">
+                    <div class="flex flex-col">
+                        <h3 class="font-bold text-white text-base truncate cursor-pointer hover:text-blue-400 transition-colors" onclick="window.location.href='profile.html?id=${userData.id}'">${userData.name}</h3>
+                        <span class="text-xs text-secondary-text">${timeAgo(post.created_at)}</span>
+                    </div>
+                   ${(currentUserData.id === userData.id || currentUserData.role === 'admin' || currentUserData.role === 'super admin') ? `
+                    <div class="relative group/menu">
+                        <button class="text-secondary-text hover:text-white transition-colors p-1 rounded-full hover:bg-white/5">
+                            <span class="material-symbols-outlined">more_horiz</span>
+                        </button>
+                        <div class="absolute right-0 top-8 w-48 bg-[#1e2330] border border-white/10 rounded-xl shadow-2xl py-1 z-20 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transform scale-95 group-hover/menu:scale-100 transition-all duration-200 origin-top-right">
+                             <button onclick="copyPostLink(${post.id})" class="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white flex items-center gap-2 transition-colors">
+                                <span class="material-symbols-outlined text-[18px]">link</span> Copy Link
+                             </button>
+                             ${(currentUserData.id === userData.id || currentUserData.role === 'admin' || currentUserData.role === 'super admin') ? `
+                             <button onclick="deletePost(${post.id})" class="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-white/5 hover:text-red-300 flex items-center gap-2 transition-colors">
+                                <span class="material-symbols-outlined text-[18px]">delete</span> Delete Post
+                             </button>
+                             ` : ''}
                         </div>
                     </div>
-                    
-                    <div class="cursor-pointer" onclick="window.location.href='post-detail-veiw.html?id=${post.id}'">
-                        ${renderPostContent(post, mediaHTML)}
-                    </div>
-                    
-                    <div class="flex gap-6 mt-4 border-t border-white/5 pt-3">
+                    ` : ''}
+                </div>
+                
+                <div class="mt-3 text-gray-200 text-sm whitespace-pre-wrap break-words leading-relaxed">${escapeHtml(post.body || '')}</div>
+                
+                ${renderAttachmentsHTML(post.attachments)}
+                
+                ${post.original_post ? renderRetweetHTML(post) : ''}
+
+                <div class="flex items-center justify-between mt-4 pt-4 border-t border-white/5">
+                    <div class="flex items-center gap-6">
                             <div class="flex items-center gap-2">
-                                <button onclick="likePost(${post.id}, this)" class="flex items-center gap-2 text-xs font-semibold ${likeColorClass} hover:text-pink-500 transition-colors group/like">
-                                    <span class="material-symbols-outlined text-[18px] transition-transform group-active/like:scale-75" style="font-variation-settings: 'FILL' ${likeFill}">favorite</span>
-                                    <span>Like</span>
+                                <button onclick="likePost(${post.id}, this)" class="flex items-center gap-2 text-xs font-semibold ${likeColorClass} hover:text-pink-500 transition-colors group">
+                                    <span class="material-symbols-outlined text-[18px] group-hover:scale-110 transition-transform" style="font-variation-settings: 'FILL' ${likeFill}">favorite</span>
+                                    <span class="hidden md:inline">Like</span>
                                 </button>
-                                <span onclick="openUserListModal(${post.id}, 'post')" class="text-xs text-secondary-text hover:text-white cursor-pointer ml-1">${post.like_count > 0 ? post.like_count : ''}</span>
+                                <span class="text-xs text-secondary-text hover:text-white ml-1 font-medium transition-colors">${likeCount > 0 ? likeCount : ''}</span>
                             </div>
 
                             <div class="flex items-center gap-2">
                                 <button onclick="toggleCommentSection(${post.id})" class="flex items-center gap-2 text-secondary-text text-xs font-semibold hover:text-blue-500 transition-colors">
-                                    <span class="material-symbols-outlined text-[18px]">chat_bubble</span> Comment
+                                    <span class="material-symbols-outlined text-[18px]">chat_bubble</span>
+                                    <span class="hidden md:inline">Comment</span>
                                 </button>
-                                <span class="text-xs text-secondary-text hover:text-white ml-1">${post.comments_count > 0 ? post.comments_count : ''}</span>
+                                <span class="text-xs text-secondary-text hover:text-white ml-1">${totalComments > 0 ? totalComments : ''}</span>
                             </div>
 
                              <div class="flex items-center gap-2">
                                 <button onclick="retweetPost(${post.id})" class="flex items-center gap-2 text-secondary-text text-xs font-semibold hover:text-purple-500 transition-colors">
-                                    <span class="material-symbols-outlined text-[18px]">repeat</span> Repost
+                                    <span class="material-symbols-outlined text-[18px]">repeat</span>
+                                    <span class="hidden md:inline">Repost</span>
                                 </button>
                             </div>
 
                             <div class="flex items-center gap-2">
                                 <button onclick="sharePost(${post.id})" class="flex items-center gap-2 text-secondary-text text-xs font-semibold hover:text-green-500 transition-colors">
-                                    <span class="material-symbols-outlined text-[18px]">share</span> Share
+                                    <span class="material-symbols-outlined text-[18px]">share</span>
+                                    <span class="hidden md:inline">Share</span>
                                 </button>
                                 <span class="text-xs text-secondary-text hover:text-white ml-1">${post.shares_count > 0 ? post.shares_count : ''}</span>
                             </div>
@@ -559,16 +670,50 @@ function createPostHTML(post) {
                     ${renderAvatarHTML(currentUserData || userData, "w-8 h-8 rounded-full border border-white/10 mt-1 object-cover")}
                     <div class="flex-1">
                     <textarea id="comment-input-${post.id}" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-slate-300 focus:outline-none focus:border-primary/50 transition-all resize-none h-20 placeholder:text-slate-500" placeholder="Write a comment..."></textarea>
-                    <div class="flex justify-end mt-2">
+                    <div class="flex justify-between items-center mt-2">
+                            <div class="flex items-center gap-2">
+                                    <label for="comment-file-${post.id}" class="cursor-pointer text-slate-400 hover:text-white transition-colors p-1 rounded-full hover:bg-white/5">
+                                    <span class="material-symbols-outlined text-[20px]">attach_file</span>
+                                    <input type="file" id="comment-file-${post.id}" class="hidden" onchange="handleCommentFileSelect(event, 'comment-preview-${post.id}')">
+                                </label>
+                            </div>
                             <button onclick="submitComment(${post.id})" class="px-4 py-1.5 bg-primary text-white text-xs font-bold rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-1">
                             <span>Post</span>
                             <span class="material-symbols-outlined text-[14px]">send</span>
                             </button>
                     </div>
+                    <div id="comment-preview-${post.id}" class="mt-2 hidden"></div>
                     </div>
             </div>
         </div>
     </article>`;
+}
+
+function renderRetweetHTML(post) {
+    const original = post.original_post || post.originalPost;
+    if (!original) return '';
+
+    const oUser = original.creator || original.user || { name: 'Unknown', id: 0 };
+    
+    // Attachments of original post
+    let oMediaHTML = '';
+    if (original.attachments && original.attachments.length > 0) {
+         oMediaHTML = renderAttachmentsHTML(original.attachments);
+    }
+    
+    return `
+    <div class="border border-white/10 rounded-xl p-4 bg-white/5 mt-3 hover:bg-white/10 transition-colors cursor-pointer" onclick="window.location.href='post_details.html?id=${original.id}'">
+        <div class="flex gap-3 mb-2">
+                 ${renderAvatarHTML(oUser, "size-6 rounded-full border border-white/10 object-cover")}
+                 <div>
+                     <h4 class="text-white font-bold text-xs hover:underline cursor-pointer" onclick="event.stopPropagation(); window.location.href='profile.html?id=${oUser.id}'">${oUser.name}</h4>
+                     <p class="text-[10px] text-slate-500">@${oUser.name.replace(/\s+/g, '').toLowerCase()}</p>
+                 </div>
+        </div>
+        <div class="text-slate-300 text-sm whitespace-pre-wrap break-words leading-relaxed">${escapeHtml(original.body || '')}</div>
+        ${oMediaHTML}
+    </div>
+    `;
 }
 
 function renderRetweetHeader(post, user) {
@@ -756,6 +901,19 @@ async function toggleCommentSection(postId) {
                                                 </div>
                                             </div>
                                             <p class="text-slate-300 text-xs whitespace-pre-wrap comment-text break-words">${reply.reply}</p>
+                                            ${reply.attachments && reply.attachments.length > 0 ? `
+                                            <div class="mt-2 flex flex-wrap gap-2">
+                                                ${reply.attachments.map(att => {
+                                                    const path = att.file_path.startsWith('http') ? att.file_path : `${window.PUBLIC_URL}/${att.file_path}`;
+                                                    if (['image', 'jpg', 'png', 'jpeg', 'gif'].includes(att.file_type) || /\.(jpg|jpeg|png|gif)$/i.test(path)) {
+                                                        return `<div class="relative group cursor-pointer" onclick="openMediaModal('${path}', 'image')"><img src="${path}" class="w-32 h-32 object-cover rounded-lg border border-white/10" alt="Attachment"></div>`;
+                                                    } else if (['video', 'mp4', 'mov', 'avi'].includes(att.file_type) || /\.(mp4|mov|avi)$/i.test(path)) {
+                                                        return `<div class="relative group w-32 h-32 cursor-pointer" onclick="openMediaModal('${path}', 'video')"><video src="${path}" class="w-full h-full object-cover rounded-lg border border-white/10"></video><div class="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/20 transition-all"><span class="material-symbols-outlined text-white text-3xl">play_circle</span></div></div>`;
+                                                    } else {
+                                                        return `<a href="${path}" target="_blank" class="flex items-center gap-2 p-2 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-colors"><span class="material-symbols-outlined text-slate-400">description</span><span class="text-xs text-blue-400 underline">View Attachment</span></a>`;
+                                                    }
+                                                }).join('')}
+                                            </div>` : ''}
                                         </div>
                                         <div class="flex items-center gap-3 mt-1 ml-2">
                                             <button onclick="likeReply(${reply.id}, this)" class="flex items-center gap-1 text-[10px] font-medium ${rLikeColor} hover:text-pink-500 transition-colors">
@@ -803,6 +961,19 @@ async function toggleCommentSection(postId) {
                                             ` : ''}
                                         </div>
                                         <p class="text-gray-200 text-sm leading-relaxed whitespace-pre-wrap comment-text break-words">${comment.comment}</p>
+                                        ${comment.attachments && comment.attachments.length > 0 ? `
+                                        <div class="mt-2 flex flex-wrap gap-2">
+                                            ${comment.attachments.map(att => {
+                                                const path = att.file_path.startsWith('http') ? att.file_path : `${window.PUBLIC_URL}/${att.file_path}`;
+                                                if (['image', 'jpg', 'png', 'jpeg', 'gif'].includes(att.file_type) || /\.(jpg|jpeg|png|gif)$/i.test(path)) {
+                                                    return `<div class="relative group cursor-pointer" onclick="openMediaModal('${path}', 'image')"><img src="${path}" class="w-32 h-32 object-cover rounded-lg border border-white/10" alt="Attachment"></div>`;
+                                                } else if (['video', 'mp4', 'mov', 'avi'].includes(att.file_type) || /\.(mp4|mov|avi)$/i.test(path)) {
+                                                    return `<div class="relative group w-32 h-32 cursor-pointer" onclick="openMediaModal('${path}', 'video')"><video src="${path}" class="w-full h-full object-cover rounded-lg border border-white/10"></video><div class="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/20 transition-all"><span class="material-symbols-outlined text-white text-3xl">play_circle</span></div></div>`;
+                                                } else {
+                                                    return `<a href="${path}" target="_blank" class="flex items-center gap-2 p-2 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-colors"><span class="material-symbols-outlined text-slate-400">description</span><span class="text-xs text-blue-400 underline">View Attachment</span></a>`;
+                                                }
+                                            }).join('')}
+                                        </div>` : ''}
                                     </div>
                                     <div class="flex items-center gap-4 mt-1.5 ml-2">
                                         <button onclick="likeComment(${comment.id}, this)" class="flex items-center gap-1.5 text-xs font-medium ${likeColorClass} hover:text-pink-500 transition-colors group">
@@ -830,8 +1001,15 @@ async function toggleCommentSection(postId) {
                                             <button onclick="submitReply(${comment.id})" class="absolute right-2 bottom-1.5 p-1 rounded-lg text-blue-400 hover:bg-blue-600/20 hover:text-white transition-all">
                                                 <span class="material-symbols-outlined text-[16px]">send</span>
                                             </button>
+                                            <div class="absolute right-10 bottom-1.5">
+                                                <label for="reply-file-${comment.id}" class="cursor-pointer text-slate-400 hover:text-white transition-colors p-1">
+                                                    <span class="material-symbols-outlined text-[18px]">attach_file</span>
+                                                    <input type="file" id="reply-file-${comment.id}" class="hidden" onchange="handleCommentFileSelect(event, 'reply-preview-${comment.id}')">
+                                                </label>
+                                            </div>
                                          </div>
                                     </div>
+                                    <div id="reply-preview-${comment.id}" class="mt-2 ml-12 hidden"></div>
 
                                     ${repliesHTML}
                                 </div>
@@ -928,10 +1106,19 @@ async function submitReply(commentId) {
     if(!content) return;
 
     try {
+        const fileInput = document.getElementById(`reply-file-${commentId}`);
+        const formData = new FormData();
+        formData.append('comment_id', commentId);
+        formData.append('reply', content);
+
+        if (fileInput && fileInput.files.length > 0) {
+            formData.append('attachments[]', fileInput.files[0]);
+        }
+
         const response = await fetch(`${API_BASE_URL}/create_comment_reply`, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ comment_id: commentId, reply: content })
+            headers: { 'Authorization': `Bearer ${token}` }, // No Content-Type for FormData
+            body: formData
         });
         const data = await response.json();
         if(response.status === 200 || response.status === 202) {
@@ -957,16 +1144,24 @@ async function submitComment(postId) {
         if(!content) return;
 
         try {
+            const fileInput = document.getElementById(`comment-file-${postId}`);
+            const formData = new FormData();
+            formData.append('post_id', postId);
+            formData.append('comment', content);
+            
+            if (fileInput && fileInput.files.length > 0) {
+                // Laravel expects array for multiple, checking singular implementation
+                // Based on previous code, controller expects 'attachments' array
+                formData.append('attachments[]', fileInput.files[0]);
+            }
+
             const response = await fetch(`${API_BASE_URL}/create_comment`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
+                    'Authorization': `Bearer ${token}`
+                    // Content-Type must be undefined for FormData boundary
                 },
-                body: JSON.stringify({
-                    post_id: postId,
-                    comment: content
-                })
+                body: formData
             });
             
             const data = await response.json();
@@ -1029,7 +1224,10 @@ async function likePost(id, btn) {
 
 // Likers Modal Logic
 // Generic User List Modal Logic
-let likersModalOpen = false;
+if (typeof window.likersModalOpen === 'undefined') {
+    window.likersModalOpen = false;
+}
+// Remove let to avoid SyntaxError
 
 // Can be called with (id, type) for fetching, OR (title, userList) for direct display
 async function openUserListModal(arg1, arg2) {
@@ -1040,7 +1238,7 @@ async function openUserListModal(arg1, arg2) {
 
     modal.classList.remove('hidden');
     setTimeout(() => modal.firstElementChild.classList.remove('scale-95', 'opacity-0'), 10);
-    likersModalOpen = true;
+    window.likersModalOpen = true;
 
     const titleEl = modal.querySelector('h3');
     list.innerHTML = '<div class="text-center text-slate-400 py-8">Loading...</div>';
@@ -1122,7 +1320,7 @@ function closeLikersModal() {
     
     modal.firstElementChild.classList.add('scale-95', 'opacity-0');
     setTimeout(() => modal.classList.add('hidden'), 200);
-    likersModalOpen = false;
+    window.likersModalOpen = false;
 }
 
 // Initialize modal listener if element exists
@@ -1496,3 +1694,273 @@ document.addEventListener('click', (e) => {
         });
     }
 });
+
+// --- Attachment Helper Functions ---
+window.handleFileSelect = function(event, previewId) {
+    const file = event.target.files[0];
+    const previewContainer = document.getElementById(previewId);
+    
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewContainer.innerHTML = `
+                <div class="relative inline-block mt-2">
+                    ${file.type.startsWith('image/') 
+                        ? `<img src="${e.target.result}" class="h-24 w-auto rounded-lg border border-white/10 object-cover shadow-lg">` 
+                        : `<div class="h-20 w-auto px-4 flex items-center justify-center bg-white/10 rounded-lg border border-white/10 gap-2"><span class="material-symbols-outlined text-white">description</span><span class="text-xs text-white">${file.name}</span></div>`
+                    }
+                    <button onclick="clearFileSelection('${event.target.id}', '${previewId}')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 shadow-md hover:bg-red-600 transition-colors">
+                        <span class="material-symbols-outlined text-[14px]">close</span>
+                    </button>
+                </div>
+            `;
+            previewContainer.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+    } else {
+        previewContainer.innerHTML = '';
+        previewContainer.classList.add('hidden');
+    }
+};
+
+window.clearFileSelection = function(inputId, previewId) {
+    const input = document.getElementById(inputId);
+    if(input) input.value = '';
+    const previewContainer = document.getElementById(previewId);
+    if(previewContainer) {
+        previewContainer.innerHTML = '';
+        previewContainer.classList.add('hidden');
+    }
+};
+
+// --- Updated Submit Logic with Previews ---
+
+window.submitComment = async function(postId) {
+    const input = document.getElementById(`comment-input-${postId}`);
+    const content = input.value.trim();
+    const fileInput = document.getElementById(`comment-file-${postId}`);
+    
+    if(!content && (!fileInput || fileInput.files.length === 0)) return;
+
+    try {
+        const formData = new FormData();
+        formData.append('post_id', postId);
+        formData.append('comment', content);
+        
+        if(fileInput && fileInput.files.length > 0) {
+            formData.append('attachments[]', fileInput.files[0]);
+        }
+
+        const response = await fetch(`${API_BASE_URL}/create_comment`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${window.token || localStorage.getItem('token')}`
+            },
+            body: formData
+        });
+
+        const data = await response.json();
+        
+        if(data.success) {
+            input.value = '';
+            if(fileInput) fileInput.value = '';
+            const previewId = `comment-preview-${postId}`;
+            const previewContainer = document.getElementById(previewId);
+            if(previewContainer) {
+                previewContainer.innerHTML = '';
+                previewContainer.classList.add('hidden');
+            }
+
+            showToast('Comment posted! 💬');
+            // Refresh comments logic
+            if(typeof toggleCommentSection === 'function') {
+                 toggleCommentSection(postId);
+                 setTimeout(() => toggleCommentSection(postId), 100); 
+            }
+        } else {
+            showToast(data.message || 'Failed to post comment', 'error');
+        }
+    } catch(e) {
+        console.error(e);
+        showToast('Error posting comment', 'error');
+    }
+};
+
+window.submitReply = async function(commentId) {
+    const input = document.getElementById(`reply-input-${commentId}`);
+    const content = input.value.trim();
+    const fileInput = document.getElementById(`reply-file-${commentId}`);
+
+    if(!content && (!fileInput || fileInput.files.length === 0)) return;
+
+    try {
+        const formData = new FormData();
+        formData.append('comment_id', commentId);
+        formData.append('reply', content);
+
+        if (fileInput && fileInput.files.length > 0) {
+            formData.append('attachments[]', fileInput.files[0]);
+        }
+
+        const response = await fetch(`${API_BASE_URL}/create_comment_reply`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${window.token || localStorage.getItem('token')}`
+            },
+            body: formData
+        });
+
+        const data = await response.json();
+        
+        if(data.success) {
+            input.value = '';
+            if(fileInput) fileInput.value = '';
+            const previewId = `reply-preview-${commentId}`;
+            const previewContainer = document.getElementById(previewId);
+            if(previewContainer) {
+                previewContainer.innerHTML = '';
+                previewContainer.classList.add('hidden');
+            }
+
+            showToast('Reply posted! 💬');
+            
+            // Refresh context
+            if (typeof loadTabContent === 'function') loadTabContent();
+            else if (typeof loadPosts === 'function') loadPosts();
+            else if (typeof loadPostDetail === 'function') loadPostDetail();
+
+        } else {
+            showToast(data.message || 'Failed to post reply', 'error');
+        }
+    } catch(e) {
+        console.error(e);
+        showToast('Error posting reply', 'error');
+    }
+};
+
+/**
+ * Handles file selection for comments and replies, showing a preview.
+ */
+window.handleCommentFileSelect = function(event, previewId) {
+    const file = event.target.files[0];
+    const container = document.getElementById(previewId);
+    if(!container) return;
+    
+    container.innerHTML = '';
+    container.classList.add('hidden');
+    
+    if (file) {
+        container.classList.remove('hidden');
+        const reader = new FileReader();
+        
+        if (file.type.startsWith('image/')) {
+            reader.onload = function(e) {
+                container.innerHTML = `
+                    <div class="relative inline-block group mt-2">
+                        <img src="${e.target.result}" class="h-20 w-auto rounded-lg border border-white/10 object-cover bg-black/50">
+                        <button type="button" onclick="clearCommentFile('${event.target.id}', '${previewId}')" class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-0.5 shadow-lg transition-colors z-10 flex">
+                            <span class="material-symbols-outlined text-[14px]">close</span>
+                        </button>
+                    </div>`;
+            };
+            reader.readAsDataURL(file);
+        } else if (file.type.startsWith('video/')) {
+             container.innerHTML = `
+                <div class="relative inline-block group mt-2">
+                    <div class="h-20 w-32 bg-black rounded-lg border border-white/10 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white/50 text-2xl">videocam</span>
+                    </div>
+                    <button type="button" onclick="clearCommentFile('${event.target.id}', '${previewId}')" class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-0.5 shadow-lg transition-colors z-10 flex">
+                        <span class="material-symbols-outlined text-[14px]">close</span>
+                    </button>
+                    <span class="text-[10px] text-slate-400 block mt-1 truncate max-w-[120px]">${file.name}</span>
+                </div>`;
+        } else {
+             container.innerHTML = `
+                <div class="relative inline-block group mt-2">
+                    <div class="h-10 px-3 bg-white/5 rounded-lg border border-white/10 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-slate-400 text-[18px]">attachment</span>
+                        <span class="text-xs text-slate-300 truncate max-w-[150px]">${file.name}</span>
+                    </div>
+                    <button type="button" onclick="clearCommentFile('${event.target.id}', '${previewId}')" class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-0.5 shadow-lg transition-colors z-10 flex">
+                        <span class="material-symbols-outlined text-[14px]">close</span>
+                    </button>
+                </div>`;
+        }
+    }
+}
+
+/**
+ * Clears the selected file from the input and hides the preview.
+ */
+window.clearCommentFile = function(inputId, previewId) {
+    const input = document.getElementById(inputId);
+    const container = document.getElementById(previewId);
+    if(input) {
+        input.value = ''; // Reset input
+    }
+    if(container) {
+        container.innerHTML = '';
+        container.classList.add('hidden');
+    }
+}
+
+/**
+ * Opens a modal to view media (image/video).
+ * Dynamically creates the modal if it doesn't exist.
+ */
+window.openMediaModal = function(src, type) {
+    let modal = document.getElementById('media-modal');
+    
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'media-modal';
+        modal.className = 'fixed inset-0 z-[100] hidden animate-fade-in';
+        modal.innerHTML = `
+            <div class="absolute inset-0 bg-black/95 backdrop-blur-md transition-opacity" onclick="closeMediaModal()"></div>
+            <div class="absolute inset-0 flex items-center justify-center p-4">
+                <div class="relative max-h-[90vh] max-w-[90vw] overflow-visible group">
+                     <button onclick="closeMediaModal()" class="absolute -top-12 right-0 z-50 p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-all border border-white/10">
+                        <span class="material-symbols-outlined text-[24px]">close</span>
+                     </button>
+                     <div id="media-modal-content" class="flex items-center justify-center shadow-2xl rounded-lg overflow-hidden ring-1 ring-white/10 bg-black"></div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    
+    const contentFn = document.getElementById('media-modal-content');
+    contentFn.innerHTML = ''; // Clear previous
+    
+    // Normalize Source
+    if (src.startsWith('storage/')) {
+        src = `${window.PUBLIC_URL}/${src}`; // Ensure full path if relative
+    }
+    
+    if (type === 'video') {
+        contentFn.innerHTML = `
+            <video src="${src}" controls autoplay class="max-h-[85vh] max-w-full rounded-lg outline-none"></video>
+        `;
+    } else {
+        contentFn.innerHTML = `
+            <img src="${src}" class="max-h-[85vh] max-w-full object-contain rounded-lg" alt="Preview">
+        `;
+    }
+    
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden'; // Prevent scrolling
+}
+
+/**
+ * Closes the media modal.
+ */
+window.closeMediaModal = function() {
+    const modal = document.getElementById('media-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        const content = document.getElementById('media-modal-content');
+        if(content) content.innerHTML = ''; // Stop video playback
+    }
+    document.body.style.overflow = '';
+}

@@ -33,7 +33,7 @@ class CommentsRepliesController extends BaseController
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
                     $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                    $file->move(public_path('comment_replies'), $filename);
+                    $file->move(public_path('storage/comment_replies'), $filename);
                     $uploadFiles[] = $filename;
                 }
             }
@@ -63,7 +63,7 @@ class CommentsRepliesController extends BaseController
                         $commentReply->attachments()->create([
                             'file_name' => $filename,
                             'file_type' => $type,
-                            'file_path' => 'comment_replies/' . $filename,
+                            'file_path' => 'storage/comment_replies/' . $filename,
                         ]);
                     }
                 } catch (\Exception $e) {
@@ -90,7 +90,7 @@ class CommentsRepliesController extends BaseController
             // Reload to get relationships if needed (e.g. avatar) or just return what we have
             // We need to return structure matching what frontend expects if possible, 
             // but for now ID is critical.
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Comment Reply created successfully',
@@ -143,7 +143,7 @@ class CommentsRepliesController extends BaseController
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
                     $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                    $file->move(public_path('comment_replies'), $filename);
+                    $file->move(public_path('storage/comment_replies'), $filename);
                     $uploadFiles[] = $filename;
                 }
             }

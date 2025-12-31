@@ -70,6 +70,8 @@ function switchTab(mode) {
 
 async function fetchReels(mode = 'foryou') {
     const container = document.getElementById('reels-container');
+    if (!container) return; // Exit if container doesn't exist (e.g. on profile page)
+
     const token = localStorage.getItem('auth_token');
 
     if (!token) {
@@ -221,10 +223,12 @@ const getStorageUrl = (path) => {
     if (path.startsWith('http')) return path;
     const cleanPath = path.startsWith('/') ? path.substring(1) : path;
 
-    // If path is in known public folders (profiles, posts) dont prepend storage
-    if (cleanPath.startsWith('profiles/') || cleanPath.startsWith('posts/')) {
+    // Check if path already has 'storage/' prefix
+    if (cleanPath.startsWith('storage/')) {
         return `${window.PUBLIC_URL}/${cleanPath}`;
     }
+
+    // Default: Append storage/
     return `${window.PUBLIC_URL}/storage/${cleanPath}`;
 };
 
@@ -232,29 +236,9 @@ function createReelElement(reel) {
     const div = document.createElement('div');
     div.className = 'snap-center relative shrink-0 w-full h-[calc(100vh-80px)] md:h-[calc(100vh-40px)] rounded-xl overflow-hidden shadow-2xl bg-black border border-white/5 mb-4 group';
 
-    // Construct URLs
-    // Ensure video path is correct. If it's a full URL, use it. If it's a relative path, prepend storage URL.
-    // Also remove any double slashes if present
-    let videoUrl = '';
-    if (reel.video_path) {
-        if (reel.video_path.startsWith('http')) {
-            videoUrl = reel.video_path;
-        } else {
-            // Clean path: remove leading slash if present
-            const cleanPath = reel.video_path.startsWith('/') ? reel.video_path.substring(1) : reel.video_path;
-            videoUrl = `${window.PUBLIC_URL}/storage/${cleanPath}`;
-        }
-    }
-
-    let thumbUrl = '';
-    if (reel.thumbnail_path) {
-        if (reel.thumbnail_path.startsWith('http')) {
-            thumbUrl = reel.thumbnail_path;
-        } else {
-            const cleanThumb = reel.thumbnail_path.startsWith('/') ? reel.thumbnail_path.substring(1) : reel.thumbnail_path;
-            thumbUrl = `${window.PUBLIC_URL}/storage/${cleanThumb}`;
-        }
-    }
+    // Construct URLs using the centralized helper
+    const videoUrl = getStorageUrl(reel.video_path);
+    const thumbUrl = getStorageUrl(reel.thumbnail_path);
 
     // Unified Avatar Logic
     const userAvatar = getProfilePicture(reel.user);
@@ -281,7 +265,7 @@ function createReelElement(reel) {
             <div class="p-2.5 rounded-full bg-white/10 backdrop-blur-md group-hover/btn:bg-red-500/20 transition-all border border-white/10 group-active/btn:scale-90">
                 <span class="material-symbols-outlined text-white text-[28px] group-hover/btn:text-red-500 transition-colors ${reel.is_liked ? 'text-red-500 fill-current' : ''}" style="${reel.is_liked ? "font-variation-settings: 'FILL' 1;" : ''}">favorite</span>
             </div>
-            <span class="text-white font-medium text-xs drop-shadow-md">${formatNumber(reel.likes_count || 0)}</span>
+            <span class="text-white font-medium text-xs drop-shadow-md hidden md:block">${formatNumber(reel.likes_count || 0)}</span>
         </button>
 
         <!-- Save Button -->
@@ -289,7 +273,7 @@ function createReelElement(reel) {
             <div class="p-2.5 rounded-full bg-white/10 backdrop-blur-md group-hover/btn:bg-yellow-500/20 transition-all border border-white/10 group-active/btn:scale-90">
                 <span class="material-symbols-outlined text-white text-[28px] group-hover/btn:text-yellow-500 transition-colors ${reel.is_saved ? 'text-yellow-500 fill-current' : ''}" style="${reel.is_saved ? "font-variation-settings: 'FILL' 1;" : ''}">bookmark</span>
             </div>
-             <span class="text-white font-medium text-xs drop-shadow-md">Save</span>
+             <span class="text-white font-medium text-xs drop-shadow-md hidden md:block">Save</span>
         </button>
 
         <!-- Comment Button -->
@@ -297,13 +281,13 @@ function createReelElement(reel) {
                 <div class="flex items-center justify-center w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/10 transition-all group-hover/btn:bg-white/20 group-hover/btn:scale-110 active:scale-95">
                     <span class="material-symbols-outlined text-white text-[28px]">chat_bubble</span>
                 </div>
-                <span class="text-xs font-bold text-white drop-shadow-md">${reel.comments_count || 0}</span>
+                <span class="text-xs font-bold text-white drop-shadow-md hidden md:block">${reel.comments_count || 0}</span>
             </button>
             <button onclick="shareReel(${reel.id})" class="group/btn flex flex-col items-center gap-1">
                 <div class="flex items-center justify-center w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/10 transition-all group-hover/btn:bg-white/20 group-hover/btn:scale-110 active:scale-95">
                     <span class="material-symbols-outlined text-white text-[28px]">send</span>
                 </div>
-                <span class="text-xs font-bold text-white drop-shadow-md">Share</span>
+                <span class="text-xs font-bold text-white drop-shadow-md hidden md:block">Share</span>
             </button>
 
             <!-- More Actions (3 Dots) -->
@@ -777,10 +761,26 @@ function renderComments(comments) {
                                      </div>
                                  </div>
                                  ` : ''}
-                             </div>
-                             <p class="text-sm text-slate-300 leading-snug comment-text break-words">${reply.reply}</p>
-                             
-                             <!-- Reply Action on Reply -->
+                     </div>
+                                 ${(() => {
+                                     if(reply.attachments && reply.attachments.length > 0) {
+                                         return reply.attachments.map(att => {
+                                             const url = `${window.PUBLIC_URL}/storage/comment_replies/${att.file_path}`;
+                                             if(['jpg','jpeg','png','gif'].includes(att.file_type?.toLowerCase())) {
+                                                return `<img onclick="openMediaModal('${url}', 'image')" src="${url}" class="mt-2 h-20 w-auto rounded-lg border border-white/10 object-cover cursor-pointer hover:opacity-90">`;
+                                             } else if (['mp4','mov','avi'].includes(att.file_type?.toLowerCase())) {
+                                                 return `<div onclick="openMediaModal('${url}', 'video')" class="mt-2 h-20 w-32 bg-black rounded-lg border border-white/10 flex items-center justify-center cursor-pointer hover:bg-white/5 relative group/vid">
+                                                            <span class="material-symbols-outlined text-white/50 group-hover/vid:text-white text-3xl">play_circle</span>
+                                                         </div>`;
+                                             }
+                                             return '';
+                                         }).join('');
+                                     } 
+                                     return '';
+                                 })()}
+                                 <p class="text-sm text-slate-300 leading-snug comment-text break-words">${reply.reply}</p>
+                                 
+                                 <!-- Reply Action on Reply -->
                              <div class="flex items-center gap-4 mt-0.5">
                                 <button onclick="initiateReply(${comment.id}, '${rUser.name.replace(/'/g, "\\\'")}')" class="text-[10px] font-bold text-slate-500 hover:text-white transition-colors">Reply</button>
                              </div>
@@ -821,6 +821,34 @@ function renderComments(comments) {
                          ` : ''}
                      </div>
                      
+                     ${(() => {
+                         if(comment.attachments && comment.attachments.length > 0) {
+                             return `<div class="mt-2 flex flex-wrap gap-2">
+                                 ${comment.attachments.map(att => {
+                                     let path = att.file_path;
+                                     if (!path.startsWith('http')) {
+                                         const baseUrl = window.PUBLIC_URL || '';
+                                         if (path.startsWith('storage/')) {
+                                             path = `${baseUrl}/${path}`;
+                                         } else {
+                                             path = `${baseUrl}/storage/comments/${path}`;
+                                         }
+                                     }
+
+                                     if(['image', 'jpg', 'jpeg', 'png', 'gif'].includes(att.file_type?.toLowerCase()) || /\.(jpg|jpeg|png|gif)$/i.test(path)) {
+                                        return `<img onclick="openMediaModal('${path}', 'image')" src="${path}" class="h-24 w-auto rounded-lg border border-white/10 object-cover cursor-pointer hover:opacity-90">`;
+                                     } else if (['video', 'mp4', 'mov', 'avi'].includes(att.file_type?.toLowerCase()) || /\.(mp4|mov|avi)$/i.test(path)) {
+                                         return `<div onclick="openMediaModal('${path}', 'video')" class="h-24 w-40 bg-black rounded-lg border border-white/10 flex items-center justify-center cursor-pointer hover:bg-white/5 relative group/vid">
+                                                    <span class="material-symbols-outlined text-white/50 group-hover/vid:text-white text-3xl">play_circle</span>
+                                                 </div>`;
+                                     }
+                                     return '';
+                                 }).join('')}
+                             </div>`;
+                         } 
+                         return '';
+                     })()}
+
                      <p class="text-sm text-slate-300 leading-snug comment-text break-words">${comment.comment}</p>
                      
                      <div class="flex items-center gap-4 mt-1">
@@ -925,6 +953,33 @@ async function toggleReplies(commentId) {
                                         </div>
                                         ` : ''}
                                     </div>
+                                    ${(() => {
+                                         if(reply.attachments && reply.attachments.length > 0) {
+                                             return `<div class="mt-2 flex flex-wrap gap-2">
+                                                 ${reply.attachments.map(att => {
+                                                     let path = att.file_path;
+                                                     if (!path.startsWith('http')) {
+                                                         const baseUrl = window.PUBLIC_URL || '';
+                                                         if (path.startsWith('storage/')) {
+                                                             path = `${baseUrl}/${path}`;
+                                                         } else {
+                                                             path = `${baseUrl}/storage/comment_replies/${path}`;
+                                                         }
+                                                     }
+                                                     
+                                                     if(['image', 'jpg', 'jpeg', 'png', 'gif'].includes(att.file_type?.toLowerCase()) || /\.(jpg|jpeg|png|gif)$/i.test(path)) {
+                                                        return `<img onclick="openMediaModal('${path}', 'image')" src="${path}" class="h-20 w-auto rounded-lg border border-white/10 object-cover cursor-pointer hover:opacity-90">`;
+                                                     } else if (['video', 'mp4', 'mov', 'avi'].includes(att.file_type?.toLowerCase()) || /\.(mp4|mov|avi)$/i.test(path)) {
+                                                         return `<div onclick="openMediaModal('${path}', 'video')" class="h-20 w-32 bg-black rounded-lg border border-white/10 flex items-center justify-center cursor-pointer hover:bg-white/5 relative group/vid">
+                                                                    <span class="material-symbols-outlined text-white/50 group-hover/vid:text-white text-3xl">play_circle</span>
+                                                                 </div>`;
+                                                     }
+                                                     return '';
+                                                 }).join('')}
+                                             </div>`;
+                                         } 
+                                         return '';
+                                     })()}
                                     <p class="text-sm text-slate-300 leading-snug comment-text break-words">${reply.reply}</p>
                                 </div>
                                 <button onclick="toggleReplyLike(this, ${reply.id})" class="text-slate-500 hover:text-red-500 transition-colors p-1 group/like shrink-0">
@@ -958,6 +1013,33 @@ function renderReplies(commentId, replies) {
                          <span class="text-xs font-bold text-white">${user.name}</span>
                          <span class="text-[10px] text-slate-500">${timeAgo(reply.reply_created_at || reply.created_at)}</span>
                      </div>
+                     ${(() => {
+                          if(reply.attachments && reply.attachments.length > 0) {
+                              return `<div class="mt-2 flex flex-wrap gap-2">
+                                  ${reply.attachments.map(att => {
+                                      let path = att.file_path;
+                                      if (!path.startsWith('http')) {
+                                          const baseUrl = window.PUBLIC_URL || '';
+                                          if (path.startsWith('storage/')) {
+                                              path = `${baseUrl}/${path}`;
+                                          } else {
+                                              path = `${baseUrl}/storage/comment_replies/${path}`;
+                                          }
+                                      }
+
+                                      if(['image', 'jpg', 'jpeg', 'png', 'gif'].includes(att.file_type?.toLowerCase()) || /\.(jpg|jpeg|png|gif)$/i.test(path)) {
+                                         return `<img onclick="openMediaModal('${path}', 'image')" src="${path}" class="h-20 w-auto rounded-lg border border-white/10 object-cover cursor-pointer hover:opacity-90">`;
+                                      } else if (['video', 'mp4', 'mov', 'avi'].includes(att.file_type?.toLowerCase()) || /\.(mp4|mov|avi)$/i.test(path)) {
+                                          return `<div onclick="openMediaModal('${path}', 'video')" class="h-20 w-32 bg-black rounded-lg border border-white/10 flex items-center justify-center cursor-pointer hover:bg-white/5 relative group/vid">
+                                                     <span class="material-symbols-outlined text-white/50 group-hover/vid:text-white text-3xl">play_circle</span>
+                                                  </div>`;
+                                      }
+                                      return '';
+                                  }).join('')}
+                              </div>`;
+                          } 
+                          return '';
+                      })()}
                      <p class="text-sm text-slate-300 leading-snug">${reply.reply}</p>
                  </div>
                  <button onclick="toggleReplyLike(this, ${reply.id})" class="text-slate-500 hover:text-red-500 transition-colors p-1 group/like">
@@ -1017,11 +1099,8 @@ async function toggleReplyLike(btn, id) {
 
 
 // Send Comment
-const sendBtn = document.getElementById('send-comment-btn');
-const commentInput = document.getElementById('comment-input');
 
-if (sendBtn && commentInput) {
-    const sendHandler = async () => {
+    /* const sendHandler = async () => {
         const text = commentInput.value.trim();
         if (!text || !currentReelIdForComments) return;
 
@@ -1184,7 +1263,7 @@ if (sendBtn && commentInput) {
              commentInput.placeholder = "Add a comment...";
         });
     }
-}
+} */
 
 // Simple timeAgo helper if not existing or can use existing if standardized
 function timeAgo(dateString) {
@@ -1413,6 +1492,307 @@ window.followUserReel = async (userId, btn) => {
         }
     }
 };
+
+// --- Comment Submission Logic ---
+
+const sendCommentBtn = document.getElementById('send-comment-btn');
+const commentInput = document.getElementById('comment-input');
+const cancelReplyBtn = document.getElementById('cancel-reply-btn');
+
+if (sendCommentBtn && commentInput) {
+    sendCommentBtn.addEventListener('click', async () => {
+        const text = commentInput.value.trim();
+        const fileInput = document.getElementById('reel-comment-file');
+        const hasFile = fileInput && fileInput.files.length > 0;
+
+        if (!text && !hasFile) return;
+
+        // Visual Feedback
+        sendCommentBtn.disabled = true;
+        const originalIcon = sendCommentBtn.innerHTML;
+        sendCommentBtn.innerHTML = '<div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>';
+
+        try {
+            const token = localStorage.getItem('auth_token');
+            const formData = new FormData();
+            
+            // Check if Replying
+            if (replyingTo) {
+                // Reply
+                formData.append('comment_id', replyingTo.id);
+                // Schema requires 'reply' text. Send space if empty but file exists.
+                const contentToSend = text || (hasFile ? ' ' : '');
+                formData.append('reply', contentToSend);
+                if (hasFile) formData.append('attachments[]', fileInput.files[0]);
+
+                const response = await fetch(`${API_BASE_URL}/create_comment_reply`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast('Reply sent', 'success');
+                    
+                    // Optimistic Reply
+                    const currentUser = JSON.parse(localStorage.getItem('user_data') || '{}');
+                    const displayAvatar = getProfilePicture(currentUser);
+                    const newId = data.data ? data.data.id : Date.now();
+                    const commentId = replyingTo.id;
+                    const repliesContainer = document.getElementById(`replies-${commentId}`);
+                    
+                    if (repliesContainer) {
+                        repliesContainer.classList.remove('hidden');
+                        if (repliesContainer.innerHTML.includes('No replies yet')) repliesContainer.innerHTML = '';
+                        
+                        const newReplyHTML = `
+                            <div class="flex gap-3 items-start group/reply relative" id="comment-row-r-${newId}">
+                                 <img src="${displayAvatar}" class="w-6 h-6 rounded-full border border-white/10 object-cover mt-1 shrink-0">
+                                 <div class="flex-1 space-y-1 min-w-0">
+                                     <div class="flex justify-between items-start">
+                                         <div class="flex items-baseline gap-2">
+                                             <span class="text-xs font-bold text-white truncate">${currentUser.name || 'You'}</span>
+                                             <span class="text-[10px] text-slate-500 whitespace-nowrap">Just now</span>
+                                         </div>
+                                         <div class="relative group">
+                                             <button onclick="toggleCommentMenu(event, this)" class="text-slate-500 hover:text-white p-0.5 opacity-0 group-hover/reply:opacity-100 transition-opacity">
+                                                 <span class="material-symbols-outlined text-[14px]">more_horiz</span>
+                                             </button>
+                                             <div class="comment-menu absolute right-0 top-5 w-24 bg-[#1e2330] border border-white/10 rounded-lg shadow-xl py-1 z-20 opacity-0 scale-95 pointer-events-none transition-all duration-200 origin-top-right">
+                                                 <button onclick="editReelComment(${newId}, 'reply')" class="w-full text-left px-3 py-1.5 text-[10px] text-slate-300 hover:bg-white/10 hover:text-white flex items-center gap-1.5">
+                                                     <span class="material-symbols-outlined text-[12px]">edit</span> Edit
+                                                 </button>
+                                                 <button onclick="deleteReelComment(${newId}, this, 'reply')" class="w-full text-left px-3 py-1.5 text-[10px] text-red-400 hover:bg-white/10 flex items-center gap-1.5">
+                                                     <span class="material-symbols-outlined text-[12px]">delete</span> Delete
+                                                 </button>
+                                             </div>
+                                         </div>
+                                     </div>
+                                     
+                                     ${(() => {
+                                         // 1. Try server data
+                                         if(data.data && data.data.attachments && data.data.attachments.length > 0) {
+                                              return data.data.attachments.map(att => {
+                                                 const url = `${window.PUBLIC_URL}/storage/comment_replies/${att.file_path}`;
+                                                 if(['jpg','jpeg','png','gif'].includes(att.file_type?.toLowerCase())) {
+                                                    return `<img onclick="openMediaModal('${url}', 'image')" src="${url}" class="mt-2 h-20 w-auto rounded-lg border border-white/10 object-cover cursor-pointer hover:opacity-90">`;
+                                                 } else if (['mp4','mov','avi'].includes(att.file_type?.toLowerCase())) {
+                                                     return `<div onclick="openMediaModal('${url}', 'video')" class="mt-2 h-20 w-32 bg-black rounded-lg border border-white/10 flex items-center justify-center cursor-pointer hover:bg-white/5 relative group/vid">
+                                                                <span class="material-symbols-outlined text-white/50 group-hover/vid:text-white text-3xl">play_circle</span>
+                                                             </div>`;
+                                                 }
+                                                 return '';
+                                              }).join('');
+                                         }
+                                         // 2. Fallback to local file (Optimistic)
+                                         else if (hasFile && fileInput.files[0]) {
+                                             const file = fileInput.files[0];
+                                             const url = URL.createObjectURL(file);
+                                             if(file.type.startsWith('image/')) {
+                                                 return `<img onclick="openMediaModal('${url}', 'image')" src="${url}" class="mt-2 h-20 w-auto rounded-lg border border-white/10 object-cover cursor-pointer hover:opacity-90">`;
+                                             } else if (file.type.startsWith('video/')) {
+                                                  return `<div onclick="openMediaModal('${url}', 'video')" class="mt-2 h-20 w-32 bg-black rounded-lg border border-white/10 flex items-center justify-center cursor-pointer hover:bg-white/5 relative group/vid">
+                                                             <span class="material-symbols-outlined text-white/50 group-hover/vid:text-white text-3xl">play_circle</span>
+                                                          </div>`;
+                                             }
+                                         }
+                                         return '';
+                                     })()}
+
+                                     <p class="text-sm text-slate-300 leading-snug comment-text break-words">${text}</p>
+                                     
+                                     <!-- Reply Action on Reply (Optimistic) -->
+                                     <div class="flex items-center gap-4 mt-0.5">
+                                        <button onclick="initiateReply(${commentId}, '${(currentUser.name || 'You').replace(/'/g, "\\'")}')" class="text-[10px] font-bold text-slate-500 hover:text-white transition-colors">Reply</button>
+                                     </div>
+                                 </div>
+                                 <button class="text-slate-500 hover:text-red-500 transition-colors p-1 group/like shrink-0">
+                                     <span class="material-symbols-outlined text-[12px]">favorite</span>
+                                 </button>
+                            </div>
+                         `;
+                        repliesContainer.insertAdjacentHTML('beforeend', newReplyHTML);
+                    }
+
+                    // Reset
+                    commentInput.value = '';
+                    clearReelCommentFile();
+                    cancelReplyMode();
+                } else {
+                    showToast(data.message || 'Failed to reply', 'error');
+                }
+            } else {
+                // Top-level Comment
+                if (!currentReelIdForComments) return;
+                formData.append('reel_id', currentReelIdForComments);
+                // Schema requires 'comment' text. Send space if empty but file exists.
+                const contentToSend = text || (hasFile ? ' ' : '');
+                formData.append('comment', contentToSend);
+                if (hasFile) formData.append('attachments[]', fileInput.files[0]);
+
+                const response = await fetch(`${API_BASE_URL}/create_comment`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast('Comment posted', 'success');
+                    // Increment Count UI
+                    const commentBtn = document.querySelector(`button[onclick="openComments('${currentReelIdForComments}')"] span:last-child, button[onclick="openComments(${currentReelIdForComments})"] span:last-child`);
+
+                    if(commentBtn) {
+                        let c = parseInt(commentBtn.textContent.replace(/,/g, '')) || 0;
+                        commentBtn.textContent = formatNumber(c + 1);
+                    }
+                    
+                    // Optimistic UI Update
+                    const currentUser = JSON.parse(localStorage.getItem('user_data') || '{}');
+                    const displayAvatar = getProfilePicture(currentUser); // Use helper
+                    // Backend created object is expected in data.data
+                    const createdComment = data.data || {
+                        id: Date.now(),
+                        user: currentUser,
+                        comment: text,
+                        created_at: new Date().toISOString(),
+                        attachments: hasFile ? [{ file_path: fileInput.files[0].name, file_type: fileInput.files[0].name.split('.').pop() }] : [] // Rough mock if data missing
+                    };
+                    // Ideally use the returned full object from backend if available
+                    
+                    const list = document.getElementById('comments-list');
+                    if(list) {
+                         if(list.innerText.includes('No comments yet')) list.innerHTML = '';
+                         
+                         const newCommentHTML = `
+                            <div class="flex gap-3 items-start group/comment" id="comment-row-c-${createdComment.id}">
+                                 <img src="${displayAvatar}" class="w-8 h-8 rounded-full border border-white/10 object-cover mt-1 shrink-0">
+                                 <div class="flex-1 space-y-1 min-w-0">
+                                     <div class="flex justify-between items-start">
+                                         <div class="flex items-baseline gap-2">
+                                             <span class="text-sm font-bold text-white truncate">${currentUser.name || 'You'}</span>
+                                             <span class="text-xs text-slate-500 whitespace-nowrap">Just now</span>
+                                         </div>
+                                         <div class="relative group">
+                                            <button onclick="toggleCommentMenu(event, this)" class="text-slate-500 hover:text-white p-1 opacity-0 group-hover/comment:opacity-100 transition-opacity">
+                                                <span class="material-symbols-outlined text-[16px]">more_horiz</span>
+                                            </button>
+                                            <div class="comment-menu absolute right-0 top-6 w-32 bg-[#1e2330] border border-white/10 rounded-lg shadow-xl py-1 z-20 opacity-0 scale-95 pointer-events-none transition-all duration-200 origin-top-right">
+                                                <button onclick="editReelComment(${createdComment.id}, 'comment')" class="w-full text-left px-3 py-2 text-xs text-slate-300 hover:bg-white/10 hover:text-white flex items-center gap-2">
+                                                    <span class="material-symbols-outlined text-[14px]">edit</span> Edit
+                                                </button>
+                                                <button onclick="deleteReelComment(${createdComment.id}, this, 'comment')" class="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-white/10 flex items-center gap-2">
+                                                    <span class="material-symbols-outlined text-[14px]">delete</span> Delete
+                                                </button>
+                                            </div>
+                                         </div>
+                                     </div>
+                                     
+                                     ${(() => {
+                                         // 1. Try server data
+                                         if(data.data && data.data.attachments && data.data.attachments.length > 0) {
+                                              return data.data.attachments.map(att => {
+                                                 const url = `${window.PUBLIC_URL}/storage/comments/${att.file_path}`;
+                                                 if(['jpg','jpeg','png','gif'].includes(att.file_type?.toLowerCase())) {
+                                                    return `<img onclick="openMediaModal('${url}', 'image')" src="${url}" class="mt-2 h-24 w-auto rounded-lg border border-white/10 object-cover cursor-pointer hover:opacity-90">`;
+                                                 } else if (['mp4','mov','avi'].includes(att.file_type?.toLowerCase())) {
+                                                     return `<div onclick="openMediaModal('${url}', 'video')" class="mt-2 h-24 w-40 bg-black rounded-lg border border-white/10 flex items-center justify-center cursor-pointer hover:bg-white/5 relative group/vid">
+                                                                <span class="material-symbols-outlined text-white/50 group-hover/vid:text-white text-3xl">play_circle</span>
+                                                             </div>`;
+                                                 }
+                                                 return '';
+                                              }).join('');
+                                         }
+                                         // 2. Fallback to local file (Optimistic)
+                                         else if (hasFile && fileInput.files[0]) {
+                                              const file = fileInput.files[0];
+                                              const url = URL.createObjectURL(file);
+                                              if(file.type.startsWith('image/')) {
+                                                  return `<img onclick="openMediaModal('${url}', 'image')" src="${url}" class="mt-2 h-24 w-auto rounded-lg border border-white/10 object-cover cursor-pointer hover:opacity-90">`;
+                                              } else if (file.type.startsWith('video/')) {
+                                                   return `<div onclick="openMediaModal('${url}', 'video')" class="mt-2 h-24 w-40 bg-black rounded-lg border border-white/10 flex items-center justify-center cursor-pointer hover:bg-white/5 relative group/vid">
+                                                              <span class="material-symbols-outlined text-white/50 group-hover/vid:text-white text-3xl">play_circle</span>
+                                                           </div>`;
+                                              }
+                                         }
+                                         return '';
+                                     })()}
+
+                                     <p class="text-sm text-slate-300 leading-snug comment-text break-words">${text}</p>
+                                     
+                                     <div class="flex items-center gap-4 mt-1">
+                                         <button onclick="initiateReply(${createdComment.id}, '${(currentUser.name || 'You').replace(/'/g, "\\'")}')" class="text-xs font-bold text-slate-500 hover:text-white transition-colors">Reply</button>
+                                     </div>
+                                     <div id="replies-${createdComment.id}" class="hidden pl-8 pt-2 space-y-3"></div>
+                                 </div>
+                                 <button class="text-slate-500 hover:text-red-500 transition-colors p-1 group/like shrink-0">
+                                     <span class="material-symbols-outlined text-[14px]">favorite</span>
+                                 </button>
+                            </div>
+                        `;
+                        list.insertAdjacentHTML('beforeend', newCommentHTML);
+                        list.scrollTop = list.scrollHeight;
+                    }
+                    
+                    // Reset Inputs AFTER rendering optimistic UI so we can access files[0]
+                    commentInput.value = '';
+                    clearReelCommentFile();
+                } else {
+                    showToast(data.message || 'Failed to post', 'error');
+                }
+            }
+        } catch (e) {
+            console.error(e);
+            showToast('Network error', 'error');
+        } finally {
+            sendCommentBtn.disabled = false;
+            sendCommentBtn.innerHTML = originalIcon;
+        }
+    });
+}
+
+// Enter key support
+if (commentInput) {
+    commentInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendCommentBtn.click();
+        }
+    });
+}
+
+// Reply Mode Helpers
+window.initiateReply = function(commentId, username) {
+    replyingTo = { id: commentId, username: username };
+    
+    const indicator = document.getElementById('reply-indicator');
+    const text = document.getElementById('replying-to-text');
+    const input = document.getElementById('comment-input');
+    
+    if(indicator && text) {
+        text.textContent = `Replying to ${username}`;
+        indicator.classList.remove('hidden');
+    }
+    
+    if(input) {
+        input.focus();
+        input.placeholder = `Reply to ${username}...`;
+    }
+}
+
+const cancelReplyMode = () => {
+    replyingTo = null;
+    const indicator = document.getElementById('reply-indicator');
+    const input = document.getElementById('comment-input');
+    
+    if(indicator) indicator.classList.add('hidden');
+    if(input) input.placeholder = "Add a comment...";
+}
+
+if(cancelReplyBtn) {
+    cancelReplyBtn.addEventListener('click', cancelReplyMode);
+}
 
 const viewedReelsSession = new Set();
 async function incrementReelView(reelId) {
@@ -1783,3 +2163,150 @@ document.addEventListener('click', (e) => {
         });
     }
 });
+
+// --- File Attachment Logic for Reels ---
+
+const handleReelCommentFileSelect = (event) => {
+    const file = event.target.files[0];
+    const previewContainer = document.getElementById('reel-comment-attachment-preview');
+    if (!previewContainer) return;
+
+    previewContainer.innerHTML = '';
+    previewContainer.classList.add('hidden');
+
+    if (file) {
+        previewContainer.classList.remove('hidden');
+        const reader = new FileReader();
+
+        const removeBtnHTML = `
+            <button onclick="clearReelCommentFile()" class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg transition-colors z-10 flex cursor-pointer">
+                <span class="material-symbols-outlined text-[14px]">close</span>
+            </button>
+        `;
+
+        if (file.type.startsWith('image/')) {
+            reader.onload = function (e) {
+                previewContainer.innerHTML = `
+                    <div class="relative inline-block group">
+                        <img src="${e.target.result}" class="h-16 w-auto rounded-md border border-white/10 object-cover bg-black/50">
+                        ${removeBtnHTML}
+                    </div>`;
+            };
+            reader.readAsDataURL(file);
+        } else if (file.type.startsWith('video/')) {
+            previewContainer.innerHTML = `
+                <div class="relative inline-block group">
+                     <div class="h-16 w-24 bg-black rounded-md border border-white/10 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white/50 text-2xl">videocam</span>
+                    </div>
+                    ${removeBtnHTML}
+                    <span class="text-[10px] text-slate-400 block mt-1 truncate max-w-[100px]">${file.name}</span>
+                </div>`;
+        }
+    }
+};
+// Attach listener globally or ensuring call
+document.addEventListener('DOMContentLoaded', () => {
+    const fileInput = document.getElementById('reel-comment-file');
+    if(fileInput) {
+        fileInput.addEventListener('change', handleReelCommentFileSelect);
+    }
+});
+
+window.clearReelCommentFile = function() {
+    const fileInput = document.getElementById('reel-comment-file');
+    const previewContainer = document.getElementById('reel-comment-attachment-preview');
+    
+    if(fileInput) fileInput.value = '';
+    if(previewContainer) {
+        previewContainer.innerHTML = '';
+        previewContainer.classList.add('hidden');
+    }
+};
+
+window.handleReelCommentFileSelect = handleReelCommentFileSelect;
+
+// Share Functionality
+window.shareReel = async (reelId) => {
+    const shareUrl = `${window.location.origin}/reels.html?id=${reelId}`;
+    const shareData = {
+        title: 'Check out this Reel!',
+        text: 'Watch this amazing reel on NexUs',
+        url: shareUrl
+    };
+
+    // Use Native Share if available (Mobile)
+    if (navigator.share) {
+        try {
+            await navigator.share(shareData);
+            return;
+        } catch (err) {
+            console.log('Share canceled or failed', err);
+        }
+    }
+
+    // Fallback: Custom Modal for Desktop/Unsupported
+    const existingModal = document.getElementById('share-modal');
+    if (existingModal) existingModal.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'share-modal';
+    modal.className = 'fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in';
+    modal.innerHTML = `
+        <div class="w-full max-w-sm bg-[#1e2330] border border-white/10 rounded-2xl p-6 shadow-2xl relative transform transition-all scale-100">
+            <button onclick="document.getElementById('share-modal').remove()" class="absolute right-4 top-4 text-slate-400 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            
+            <h3 class="text-lg font-bold text-white mb-2">Share Reel</h3>
+            <p class="text-sm text-slate-400 mb-6">Share this reel with your friends.</p>
+            
+            <div class="space-y-3">
+                 <button onclick="copyToClipboard('${shareUrl}', this)" class="w-full flex items-center gap-4 p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all group">
+                    <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                        <span class="material-symbols-outlined">link</span>
+                    </div>
+                    <div class="flex-1 text-left">
+                        <p class="font-bold text-white text-sm">Copy Link</p>
+                        <p class="text-xs text-slate-500 truncate max-w-[200px]">${shareUrl}</p>
+                    </div>
+                </button>
+                
+                <a href="https://wa.me/?text=${encodeURIComponent(shareUrl)}" target="_blank" class="w-full flex items-center gap-4 p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all group">
+                    <div class="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 group-hover:bg-green-500 group-hover:text-white transition-colors">
+                         <span class="material-symbols-outlined">chat</span>
+                    </div>
+                     <div class="flex-1 text-left">
+                        <p class="font-bold text-white text-sm">Share on WhatsApp</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Close on backdrop click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+    });
+};
+
+window.copyToClipboard = (text, btn) => {
+    navigator.clipboard.writeText(text).then(() => {
+        const originalHtml = btn.innerHTML;
+        const iconDiv = btn.querySelector('.w-10');
+        
+        iconDiv.className = "w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white transition-colors";
+        iconDiv.innerHTML = '<span class="material-symbols-outlined">check</span>';
+        
+        const textP = btn.querySelector('div.flex-1 p:first-child');
+        textP.textContent = "Copied!";
+
+        setTimeout(() => {
+             btn.innerHTML = originalHtml;
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+    });
+};

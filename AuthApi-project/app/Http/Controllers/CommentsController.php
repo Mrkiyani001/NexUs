@@ -36,17 +36,46 @@ class CommentsController extends BaseController
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
                     $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                    $file->move(public_path('comments'), $filename);
+                    $file->move(public_path('storage/comments'), $filename);
                     $uploadFiles[] = $filename;
                 }
             }
-            AddComment::dispatch(
-                $user->id,
-                $post_id,
-                $reel_id,
-                $comment,
-                $uploadFiles
-            );
+            // Direct synchronous creation for instant ID return
+            $comment = Comments::create([
+                'post_id' => $post_id,
+                'reel_id' => $reel_id,
+                'user_id' => $user->id,
+                'comment' => $comment,
+                'created_by' => $user->id,
+                'updated_by' => $user->id,
+            ]);
+
+            // Handle Attachments
+            if (!empty($uploadFiles)) {
+                try {
+                    foreach ($uploadFiles as $filename) {
+                        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+                        $type = match (true) {
+                            in_array($extension, ['jpg', 'jpeg', 'png', 'gif']) => 'image',
+                            in_array($extension, ['mp4', 'avi', 'mov']) => 'video',
+                            $extension === 'pdf' => 'pdf',
+                            in_array($extension, ['doc', 'docx']) => 'word',
+                            in_array($extension, ['zip', 'rar', '7z']) => 'zip',
+                            default => 'other',
+                        };
+                        $comment->attachments()->create([
+                            'file_name' => $filename,
+                            'file_type' => $type,
+                            'file_path' => 'storage/comments/' . $filename,
+                        ]);
+                    }
+                } catch (\Exception $e) {
+                   // Log error but continue
+                }
+            }
+
+            // Load relationships to return full structure
+             $comment->load('user.profile.avatar', 'attachments');
 
             // Notification Logic
             if ($post_id) {
@@ -74,20 +103,11 @@ class CommentsController extends BaseController
                     );
                 }
             }
-            //     $comment = Comments::create([
-            //         'post_id'=>$request->post_id,
-            //         'comment'=>$request->comment,
-            //         'created_by'=>$user->id,
-            //         'updated_by'=>$user->id,
-            //     ]);
-            //     if($request->hasFile('attachments')){
-            //         foreach($request->file('attachments')as $file)
-            //             $this->upload($file,'comments',$comment);
-            // }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Comment created successfully',
-                'data' => $uploadFiles,
+                'data' => $comment,
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
@@ -230,14 +250,14 @@ class CommentsController extends BaseController
                     $q->where('type', 1);
                 }])
                 ->withCount('replies')
-                ->with(['replies' => function($q) use ($user) {
-                    $q->with('creator.profile.avatar')
-                      ->withExists(['reactions as is_liked' => function ($q2) use ($user) {
-                          $q2->where('created_by', $user->id)->where('type', 1);
-                      }])
-                      ->withCount(['reactions as like_count' => function ($q2) {
-                          $q2->where('type', 1);
-                      }]);
+                ->with(['replies' => function ($q) use ($user) {
+                    $q->with('attachments', 'creator.profile.avatar')
+                        ->withExists(['reactions as is_liked' => function ($q2) use ($user) {
+                            $q2->where('created_by', $user->id)->where('type', 1);
+                        }])
+                        ->withCount(['reactions as like_count' => function ($q2) {
+                            $q2->where('type', 1);
+                        }]);
                 }])
                 ->orderby('created_at', 'desc')
                 ->paginate($limit);
@@ -275,14 +295,15 @@ class CommentsController extends BaseController
                     $q->where('type', 1);
                 }])
                 ->withCount('replies')
-                ->with(['replies' => function($q) use ($user) {
+                ->with(['replies' => function ($q) use ($user) {
                     $q->with('creator.profile.avatar')
-                      ->withExists(['reactions as is_liked' => function ($q2) use ($user) {
-                          $q2->where('created_by', $user->id)->where('type', 1);
-                      }])
-                      ->withCount(['reactions as like_count' => function ($q2) {
-                          $q2->where('type', 1);
-                      }]);
+                        ->with('attachments') // Eager load attachments for replies
+                        ->withExists(['reactions as is_liked' => function ($q2) use ($user) {
+                            $q2->where('created_by', $user->id)->where('type', 1);
+                        }])
+                        ->withCount(['reactions as like_count' => function ($q2) {
+                            $q2->where('type', 1);
+                        }]);
                 }])
                 ->orderby('created_at', 'desc')
                 ->paginate($limit);

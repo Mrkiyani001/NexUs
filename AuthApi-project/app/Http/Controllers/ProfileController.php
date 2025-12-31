@@ -144,7 +144,7 @@ class ProfileController extends BaseController
                 $filename = time() . '_' . uniqid() . '.' . $extension;
 
                 // Ensure directory exists
-                $folderPath = public_path('profiles/avatars');
+                $folderPath = public_path('storage/profiles/avatars');
                 if (!file_exists($folderPath)) {
                     mkdir($folderPath, 0777, true);
                 }
@@ -152,7 +152,7 @@ class ProfileController extends BaseController
                 $file->move($folderPath, $filename);
 
                 // Path for DB (relative to public)
-                $dbPath = 'profiles/avatars/' . $filename;
+                $dbPath = 'storage/profiles/avatars/' . $filename;
 
                 // Create Attachment Record
                 $profile->avatar()->create([
