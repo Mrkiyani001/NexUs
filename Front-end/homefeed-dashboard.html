@@ -511,7 +511,6 @@
         }
     </script>
 
-    <script src="js/post_utils.js"></script>
     <script src="js/notifications.js"></script>
     <script src="js/site_branding.js"></script>
     <!-- Combined Dashboard Logic -->
@@ -669,8 +668,8 @@
             const contentInput = document.getElementById('create-post-content');
 
             // File Inputs
-            if (postImageInput) postImageInput.addEventListener('change', handleFileSelect);
-            if (postFileInput) postFileInput.addEventListener('change', handleFileSelect);
+            if (postImageInput) postImageInput.addEventListener('change', handlePostFileSelect);
+            if (postFileInput) postFileInput.addEventListener('change', handlePostFileSelect);
 
             // Create Button
             if (createBtn) {
@@ -802,7 +801,7 @@
             }
         };
 
-        function handleFileSelect(e) {
+        function handlePostFileSelect(e) {
             const imagePreviewContainer = document.getElementById('image-preview-container');
             const files = Array.from(e.target.files);
             selectedFiles = [...selectedFiles, ...files];

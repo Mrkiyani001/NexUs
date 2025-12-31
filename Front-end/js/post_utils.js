@@ -1699,6 +1699,7 @@ document.addEventListener('click', (e) => {
 window.handleFileSelect = function(event, previewId) {
     const file = event.target.files[0];
     const previewContainer = document.getElementById(previewId);
+    if (!previewContainer) return;
     
     if (file) {
         const reader = new FileReader();
