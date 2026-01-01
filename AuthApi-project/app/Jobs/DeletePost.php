@@ -8,6 +8,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
 class DeletePost implements ShouldQueue
 {
@@ -30,7 +31,7 @@ public $post_id;
     {
         $post =Post::with('attachments')->find($this->post_id);
         if(!$post){
-            \Log::error('Post not found');
+            Log::error('Post not found');
             return;
         }
         try{
@@ -42,7 +43,7 @@ public $post_id;
                 $attachment->delete();
             }
         }catch(\Exception $e){
-            \Log::error('Failed to delete attachments FROM post');
+            Log::error('Failed to delete attachments FROM post');
         }
         $post->delete();
     }

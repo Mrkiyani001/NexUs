@@ -6,7 +6,7 @@
 
 // Toggle this for local vs production
 if (typeof IS_LOCAL === 'undefined') {
-    var IS_LOCAL = false; 
+    var IS_LOCAL = true; 
 }
 
     var API_BASE_URL = IS_LOCAL

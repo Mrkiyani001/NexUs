@@ -49,7 +49,7 @@ function renderAdminSidebar(activePageId) {
         { id: 'roles', label: 'Roles & Permissions', icon: 'manage_accounts', link: 'admin-roles.html' },
         { id: 'moderation', label: 'Moderation Queue', icon: 'list_alt', link: 'moderation-queue.html', badge: '0' },
         { id: 'reports', label: 'Reports', icon: 'flag', link: 'reports.html' },
-        { id: 'analytics', label: 'Analytics', icon: 'analytics', link: '#' },
+        { id: 'analytics', label: 'Analytics', icon: 'analytics', link: 'analytics.html' },
         { id: 'settings', label: 'Settings', icon: 'settings', link: 'setting-admin.html' }
     ];
 

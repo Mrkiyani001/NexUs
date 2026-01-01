@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\AddReel;
+use App\Jobs\DeleteReel;
 use App\Models\Reaction;
 use App\Models\Reel;
 use App\Models\Share;
@@ -135,32 +136,46 @@ class ReelsController extends BaseController
                     'message' => 'Reel not found.',
                 ], 404);
             }
-            if ($reel->user_id != $user->id) {
+            if($reel->user_id == $user->id){
+                DeleteReel::dispatch($user->id,$reel->id);
                 return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized.',
-                ], 401);
+                    'success' => true,
+                    'message' => 'Reel deleted successfully',
+                ], 200);
             }
-            $reel->delete();
-            // if ($reel->video_path) {
-            //     $videoPath = str_replace('storage/', '', $reel->video_path);
-            //     if (Storage::disk('public')->exists($videoPath)) {
-            //         Storage::disk('public')->delete($videoPath);
-            //     }
-            // }
-            // if ($reel->thumbnail_path) {
-            //     $thumbPath = str_replace('storage/', '', $reel->thumbnail_path);
-            //     if (Storage::disk('public')->exists($thumbPath)) {
-            //         Storage::disk('public')->delete($thumbPath);
-            //     }
-            // }
-            // Share::where('reel_id', $reel->id)->delete();
-            // $reel->savedByUsers()->detach();        
-            // $reel->comments()->each(function($comment) {
-            //     $comment->delete();
-            // });
-            // $reel->reactions()->delete();
-            // $reel->delete();
+            $owner = $reel->user;
+            if(!$owner){
+                if($user->hasRole(['admin', 'super admin'])) {
+                    DeleteReel::dispatch($user->id,$reel->id);
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Reel deleted successfully',
+                    ], 200);
+                }
+                return $this->unauthorized();
+            }
+            $authorized = false;
+            if($owner->hasRole('super admin')){
+                if($user->hasRole(['super admin'])){
+                    $authorized = true;
+                }
+            }elseif($owner->hasRole('admin')){
+                if($user->hasRole(['admin', 'super admin'])){
+                    $authorized = true;
+                }
+            }elseif($owner->hasRole('moderator')){
+                if($user->hasRole(['moderator', 'admin', 'super admin'])){
+                    $authorized = true;
+                }
+            }else{
+                if($user->hasRole(['admin', 'super admin'])){
+                    $authorized = true;
+                }
+            }
+            if(!$authorized){
+                return $this->unauthorized();
+            }
+            DeleteReel::dispatch($user->id,$reel->id);
             return response()->json([
                 'success' => true,
                 'message' => 'Reel deleted successfully',
@@ -186,7 +201,7 @@ class ReelsController extends BaseController
             $reels = Reel::with('user.profile.avatar')
                 ->withCount(['comments', 'reactions'])
                 ->where('user_id', $request->user_id)
-                ->latest()
+                ->orderBy('updated_at', 'desc')
                 ->get();
 
             $reels = $this->enrichReels($reels, $user->id);

@@ -4,7 +4,52 @@ window.DEFAULT_AVATAR = (name) => `https://ui-avatars.com/api/?name=${encodeURIC
 // Post Interaction Utilities
 // Requires: API_BASE_URL, token, PUBLIC_URL, currentUserData (or userData) to be defined globally
 console.log('Post Utils Loading...');
+// Global helper: Check if window already has it to avoid errors if double-loaded
+function getProfilePicture(user) {
+    if (!user) return `https://ui-avatars.com/api/?name=User&background=random`;
 
+    // 0. Try global avatar_url (from User model append or BaseController)
+    if (user.avatar_url) {
+        return getStorageUrl(user.avatar_url);
+    }
+
+    // 1. Try new user_avatar relationship (Object)
+    if (user.profile && user.profile.user_avatar && user.profile.user_avatar.file_path) {
+        return getStorageUrl(user.profile.user_avatar.file_path);
+    }
+
+    // 2. Try old avatar (String or Object)
+    if (user.profile && user.profile.avatar) {
+        if (typeof user.profile.avatar === 'string') {
+            if (user.profile.avatar.startsWith('http')) return user.profile.avatar;
+            return getStorageUrl(user.profile.avatar);
+        }
+        else if (user.profile.avatar.file_path) {
+            return getStorageUrl(user.profile.avatar.file_path);
+        }
+    }
+
+    // 3. Fallback
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=random`;
+}
+
+function getStorageUrl(path) {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    
+    // Fix: Remove 'public/' prefix if present
+    if (path.startsWith('public/')) path = path.substring(7);
+
+    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+
+    // Check if path already has 'storage/' prefix
+    if (cleanPath.startsWith('storage/')) {
+        return `${window.PUBLIC_URL}/${cleanPath}`;
+    }
+
+    // Default: Append storage/
+    return `${window.PUBLIC_URL}/storage/${cleanPath}`;
+}
 function escapeHtml(text) {
     if (!text) return '';
     return text
@@ -20,38 +65,8 @@ function getInitialsUrl(name) {
 }
 
 function getAvatarUrl(user) {
-    if (!user || !user.profile) {
-        // Fallback for flat user object with avatar_url
-        if(user && user.avatar_url) return user.avatar_url;
-        return null;
-    }
-
-    let avatar = user.profile.avatar;
-    let path = '';
-
-    if (avatar) {
-        if (typeof avatar === 'string') {
-            path = avatar;
-        } else if (avatar.file_path) {
-            path = avatar.file_path;
-        }
-    }
-
-    if (path) {
-        if (path.startsWith('/')) path = path.substring(1);
-        if (path.startsWith('http')) return path;
-        // Ensure PUBLIC_URL is available
-        const baseUrl = (typeof PUBLIC_URL !== 'undefined') ? PUBLIC_URL : window.PUBLIC_URL;
-        
-        // If path doesn't start with storage/, prepend it
-        if (!path.startsWith('storage/')) {
-            path = `storage/${path}`;
-        }
-        
-        if (baseUrl) return `${baseUrl}/${path}`;
-    }
-
-    return null; 
+    // Use the user-provided robust helper
+    return getProfilePicture(user);
 }
 
 /**
@@ -433,15 +448,10 @@ function timeAgo(dateString) {
     return "Just now";
 }
 
-function ignore_garbage() { /*
-    const user = post.user || { name: 'Unknown', id: 0 };
-    const avatarUrl = getAvatarUrl(user);
-    const timeAgoStr = timeAgo(post.created_at);
-    
-    // Normalize self-reference for avatar in comments
-    const myName = (typeof currentUserData !== 'undefined' && currentUserData.name) ? currentUserData.name : 
-                   (typeof userData !== 'undefined' && userData.name) ? userData.name : 'Me';
-    const myAvatarUrl = getAvatarUrl(currentUserData || userData);
+function createPostHTML(post) {
+    const user = post.user || post.creator || { name: 'Unknown', id: 0 };
+    // Use updated_at for time display if we are sorting by it
+    const timeAgoStr = timeAgo(post.updated_at || post.created_at);
 
     const isLiked = post.is_liked || false;
     const likeColorClass = isLiked ? 'text-pink-500' : 'text-secondary-text';
@@ -449,42 +459,13 @@ function ignore_garbage() { /*
 
     let mediaHTML = '';
     if (post.attachments && post.attachments.length > 0) {
-        const files = Array.isArray(post.attachments) ? post.attachments : [];
-        if (files.length > 0) {
-                const file = files[0];
-                let src = '';
-                if (typeof file === 'object' && file.file_path) {
-                    // Check if path has storage, if not add it
-                     let path = file.file_path;
-                     if(!path.startsWith('storage/') && !path.startsWith('http')) path = 'storage/' + path;
-                     src = `${PUBLIC_URL}/${path}`;
-                     console.log('🖼️ Attachment Obj Src:', src);
-                }
-                else if (typeof file === 'string') {
-                    let path = file;
-                    if(!path.startsWith('storage/') && !path.startsWith('http')) path = 'storage/posts/' + path;
-                    src = `${PUBLIC_URL}/${path}`;
-                    console.log('🖼️ Attachment Str Src:', src);
-                }
-                
-                if(src) {
-                    mediaHTML = `<div class="mt-4 rounded-xl overflow-hidden border border-white/10 h-64 relative group cursor-pointer">
-                    <div class="w-full h-full bg-cover bg-center" style="background-image: url('${src}')"></div>
-                    </div>`;
-                }
-        }
+        mediaHTML = renderAttachmentsHTML(post.attachments);
     }
 
-    // Using glass-panel or glass-card depending on what CSS class is available or prefer consistency
-    // Profile uses 'glass-panel', Dashboard uses 'glass-card'. Let's standardise to a string that works for both or stick to one.
-    // Dashboard: glass-card rounded-3xl p-0
-    // Profile: glass-panel rounded-2xl shadow-xl p-0
-    // We'll use a generic set of classes that looks good.
     const cardClass = "glass-panel rounded-2xl shadow-xl overflow-hidden p-0 transition-transform duration-300 hover:translate-y-[-2px] mb-6";
 
     return `
-
-    <article class="${cardClass}">
+    <article class="${cardClass}" id="post-${post.id}">
         <div class="p-6">
             ${renderRetweetHeader(post, user)}
             <div class="flex gap-4">
@@ -513,13 +494,87 @@ function ignore_garbage() { /*
                             </button>
                             <div class="absolute right-0 top-full mt-2 w-48 bg-[#1e2330] border border-white/10 rounded-xl shadow-2xl opacity-0 invisible group-hover/dropdown:opacity-100 group-hover/dropdown:visible transition-all z-20 overflow-hidden text-left">
                                 ${(() => {
-                                    const currentId = (currentUserData && currentUserData.id) || (typeof userData !== 'undefined' && userData.id) || 0;
-                                    const currentRoles = (currentUserData && currentUserData.roles) ? currentUserData.roles.map(r => (typeof r === 'object' ? r.name : r).toLowerCase()) : [];
-                                    const isOwner = user.id === currentId;
-                                    const isAdmin = currentRoles.some(r => ['admin', 'super admin', 'superadmin', 'moderator'].includes(r));
-                                
-*/ }
+                                    const current = window.currentUserData || (typeof currentUserData !== 'undefined' ? currentUserData : {}) || (typeof userData !== 'undefined' ? userData : {});
+                                    const currentId = current.id || 0;
+                                    const currentRoles = (current.roles) ? current.roles.map(r => (typeof r === 'object' ? r.name : r).toLowerCase()) : [];
+                                    const isOwner = user.id == currentId;
+                                    
+                                    // Use shared helper if available
+                                    const canDelete = (typeof window.canDeleteContent === 'function') 
+                                                    ? window.canDeleteContent({id: currentId, roles: currentUserData?.roles}, user) 
+                                                    : (isOwner);
 
+                                    let items = '';
+                                    if (canDelete) {
+                                         items += `<button onclick="editPost(${post.id})" class="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-white/10 flex items-center gap-3 transition-colors">
+                                            <span class="material-symbols-outlined text-[18px]">edit</span> Edit
+                                        </button>
+                                        <button onclick="deletePost(${post.id})" class="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-white/10 flex items-center gap-3 transition-colors">
+                                            <span class="material-symbols-outlined text-[18px]">delete</span> Delete
+                                        </button>`;
+                                    } else {
+                                         items += `<button onclick="openReportModal(${post.id}, 'post')" class="w-full text-left px-4 py-2.5 text-sm text-yellow-400 hover:bg-white/10 flex items-center gap-3 transition-colors">
+                                            <span class="material-symbols-outlined text-[18px]">flag</span> Report
+                                        </button>`;
+                                    }
+                                    return items;
+                                })()}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-slate-300 text-sm whitespace-pre-wrap break-words leading-relaxed mb-3">${escapeHtml(post.body || '')}</div>
+                    ${mediaHTML}
+
+                    <!-- Action Buttons -->
+                    <div class="flex items-center justify-between pt-4 mt-4 border-t border-white/5">
+                         <div class="flex items-center gap-6">
+                                <button onclick="likePost(${post.id}, this)" class="flex items-center gap-2 text-xs font-semibold ${likeColorClass} hover:text-pink-500 transition-colors group">
+                                    <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform" style="font-variation-settings: 'FILL' ${likeFill}">favorite</span>
+                                    <span>${post.like_count > 0 ? post.like_count : 'Like'}</span>
+                                </button>
+                                <button onclick="toggleCommentSection(${post.id})" class="flex items-center gap-2 text-secondary-text text-xs font-semibold hover:text-blue-400 transition-colors">
+                                    <span class="material-symbols-outlined text-[20px]">chat_bubble</span>
+                                    <span>${post.comments_count > 0 ? post.comments_count : 'Comment'}</span>
+                                </button>
+                        </div>
+                         <div class="flex items-center gap-2">
+                                 <button onclick="sharePost(${post.id})" class="flex items-center gap-2 text-secondary-text text-xs font-semibold hover:text-green-500 transition-colors">
+                                    <span class="material-symbols-outlined text-[18px]">share</span>
+                                    <span class="hidden md:inline">Share</span>
+                                 </button>
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inline Comment Section -->
+        <div id="comment-section-${post.id}" class="hidden px-6 pb-6 pt-2 border-t border-white/5 bg-black/20">
+            <div id="comment-list-${post.id}" class="flex flex-col gap-3 mb-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar"></div>
+
+            <div class="flex gap-3 items-start">
+                    ${renderAvatarHTML(currentUserData || userData, "w-8 h-8 rounded-full border border-white/10 mt-1 object-cover")}
+                    <div class="flex-1">
+                    <textarea id="comment-input-${post.id}" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-slate-300 focus:outline-none focus:border-primary/50 transition-all resize-none h-20 placeholder:text-slate-500" placeholder="Write a comment..."></textarea>
+                    <div class="flex justify-between items-center mt-2">
+                            <div class="flex items-center gap-2">
+                                    <label for="comment-file-${post.id}" class="cursor-pointer text-slate-400 hover:text-white transition-colors p-1 rounded-full hover:bg-white/5">
+                                    <span class="material-symbols-outlined text-[20px]">attach_file</span>
+                                    <input type="file" id="comment-file-${post.id}" class="hidden" onchange="handleCommentFileSelect(event, 'comment-preview-${post.id}')">
+                                </label>
+                            </div>
+                            <button onclick="submitComment(${post.id})" class="px-4 py-1.5 bg-primary text-white text-xs font-bold rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-1">
+                            <span>Post</span>
+                            <span class="material-symbols-outlined text-[14px]">send</span>
+                            </button>
+                    </div>
+                    <div id="comment-preview-${post.id}" class="mt-2 hidden"></div>
+                    </div>
+            </div>
+        </div>
+    </article>`;
+}
 function renderAttachmentsHTML(attachments) {
     if (!attachments || attachments.length === 0) return '';
     
@@ -578,6 +633,47 @@ function renderAttachmentsHTML(attachments) {
     return html;
 }
 
+// Helper for Role Checks - Global for reuse
+window.hasRole = (user, roleName) => {
+    if (!user) return false;
+    if (user.role === roleName) return true;
+    if (user.roles && Array.isArray(user.roles)) {
+        return user.roles.some(r => r.name === roleName);
+    }
+    return false;
+};
+
+window.canDeleteContent = (currentUser, owner) => {
+    if (!currentUser || !owner) return false;
+    
+    // 1. Owner can always delete
+    if (currentUser.id === owner.id) return true;
+
+    // 2. Role Hierarchy
+    const amISuperAdmin = window.hasRole(currentUser, 'super admin');
+    const amIAdmin = window.hasRole(currentUser, 'admin');
+    const amIMod = window.hasRole(currentUser, 'moderator');
+    
+    const isOwnerSuperAdmin = window.hasRole(owner, 'super admin');
+    const isOwnerAdmin = window.hasRole(owner, 'admin');
+    const isOwnerMod = window.hasRole(owner, 'moderator');
+
+    // Logic matches Backend PostController
+    if (isOwnerSuperAdmin) {
+        return amISuperAdmin;
+    }
+    if (isOwnerAdmin) {
+        return amISuperAdmin || amIAdmin; // Admin or SA can delete Admin
+    }
+    if (isOwnerMod) {
+        return amISuperAdmin || amIAdmin || amIMod; // SA, Admin, Mod can delete Mod
+    }
+    
+    // Dictionary Definition: User Post
+    // Delete: Owner (handled top), SA, Admin. (NOT Mod)
+    return amISuperAdmin || amIAdmin;
+};
+
 function createPostHTML(post, passedUserData = null) {
     const currentUserData = passedUserData || window.currentUserData || window.userData || { id: 0, roles: [] };
     const isLiked = post.is_liked || false;
@@ -600,23 +696,31 @@ function createPostHTML(post, passedUserData = null) {
                         <h3 class="font-bold text-white text-base truncate cursor-pointer hover:text-blue-400 transition-colors" onclick="window.location.href='profile.html?id=${userData.id}'">${userData.name}</h3>
                         <span class="text-xs text-secondary-text">${timeAgo(post.created_at)}</span>
                     </div>
-                   ${(currentUserData.id === userData.id || currentUserData.role === 'admin' || currentUserData.role === 'super admin') ? `
                     <div class="relative group/menu">
                         <button class="text-secondary-text hover:text-white transition-colors p-1 rounded-full hover:bg-white/5">
                             <span class="material-symbols-outlined">more_horiz</span>
                         </button>
                         <div class="absolute right-0 top-8 w-48 bg-[#1e2330] border border-white/10 rounded-xl shadow-2xl py-1 z-20 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transform scale-95 group-hover/menu:scale-100 transition-all duration-200 origin-top-right">
-                             <button onclick="copyPostLink(${post.id})" class="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white flex items-center gap-2 transition-colors">
-                                <span class="material-symbols-outlined text-[18px]">link</span> Copy Link
+                             
+                             ${(currentUserData.id === userData.id) ? `
+                             <button onclick="editPost(${post.id})" class="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white flex items-center gap-2 transition-colors">
+                                <span class="material-symbols-outlined text-[18px]">edit</span> Edit Post
                              </button>
-                             ${(currentUserData.id === userData.id || currentUserData.role === 'admin' || currentUserData.role === 'super admin') ? `
+                             ` : ''}
+                             
+                             ${(window.canDeleteContent(currentUserData, userData)) ? `
                              <button onclick="deletePost(${post.id})" class="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-white/5 hover:text-red-300 flex items-center gap-2 transition-colors">
                                 <span class="material-symbols-outlined text-[18px]">delete</span> Delete Post
                              </button>
                              ` : ''}
+
+                             ${(currentUserData.id !== userData.id) ? `
+                             <button onclick="openReportModal(${post.id}, 'post')" class="w-full text-left px-4 py-2.5 text-sm text-yellow-500 hover:bg-white/5 hover:text-yellow-400 flex items-center gap-2 transition-colors">
+                                <span class="material-symbols-outlined text-[18px]">flag</span> Report Post
+                             </button>
+                             ` : ''}
                         </div>
                     </div>
-                    ` : ''}
                 </div>
                 
                 <div class="mt-3 text-gray-200 text-sm whitespace-pre-wrap break-words leading-relaxed">${escapeHtml(post.body || '')}</div>
@@ -860,11 +964,12 @@ async function toggleCommentSection(postId) {
                         const likeColorClass = isLiked ? 'text-pink-500' : 'text-secondary-text';
                         const likeFill = isLiked ? 1 : 0;
                         const isOwner = currentUser.id === user.id;
+                        const isAdmin = currentUser.roles && (currentUser.roles.includes('admin') || currentUser.roles.includes('super admin'));
 
                         // Render Replies
-                        let repliesHTML = '';
+                        let repliesHTML = `<div id="replies-container-${comment.id}" class="mt-2 pl-8 flex flex-col gap-2 border-l border-white/10 ml-2 ${comment.replies && comment.replies.length > 0 ? '' : 'hidden'}">`;
+                        
                         if(comment.replies && comment.replies.length > 0) {
-                            repliesHTML = '<div class="mt-2 pl-8 flex flex-col gap-2 border-l border-white/10 ml-2">';
                             repliesHTML += comment.replies.map(reply => {
                                 const replyUser = reply.creator || { name: 'Unknown', id: 0 };
                                 const replyIsLiked = reply.is_liked || false;
@@ -883,21 +988,28 @@ async function toggleCommentSection(postId) {
                                                 
                                                 <div class="flex items-center gap-2">
                                                     <span class="text-[9px] text-slate-500">${timeAgo(reply.created_at)}</span>
-                                                    ${isReplyOwner ? `
+                                                    
                                                     <div class="relative group">
                                                         <button onclick="togglePostCommentMenu(event, this)" class="text-slate-500 hover:text-white p-0.5 opacity-0 group-hover/reply:opacity-100 transition-opacity">
                                                             <span class="material-symbols-outlined text-[14px]">more_horiz</span>
                                                         </button>
                                                         <div class="post-comment-menu absolute right-0 top-5 w-24 bg-[#1e2330] border border-white/10 rounded-lg shadow-xl py-1 z-20 opacity-0 scale-95 pointer-events-none transition-all duration-200 origin-top-right">
-                                                            <button onclick="editPostComment(${reply.id})" class="w-full text-left px-3 py-1.5 text-[10px] text-slate-300 hover:bg-white/10 hover:text-white flex items-center gap-1.5">
+                                                            ${isReplyOwner ? `
+                                                            <button onclick="editPostReply(${reply.id})" class="w-full text-left px-3 py-1.5 text-[10px] text-slate-300 hover:bg-white/10 hover:text-white flex items-center gap-1.5">
                                                                 <span class="material-symbols-outlined text-[12px]">edit</span> Edit
-                                                            </button>
-                                                            <button onclick="deletePostComment(${reply.id}, this)" class="w-full text-left px-3 py-1.5 text-[10px] text-red-400 hover:bg-white/10 flex items-center gap-1.5">
+                                                            </button>` : ''}
+                                                            
+                                                            ${isReplyOwner || isAdmin ? `
+                                                            <button onclick="deletePostReply(${reply.id}, this)" class="w-full text-left px-3 py-1.5 text-[10px] text-red-400 hover:bg-white/10 flex items-center gap-1.5">
                                                                 <span class="material-symbols-outlined text-[12px]">delete</span> Delete
-                                                            </button>
+                                                            </button>` : ''}
+
+                                                            ${!isReplyOwner ? `
+                                                            <button onclick="openReportModal(${reply.id}, 'reply')" class="w-full text-left px-3 py-1.5 text-[10px] text-yellow-500 hover:bg-white/10 flex items-center gap-1.5">
+                                                                <span class="material-symbols-outlined text-[12px]">flag</span> Report
+                                                            </button>` : ''}
                                                         </div>
                                                     </div>
-                                                    ` : ''}
                                                 </div>
                                             </div>
                                             <p class="text-slate-300 text-xs whitespace-pre-wrap comment-text break-words">${reply.reply}</p>
@@ -929,8 +1041,8 @@ async function toggleCommentSection(postId) {
                                 </div>
                                 `;
                             }).join('');
-                            repliesHTML += '</div>';
                         }
+                        repliesHTML += '</div>';
 
                         return `
                              <div class="flex gap-3 items-start animate-fade-in group/comment" id="post-comment-row-${comment.id}">
@@ -943,22 +1055,28 @@ async function toggleCommentSection(postId) {
                                                 <span class="text-[10px] text-secondary-text">${timeAgo(comment.created_at)}</span>
                                             </div>
                                             
-                                            ${isOwner ? `
                                             <div class="relative group">
                                                 <button onclick="togglePostCommentMenu(event, this)" class="text-slate-500 hover:text-white p-1 opacity-0 group-hover/comment:opacity-100 transition-opacity">
                                                     <span class="material-symbols-outlined text-[16px]">more_horiz</span>
                                                 </button>
                                                 <!-- Dropdown -->
                                                 <div class="post-comment-menu absolute right-0 top-6 w-32 bg-[#1e2330] border border-white/10 rounded-lg shadow-xl py-1 z-20 opacity-0 scale-95 pointer-events-none transition-all duration-200 origin-top-right">
+                                                    ${isOwner ? `
                                                     <button onclick="editPostComment(${comment.id})" class="w-full text-left px-3 py-2 text-xs text-slate-300 hover:bg-white/10 hover:text-white flex items-center gap-2">
                                                         <span class="material-symbols-outlined text-[14px]">edit</span> Edit
-                                                    </button>
+                                                    </button>` : ''}
+                                                    
+                                                    ${isOwner || isAdmin ? `
                                                     <button onclick="deletePostComment(${comment.id}, this)" class="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-white/10 flex items-center gap-2">
                                                         <span class="material-symbols-outlined text-[14px]">delete</span> Delete
-                                                    </button>
+                                                    </button>` : ''}
+
+                                                    ${!isOwner ? `
+                                                    <button onclick="openReportModal(${comment.id}, 'comment')" class="w-full text-left px-3 py-2 text-xs text-yellow-500 hover:bg-white/10 flex items-center gap-2">
+                                                        <span class="material-symbols-outlined text-[14px]">flag</span> Report
+                                                    </button>` : ''}
                                                 </div>
                                             </div>
-                                            ` : ''}
                                         </div>
                                         <p class="text-gray-200 text-sm leading-relaxed whitespace-pre-wrap comment-text break-words">${comment.comment}</p>
                                         ${comment.attachments && comment.attachments.length > 0 ? `
@@ -1117,18 +1235,71 @@ async function submitReply(commentId) {
 
         const response = await fetch(`${API_BASE_URL}/create_comment_reply`, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` }, // No Content-Type for FormData
+            headers: { 'Authorization': `Bearer ${window.token || localStorage.getItem('auth_token')}` },
             body: formData
         });
         const data = await response.json();
-        if(response.status === 200 || response.status === 202) {
+        
+        if(response.status === 200 || response.status === 202 || data.success) {
                 input.value = '';
                 toggleReplyInput(commentId);
                 showToast('Reply posted! ↩️');
                 
-                if (typeof loadTabContent === 'function') loadTabContent();
-                else if (typeof loadPosts === 'function') loadPosts();
-                else if (typeof loadPostDetail === 'function') loadPostDetail();
+                // Immediate Append
+                if(data.data) {
+                    const reply = data.data; // data.data should be the reply object
+                    const container = document.getElementById(`replies-container-${commentId}`);
+                    
+                    if(container) {
+                        container.classList.remove('hidden');
+                        const currentUser = JSON.parse(localStorage.getItem('user_data') || '{}');
+                        
+                        // Handle attachments if returned
+                        let attachmentHtml = '';
+                        if(reply.attachments && reply.attachments.length > 0) {
+                            // ... simple loop logic ... 
+                        }
+                        
+                        const replyHtml = `
+                        <div class="flex gap-3 items-start animate-fade-in" id="post-comment-row-${reply.id}">
+                            ${renderAvatarHTML(currentUser, "w-6 h-6 rounded-full border border-white/10 cursor-pointer object-cover", `onclick="window.location.href='profile.html?id=${currentUser.id}'"`)}
+                            <div class="flex-1">
+                                <div class="bg-white/5 rounded-xl p-2 px-3 border border-white/10 group/reply relative">
+                                    <div class="flex justify-between items-start mb-0.5">
+                                        <h4 class="font-bold text-white text-[11px] cursor-pointer hover:underline" onclick="window.location.href='profile.html?id=${currentUser.id}'">${currentUser.name}</h4>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[9px] text-slate-500">Just now</span>
+                                            <div class="relative group">
+                                                <button onclick="togglePostCommentMenu(event, this)" class="text-slate-500 hover:text-white p-0.5 opacity-0 group-hover/reply:opacity-100 transition-opacity">
+                                                    <span class="material-symbols-outlined text-[14px]">more_horiz</span>
+                                                </button>
+                                                <div class="post-comment-menu absolute right-0 top-5 w-24 bg-[#1e2330] border border-white/10 rounded-lg shadow-xl py-1 z-20 opacity-0 scale-95 pointer-events-none transition-all duration-200 origin-top-right">
+                                                    <button onclick="editPostReply(${reply.id})" class="w-full text-left px-3 py-1.5 text-[10px] text-slate-300 hover:bg-white/10 hover:text-white flex items-center gap-1.5">
+                                                        <span class="material-symbols-outlined text-[12px]">edit</span> Edit
+                                                    </button>
+                                                    <button onclick="deletePostReply(${reply.id}, this)" class="w-full text-left px-3 py-1.5 text-[10px] text-red-400 hover:bg-white/10 flex items-center gap-1.5">
+                                                        <span class="material-symbols-outlined text-[12px]">delete</span> Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="text-slate-300 text-xs whitespace-pre-wrap comment-text break-words">${content}</p>
+                                </div>
+                            </div>
+                        </div>`;
+                        
+                        container.insertAdjacentHTML('beforeend', replyHtml);
+                    } else {
+                        // Fallback if container not found (e.g. strange state), reload
+                         if (typeof loadTabContent === 'function') loadTabContent();
+                         else if (typeof loadPosts === 'function') loadPosts();
+                    }
+                } else {
+                     // Fallback if no data
+                     if (typeof loadTabContent === 'function') loadTabContent();
+                     else if (typeof loadPosts === 'function') loadPosts();
+                }
         } else {
                 showToast(data.message || 'Failed to reply', 'error');
         }
@@ -1334,6 +1505,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 // --- Report Functions ---
 window.openReportModal = function(id, type) {
+    window.closeAllPostMenus();
     document.getElementById('report-target-id').value = id;
     document.getElementById('report-target-type').value = type;
     document.getElementById('report-modal').classList.remove('hidden');
@@ -1577,26 +1749,67 @@ async function editPost(postId) {
 }
 
 // --- Post Comment Actions ---
+window.closeAllPostMenus = function() {
+    document.querySelectorAll('.post-comment-menu.active').forEach(el => {
+        el.classList.remove('active', 'scale-100', 'opacity-100');
+        el.classList.add('scale-95', 'opacity-0', 'pointer-events-none');
+    });
+};
+
 window.togglePostCommentMenu = function(e, btn) {
     if(e) e.stopPropagation();
     const menu = btn.nextElementSibling;
     
-    // Close others
-    document.querySelectorAll('.post-comment-menu.active').forEach(el => {
-        if(el !== menu) el.classList.remove('active', 'scale-100', 'opacity-100');
-    });
+    // Check if we are opening a menu that is already open (toggle off)
+    let isAlreadyOpen = menu.classList.contains('active');
     
-    if (menu.classList.contains('active')) {
-        menu.classList.remove('active', 'scale-100', 'opacity-100');
-        menu.classList.add('scale-95', 'opacity-0', 'pointer-events-none');
-    } else {
+    // Close ALL menus first
+    window.closeAllPostMenus();
+    
+    // If it wasn't open, open it now
+    if (!isAlreadyOpen) {
         menu.classList.add('active', 'scale-100', 'opacity-100', 'pointer-events-auto');
         menu.classList.remove('scale-95', 'opacity-0', 'pointer-events-none');
     }
 };
 
+window.updatePostCommentCountUI = function(elementWithinPost, delta) {
+    const section = elementWithinPost.closest('[id^="comment-section-"]');
+    if(!section) return;
+    
+    const postId = section.id.replace('comment-section-', '');
+    const postArticle = document.getElementById(`post-${postId}`);
+    
+    // Find the comment button. It calls toggleCommentSection(postId)
+    let btn = null;
+    const selector = `button[onclick*="toggleCommentSection(${postId})"]`;
+    
+    if(postArticle) {
+        btn = postArticle.querySelector(selector);
+    } else {
+        btn = document.querySelector(selector);
+    }
+    
+    if(btn) {
+       const countSpan = btn.querySelector('span:last-child');
+       if(countSpan) {
+           let text = countSpan.innerText;
+           let count = parseInt(text);
+           if(isNaN(count)) count = 0; // 'Comment' = 0
+           
+           count += delta;
+           
+           if(count <= 0) countSpan.innerText = 'Comment';
+           else countSpan.innerText = count;
+       }
+    }
+};
+
 window.deletePostComment = async function(commentId, btn) {
+    window.closeAllPostMenus();
     if(!confirm("Delete this comment?")) return;
+    
+    updatePostCommentCountUI(btn, -1);
     
     const commentRow = document.getElementById(`post-comment-row-${commentId}`);
     
@@ -1622,6 +1835,7 @@ window.deletePostComment = async function(commentId, btn) {
 };
 
 window.editPostComment = function(commentId) {
+    window.closeAllPostMenus();
     const commentRow = document.getElementById(`post-comment-row-${commentId}`);
     const textP = commentRow.querySelector('.comment-text'); 
     const originalText = textP.textContent;
@@ -1685,6 +1899,68 @@ window.savePostCommentEdit = async function(commentId) {
     } catch(e) { console.error(e); }
 };
 
+window.editPostReply = function(replyId) {
+    window.closeAllPostMenus();
+    const row = document.getElementById(`post-comment-row-${replyId}`);
+    const textP = row.querySelector('.comment-text'); 
+    const originalText = textP.textContent;
+    
+    textP.classList.add('hidden');
+    
+    const editContainer = document.createElement('div');
+    editContainer.className = 'edit-container mt-2';
+    editContainer.innerHTML = `
+        <input type="text" class="w-full bg-[#151921] text-white text-xs rounded-lg px-3 py-2 border border-white/10 focus:border-blue-500 outline-none" value="${originalText.replace(/"/g, '&quot;')}">
+        <div class="flex justify-end gap-2 mt-2">
+            <button onclick="cancelPostReplyEdit(${replyId}, '${originalText.replace(/'/g, "\\'")}')" class="text-[10px] text-slate-400 hover:text-white px-2 py-1">Cancel</button>
+            <button onclick="savePostReply(${replyId})" class="text-[10px] bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded-md font-bold">Save</button>
+        </div>
+    `;
+    textP.parentNode.insertBefore(editContainer, textP.nextSibling);
+
+    const menu = row.querySelector('.post-comment-menu');
+    if(menu) menu.classList.remove('active', 'scale-100', 'opacity-100');
+};
+
+window.cancelPostReplyEdit = function(replyId, originalText) {
+    const row = document.getElementById(`post-comment-row-${replyId}`);
+    const textP = row.querySelector('.comment-text');
+    const editContainer = row.querySelector('.edit-container');
+    
+    if(editContainer) editContainer.remove();
+    textP.textContent = originalText;
+    textP.classList.remove('hidden');
+};
+
+window.savePostReply = async function(replyId) {
+    const row = document.getElementById(`post-comment-row-${replyId}`);
+    const editContainer = row.querySelector('.edit-container');
+    const input = editContainer.querySelector('input');
+    const newText = input.value.trim();
+    
+    if(!newText) return;
+    
+    const textP = row.querySelector('.comment-text');
+    textP.textContent = newText;
+    textP.classList.remove('hidden');
+    editContainer.remove();
+    
+    try {
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch(`${API_BASE_URL}/update_comment_reply`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: replyId, reply: newText })
+        });
+        const data = await response.json();
+         if(!data.success) {
+            showToast(data.message || 'Update failed', 'error');
+        } else {
+            showToast('Reply updated', 'success');
+        }
+    } catch(e) { console.error(e); }
+};
+
 // Global click closer for post menus
 document.addEventListener('click', (e) => {
     if (!e.target.closest('.group.relative')) {
@@ -1694,6 +1970,36 @@ document.addEventListener('click', (e) => {
         });
     }
 });
+
+// New Delete Reply Function
+window.deletePostReply = async function(replyId, btn) {
+    window.closeAllPostMenus();
+    if(!confirm("Delete this reply?")) return;
+    
+    updatePostCommentCountUI(btn, -1);
+    
+    // Optimistic Remove
+    // Note: Render uses same ID convention for replies: post-comment-row-${reply.id}
+    const row = document.getElementById(`post-comment-row-${replyId}`);
+    if(row) {
+        row.style.transition = 'all 0.3s ease';
+        row.style.opacity = '0';
+        setTimeout(() => row.remove(), 300);
+    }
+    
+    try {
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch(`${API_BASE_URL}/delete_comment_reply`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: replyId })
+        });
+        const data = await response.json();
+        if(!data.success) {
+            showToast(data.message || 'Delete failed', 'error');
+        } 
+    } catch(e) { console.error(e); }
+};
 
 // --- Attachment Helper Functions ---
 window.handleFileSelect = function(event, previewId) {
@@ -1755,7 +2061,7 @@ window.submitComment = async function(postId) {
         const response = await fetch(`${API_BASE_URL}/create_comment`, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${window.token || localStorage.getItem('token')}`
+                'Authorization': `Bearer ${window.token || localStorage.getItem('auth_token')}`
             },
             body: formData
         });
@@ -1806,7 +2112,7 @@ window.submitReply = async function(commentId) {
         const response = await fetch(`${API_BASE_URL}/create_comment_reply`, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${window.token || localStorage.getItem('token')}`
+                'Authorization': `Bearer ${window.token || localStorage.getItem('auth_token')}`
             },
             body: formData
         });

@@ -28,7 +28,6 @@ class Reel extends Model
     {
         return $this->belongsTo(User::class);
     }
-
     public function comments()
     {
         return $this->hasMany(Comments::class, 'reel_id');

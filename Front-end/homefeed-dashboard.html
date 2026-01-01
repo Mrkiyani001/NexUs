@@ -768,28 +768,33 @@
             contentInput.value = post.body || '';
             contentInput.focus();
             
-            // Handle Attachments & Locking
-            const hasInteractions = (post.like_count > 0 || post.comments_count > 0);
+            // LOCK ATTACHMENTS FOR EDITING
+            // User Request: Attachments cannot be removed or increased, only caption changes.
             const imageInput = document.getElementById('post-image-input');
             const fileInput = document.getElementById('post-file-input');
             
-            if (hasInteractions) {
-                showToast('Attachments cannot be edited because this post has interactions.', 'warning');
-                if(imageInput) imageInput.disabled = true;
-                if(fileInput) fileInput.disabled = true;
+            // Disable inputs
+            if(imageInput) imageInput.disabled = true;
+            if(fileInput) fileInput.disabled = true;
+            
+            // Visual Indicator
+            const preview = document.getElementById('image-preview-container');
+            if(preview) {
+                // Show message instead of preview
+                let existingMedia = '';
+                if(post.attachments && post.attachments.length > 0) {
+                     if(typeof renderAttachmentsHTML === 'function') {
+                         existingMedia = renderAttachmentsHTML(post.attachments);
+                     }
+                }
                 
-                // Show existing attachments as locked preview?
-                // For simplified UX, we just don't load them into "selectedFiles" for editing if locked.
-                // Or we can warn user. 
-                // The user said: "agr reaction ya comments ho jya to atachment change ni ho gi just us ka caption change ho ga"
-                // So we basically ignore attachments in the Update call if locked, or just don't let them add new ones.
-            } else {
-                if(imageInput) imageInput.disabled = false;
-                if(fileInput) fileInput.disabled = false;
-                // Ideally we would fetch existing attachments and add to selectedFiles if we supported removing them.
-                // But for now, we just allow adding NEW ones if no interactions.
-                // To support "keeping existing", the backend update_post needs to handle "keep_attachments".
-                // Assuming standard override or append behavior.
+                preview.innerHTML = `
+                <div class="col-span-2 text-xs text-yellow-500 bg-yellow-500/10 p-2 rounded border border-yellow-500/20 flex items-center gap-2 mb-2">
+                    <span class="material-symbols-outlined text-[16px]">lock</span> Attachments cannot be modified during edit.
+                </div>
+                ${existingMedia}
+                `;
+                preview.classList.remove('hidden');
             }
             
             // Update UI Button
@@ -799,7 +804,8 @@
                 createBtn.classList.remove('bg-gradient-to-r', 'from-primary', 'to-blue-600');
                 createBtn.classList.add('bg-green-600', 'hover:bg-green-700');
             }
-        };
+        }
+
 
         function handlePostFileSelect(e) {
             const imagePreviewContainer = document.getElementById('image-preview-container');
@@ -1380,6 +1386,8 @@
 
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
+            // Force clear cache to fix recent updates
+            localStorage.removeItem('home_posts_cache');
             initHeader();
             refreshUserProfile(); // Fetch fresh data to ensure avatar is sync
             initPostCreation();
@@ -1417,13 +1425,13 @@
             <span class="text-[10px] font-medium">Reels</span>
         </a>
 
-        <!-- 4. Notifications -->
-        <a href="notification.html" class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400 relative">
+        <!-- 3. Friends -->
+        <a href="friendreq.html" class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400 relative">
             <div class="relative">
-                <span class="material-symbols-outlined text-[26px]">notifications</span>
-                <span id="notif-badge-mobile" class="hidden absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#0f111a]"></span>
+                <span class="material-symbols-outlined text-[26px]">group</span>
+                <span id="mobile-nav-requests-badge" class="hidden absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#0f111a]"></span>
             </div>
-            <span class="text-[10px] font-medium">Activity</span>
+            <span class="text-[10px] font-medium">Friends</span>
         </a>
 
         <!-- 4. Messages -->
@@ -1443,5 +1451,15 @@
     <script src="js/post_utils.js"></script>
     <script src="js/reels.js"></script> <!-- Ensure reels.js or other dependent scripts are loaded if needed, but post_utils is critical -->
     <script src="js/site_branding.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+             const urlParams = new URLSearchParams(window.location.search);
+             const editId = urlParams.get('editPost');
+             if(editId && typeof editPost === 'function') {
+                 // Add a small delay to ensure everything is initialized
+                 setTimeout(() => editPost(editId), 500);
+             }
+        });
+    </script>
 </body>
 </html>

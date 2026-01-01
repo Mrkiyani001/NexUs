@@ -40,6 +40,23 @@ class User extends Authenticatable implements JWTSubject
             'show_email' => 'boolean',
         ];
     }
+
+    protected $appends = ['avatar_url'];
+
+    public function getAvatarUrlAttribute()
+    {
+        $profile = $this->profile;
+        if (!$profile) return null;
+        
+        // 1. Try Attachment Relation (if loaded or exists)
+        if ($profile->avatar) {
+            return $profile->avatar->file_path;
+        }
+        
+        // 2. Fallback to Column
+        return $profile->getAttributes()['avatar'] ?? null;
+    }
+
      public function getJWTIdentifier()
     {
         return $this->getKey();

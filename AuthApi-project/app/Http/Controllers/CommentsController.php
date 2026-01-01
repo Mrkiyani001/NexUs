@@ -199,7 +199,49 @@ class CommentsController extends BaseController
                     'message' => 'Comment not found',
                 ], 404);
             }
-            if ($comment->user_id != $user->id) {
+            if ($comment->user_id == $user->id) {
+                 DeleteComment::dispatch(
+                $user->id,
+                $request->id
+            );
+            return response()->json([
+                'success' => true,
+                'message' => 'Comment deleted successfully',
+            ], 200);
+            }
+            $owner = $comment->user;
+            if(!$owner){
+                if($user->hasRole('admin','super admin')){
+                    DeleteComment::dispatch(
+                        $user->id,
+                        $request->id
+                    );
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Comment deleted successfully',
+                    ], 200);
+                }
+                return $this->unauthorized();
+            }
+            $authorized = false;
+            if($owner->hasRole('super admin')){
+                if($user->hasRole('super admin')){
+                    $authorized = true;
+                }
+            }elseif($owner->hasRole('admin')){
+                if($user->hasRole('admin','super admin')){
+                    $authorized = true;
+                }
+            }elseif($owner->hasRole('moderator')){
+                if($user->hasRole('moderator','admin','super admin')){
+                    $authorized = true;
+                }
+            }else{
+                if($user->hasRole('admin','super admin')){
+                    $authorized = true;
+                }
+            }
+            if(!$authorized){
                 return $this->unauthorized();
             }
             DeleteComment::dispatch(

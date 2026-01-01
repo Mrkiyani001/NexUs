@@ -194,43 +194,7 @@ function renderReels(reels) {
     });
 }
 
-// Helper to construct URL (Centralized Logic)
-const getProfilePicture = (user) => {
-    if (!user) return `https://ui-avatars.com/api/?name=User&background=random`;
 
-    // 1. Try new user_avatar relationship (Object)
-    if (user.profile && user.profile.user_avatar && user.profile.user_avatar.file_path) {
-        return getStorageUrl(user.profile.user_avatar.file_path);
-    }
-
-    // 2. Try old avatar (String or Object)
-    if (user.profile && user.profile.avatar) {
-        if (typeof user.profile.avatar === 'string') {
-            if (user.profile.avatar.startsWith('http')) return user.profile.avatar;
-            return getStorageUrl(user.profile.avatar);
-        }
-        else if (user.profile.avatar.file_path) {
-            return getStorageUrl(user.profile.avatar.file_path);
-        }
-    }
-
-    // 3. Fallback
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=random`;
-};
-
-const getStorageUrl = (path) => {
-    if (!path) return '';
-    if (path.startsWith('http')) return path;
-    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
-
-    // Check if path already has 'storage/' prefix
-    if (cleanPath.startsWith('storage/')) {
-        return `${window.PUBLIC_URL}/${cleanPath}`;
-    }
-
-    // Default: Append storage/
-    return `${window.PUBLIC_URL}/storage/${cleanPath}`;
-};
 
 function createReelElement(reel) {
     const div = document.createElement('div');
@@ -302,17 +266,22 @@ function createReelElement(reel) {
                     ${(() => {
                         const currentUser = JSON.parse(localStorage.getItem('user_data') || '{}');
                         const isOwner = currentUser.id === reel.user.id;
-                        const roles = currentUser.roles ? currentUser.roles.map(r => (typeof r === 'object' ? r.name : r).toLowerCase()) : [];
-                        const isAdmin = roles.some(r => ['admin', 'super admin', 'superadmin', 'moderator'].includes(r));
                         
                         let items = '';
                         if (isOwner) {
+                            // Edit (Redirect to create-reel with edit param, similar to profile)
                             items += `
-                            <button onclick="editReel(${reel.id})" class="min-w-full text-left px-4 py-3 text-sm text-slate-200 hover:bg-white/10 flex items-center gap-3 transition-colors">
+                            <button onclick="window.location.href='create-reel.html?edit=${reel.id}'" class="min-w-full text-left px-4 py-3 text-sm text-slate-200 hover:bg-white/10 flex items-center gap-3 transition-colors">
                                 <span class="material-symbols-outlined text-[20px]">edit</span> Edit
                             </button>`;
                         }
-                        if (isOwner || isAdmin) {
+                        
+                        // Use global helper if available
+                        const canDelete = (typeof window.canDeleteContent === 'function') 
+                                        ? window.canDeleteContent(currentUser, reel.user)
+                                        : (isOwner); // Fallback
+
+                        if (canDelete) {
                             items += `
                             <button onclick="deleteReel(${reel.id})" class="min-w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-white/10 flex items-center gap-3 transition-colors border-t border-white/5">
                                 <span class="material-symbols-outlined text-[20px]">delete</span> Delete
@@ -1843,7 +1812,7 @@ window.deleteReel = async function deleteReel(reelId) {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ id: reelId })
+            body: JSON.stringify({ reel_id: reelId })
         });
         
         const data = await response.json();
@@ -2310,3 +2279,35 @@ window.copyToClipboard = (text, btn) => {
         console.error('Failed to copy: ', err);
     });
 };
+
+function toggleReelMenu(event, button) {
+    event.stopPropagation();
+    const menu = button.nextElementSibling;
+    
+    // Close other menus
+    document.querySelectorAll('.click-dropdown').forEach(el => {
+        if(el !== menu) {
+             el.classList.add('invisible', 'opacity-0', 'scale-95');
+             el.classList.remove('visible', 'opacity-100', 'scale-100');
+        }
+    });
+
+    // Toggle current
+    if (menu.classList.contains('invisible')) {
+        menu.classList.remove('invisible', 'opacity-0', 'scale-95');
+        menu.classList.add('visible', 'opacity-100', 'scale-100');
+    } else {
+        menu.classList.add('invisible', 'opacity-0', 'scale-95');
+        menu.classList.remove('visible', 'opacity-100', 'scale-100');
+    }
+}
+
+// Close menus on click outside
+document.addEventListener('click', (e) => {
+    if(e.target.closest('.click-dropdown')) return;
+    
+    document.querySelectorAll('.click-dropdown').forEach(el => {
+       el.classList.add('invisible', 'opacity-0', 'scale-95');
+       el.classList.remove('visible', 'opacity-100', 'scale-100');
+   });
+});

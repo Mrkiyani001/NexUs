@@ -165,9 +165,53 @@ class PostController extends BaseController
                     'message' => 'Post not found',
                 ], 404);
             }
-            if ($post->user_id != $user->id) {
+
+            // 1. Owner can always delete their own post
+            if ($post->user_id == $user->id) {
+                DeletePost::dispatch($user->id, $request->id);
+                return $this->response(true, 'Post deleted successfully', null, 200);
+            }
+
+            // 2. Permission Check for Non-Owners
+            $owner = $post->user; 
+            if (!$owner) {
+                 // Fallback if creator not found, allow Admin/SA to clean up
+                 if ($user->hasRole(['admin', 'super admin'])) {
+                     DeletePost::dispatch($user->id, $request->id);
+                     return $this->response(true, 'Post deleted successfully', null, 200);
+                 }
+                 return $this->unauthorized();
+            }
+
+            $authorized = false;
+
+            if ($owner->hasRole('super admin')) {
+                // Only Super Admin can delete Super Admin's post
+                if ($user->hasRole('super admin')) {
+                    $authorized = true;
+                }
+            } elseif ($owner->hasRole('admin')) {
+                // Super Admin or Admin can delete Admin's post
+                if ($user->hasRole(['super admin', 'admin'])) {
+                    $authorized = true;
+                }
+            } elseif ($owner->hasRole('moderator')) {
+                // Super Admin, Admin, or Moderator can delete Moderator's post
+                if ($user->hasRole(['super admin', 'admin', 'moderator'])) {
+                    $authorized = true;
+                }
+            } else {
+                // Standard User Post
+                // Only Super Admin or Admin can delete (Moderator explicitly excluded by request)
+                if ($user->hasRole(['super admin', 'admin'])) {
+                    $authorized = true;
+                }
+            }
+
+            if (!$authorized) {
                 return $this->unauthorized();
             }
+
             DeletePost::dispatch(
                 $user->id,
                 $request->id
@@ -220,9 +264,9 @@ class PostController extends BaseController
             }
             $posts = Post::with([
                 'attachments',
-                'creator',
+                'creator.profile',
                 'updator',
-                'user.profile.avatar',
+                'user.profile',
                 'originalPost.creator',
                 'originalPost.attachments',
                 'user.followers' => function ($q) use ($user) {
@@ -392,7 +436,7 @@ class PostController extends BaseController
                     }])
                     ->withCount('comments')
                     ->withCount('shares')
-                    ->orderby('created_at', 'desc')
+                    ->orderBy('updated_at', 'desc')
                     ->paginate($limit);
             }
             if ($user->id != $request->user_id) {
@@ -407,7 +451,7 @@ class PostController extends BaseController
                     ->withCount('comments')
                     ->withCount('replies')
                     ->withCount('shares')
-                    ->orderby('created_at', 'desc')
+                    ->orderBy('updated_at', 'desc')
                     ->paginate($limit);
             }
 
