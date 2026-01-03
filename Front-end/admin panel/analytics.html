@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html class="dark" lang="en">
+
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Analytics - Under Construction</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script id="tailwind-config">
         tailwind.config = {
@@ -35,7 +39,9 @@
         }
     </style>
 </head>
-<body class="bg-background-dark text-white font-display h-screen w-full overflow-hidden flex selection:bg-primary selection:text-white">
+
+<body
+    class="bg-background-dark text-white font-display h-screen w-full overflow-hidden flex selection:bg-primary selection:text-white">
     <!-- Sidebar Navigation -->
     <aside id="admin-sidebar"
         class="hidden md:flex w-20 lg:w-72 flex-shrink-0 h-full flex flex-col justify-between border-r border-glass-border bg-[#111318]/90 z-20 relative">
@@ -46,43 +52,52 @@
     <main class="flex-1 flex flex-col relative z-10 overflow-hidden bg-background-dark items-center justify-center p-6">
         <!-- Sticky Header (Mobile Only for Menu) -->
         <header class="absolute top-0 left-0 right-0 h-20 flex items-center justify-between px-6 md:hidden z-30">
-             <button id="mobile-menu-btn" onclick="toggleSidebar()" class="text-white p-2">
+            <button id="mobile-menu-btn" onclick="toggleSidebar()" class="text-white p-2">
                 <span class="material-symbols-outlined">menu</span>
             </button>
         </header>
 
         <div class="glass-panel p-10 rounded-3xl max-w-lg w-full text-center border-t border-white/10 shadow-2xl">
             <div class="size-24 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6 relative">
-                 <span class="material-symbols-outlined text-5xl text-primary">analytics</span>
-                 <div class="absolute -bottom-1 -right-1 size-8 bg-[#101522] rounded-full flex items-center justify-center border border-white/10">
+                <span class="material-symbols-outlined text-5xl text-primary">analytics</span>
+                <div
+                    class="absolute -bottom-1 -right-1 size-8 bg-[#101522] rounded-full flex items-center justify-center border border-white/10">
                     <span class="material-symbols-outlined text-sm text-yellow-500">construction</span>
-                 </div>
-            </div>
-            
-            <h1 class="text-3xl font-bold text-white mb-2">Analytics Dashboard</h1>
-            <p class="text-slate-400 mb-8 text-lg">We're currently building something amazing using real-time data insights.</p>
-            
-            <div class="flex items-center justify-center gap-2 mb-8">
-                <span class="px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 text-xs font-bold uppercase tracking-wider">Under Construction</span>
-                <span class="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-bold uppercase tracking-wider">Coming Soon</span>
+                </div>
             </div>
 
-            <button onclick="window.history.back()" class="px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-medium transition-colors border border-white/5 w-full">
+            <h1 class="text-3xl font-bold text-white mb-2">Analytics Dashboard</h1>
+            <p class="text-slate-400 mb-8 text-lg">We're currently building something amazing using real-time data
+                insights.</p>
+
+            <div class="flex items-center justify-center gap-2 mb-8">
+                <span
+                    class="px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 text-xs font-bold uppercase tracking-wider">Under
+                    Construction</span>
+                <span
+                    class="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-bold uppercase tracking-wider">Coming
+                    Soon</span>
+            </div>
+
+            <button onclick="window.history.back()"
+                class="px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-medium transition-colors border border-white/5 w-full">
                 Go Back
             </button>
         </div>
     </main>
 
     <script src="../js/config.js"></script>
+    <script src="../js/utils.js"></script>
     <script src="../js/site_branding.js"></script> <!-- Included for sidebar branding -->
     <script src="../js/admin_utils.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-             // Render Sidebar with 'analytics' as active page
-             if(typeof renderAdminSidebar === 'function') {
+            // Render Sidebar with 'analytics' as active page
+            if (typeof renderAdminSidebar === 'function') {
                 renderAdminSidebar('analytics');
-             }
+            }
         });
     </script>
 </body>
+
 </html>

@@ -44,6 +44,7 @@
         }
     </script>
     <script src="../js/config.js"></script>
+    <script src="../js/utils.js"></script>
     <script src="../js/post_utils.js"></script>
     <script src="../js/admin_utils.js"></script>
     <style>
@@ -415,6 +416,40 @@
             });
         }
 
+        async function deleteUser(userId, userName) {
+            showConfirmModal(`Are you sure you want to PERMANENTLY delete user "${userName}"? This action cannot be undone and will delete all their data.`, async () => {
+                try {
+                    // Using DELETE method with body if supported, or query param, or creating a POST wrapper. 
+                    // Laravel delete route usually expects query or body. api.php says: Route::delete('delete_user', [AuthController::class, 'delete_user']);
+                    // DELETE requests with body are sometimes problematic in some environments/CORS.
+                    // Let's try standard fetch DELETE with body.
+                    const response = await fetch(`${API_BASE_URL}/delete_user`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ id: userId })
+                    });
+                    
+                    if(handleAdminApiError(response)) return;
+
+                    const data = await response.json();
+                    if(data.success) {
+                        showToast('User deleted successfully', 'success');
+                        loadUsers();
+                        loadStats();
+                    } else {
+                        showToast(data.message || 'Failed to delete user', 'error');
+                    }
+
+                } catch(e) {
+                    console.error(e);
+                    showToast('An error occurred', 'error');
+                }
+            });
+        }
+
         function renderUserTable(users) {
             const tableBody = document.getElementById('user-table-body');
             tableBody.innerHTML = '';
@@ -479,6 +514,9 @@
                                 </button>
                                 <button onclick="banUser(${user.id}, ${user.is_banned || 0})" class="p-2 rounded-lg ${banBtnClass} text-slate-400 transition-colors" title="${banBtnTitle}">
                                     <span class="material-symbols-outlined text-[20px]">${banBtnIcon}</span>
+                                </button>
+                                <button onclick="deleteUser(${user.id}, '${user.name.replace(/'/g, "\\'")}')" class="p-2 rounded-lg hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors" title="Delete User">
+                                    <span class="material-symbols-outlined text-[20px]">delete</span>
                                 </button>
                             </div>
                         </td>

@@ -49,7 +49,7 @@
             },
         }
     </script>
-<style>
+<style type="text/tailwindcss">
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -100,11 +100,13 @@
         }.text-gradient {
             background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         .text-gradient-primary {
             background: linear-gradient(135deg, #60a5fa 0%, #a855f7 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }.btn-icon-hover {
             position: relative;
@@ -232,6 +234,12 @@
                         View Profile
                     </a>
                     <div class="h-px bg-white/5 my-1"></div>
+                    <a href="setting-user.html"
+                        class="block px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">settings</span>
+                        Settings
+                    </a>
+                    <div class="h-px bg-white/5 my-1"></div>
                     <button onclick="localStorage.removeItem('auth_token'); localStorage.removeItem('user_data'); window.location.href='login.html'" 
                         class="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors flex items-center gap-2">
                         <span class="material-symbols-outlined text-[18px]">logout</span>
@@ -297,6 +305,7 @@
 </main>
 
     <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
     <script>
     const token = localStorage.getItem('auth_token');
     const userData = JSON.parse(localStorage.getItem('user_data') || '{}');

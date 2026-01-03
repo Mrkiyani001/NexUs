@@ -52,14 +52,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         const logoPath = getStorageUrl(settings.logo);
         const logoImgElements = document.querySelectorAll('#site-logo-img');
 
+        const defaultLogoSvg = document.getElementById('default-logo-svg');
+
         logoImgElements.forEach(img => {
             if (img.tagName === 'IMG') {
                 // Agar <img> tag hai (Dashboard waghaira mein)
                 if (logoPath) {
                     img.src = logoPath;
                     img.style.display = 'block';
+                    if(defaultLogoSvg) defaultLogoSvg.style.display = 'none';
                 } else {
                     img.style.display = 'none';
+                    if(defaultLogoSvg) defaultLogoSvg.style.display = 'block';
                 }
             } else {
                 // Agar <div> tag hai (Login Page case)

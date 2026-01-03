@@ -199,6 +199,12 @@
                         View Profile
                     </a>
                     <div class="h-px bg-white/5 my-1"></div>
+                    <a href="setting-user.html"
+                        class="block px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">settings</span>
+                        Settings
+                    </a>
+                    <div class="h-px bg-white/5 my-1"></div>
                     <button
                         onclick="localStorage.removeItem('auth_token'); localStorage.removeItem('user_data'); window.location.href='login.html'"
                         class="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors flex items-center gap-2">
@@ -392,6 +398,7 @@
     </div>
 
     <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
     <script>
 
         window.token = localStorage.getItem('auth_token');
@@ -437,25 +444,6 @@
                  });
              });
         });
-
-        // Global Fetch Interceptor for Token Expiration (401)
-        const originalFetch = window.fetch;
-        window.fetch = async function (...args) {
-            try {
-                const response = await originalFetch(...args);
-                if (response.status === 401) {
-                    // Token expired or invalid
-                    localStorage.removeItem('auth_token');
-                    localStorage.removeItem('user_data');
-                    window.location.href = 'login.html';
-                }
-                return response;
-            } catch (error) {
-                throw error;
-            }
-        };
-
-
 
         // Header Init
         if (currentUserData.name) {

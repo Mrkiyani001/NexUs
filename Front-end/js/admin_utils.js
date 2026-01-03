@@ -175,12 +175,19 @@ function toggleSidebar() {
 checkAdminAccess();
 
 // 5. Centralized API Error Handler
-function handleAdminApiError(response, defaultMsg = 'An error occurred') {
+// 5. Centralized API Error Handler
+function handleAdminApiError(response, defaultMsg = 'An error occurred', skipLogout = false) {
+    if (response.customErrorHandled) return true; // Already handled by global interceptor
+
     if (response.status === 403) {
         showToast('Access Denied: You do not have permission to perform this action.', 'error');
         return true; // handled
     }
     if (response.status === 401) {
+        if (skipLogout) {
+            showToast('Authorization failed.', 'error');
+            return true;
+        }
         showToast('Session expired. Please login again.', 'error');
         setTimeout(() => handleAdminLogout(), 2000);
         return true; 

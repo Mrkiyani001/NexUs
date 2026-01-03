@@ -305,7 +305,13 @@
                         View Profile
                     </a>
                     <div class="h-px bg-white/5 my-1"></div>
-                    <button
+                    <a href="setting-user.html" id="settings-link-dropdown"
+                        class="block px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">settings</span>
+                        Settings
+                    </a>
+                    <div class="h-px bg-white/5 my-1"></div>
+                    <button id="logout-btn-dropdown"
                         onclick="localStorage.removeItem('auth_token'); localStorage.removeItem('user_data'); window.location.href='login.html'"
                         class="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors flex items-center gap-2">
                         <span class="material-symbols-outlined text-[18px]">logout</span>
@@ -497,6 +503,7 @@
         </div>
     </main>
     <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
     <script>
         // API_BASE_URL and PUBLIC_URL are loaded from config.js
 
@@ -530,27 +537,6 @@
         let isFetchingPosts = false;
         let postsCacheKey = 'home_posts_cache';
         let selectedFiles = [];
-
-        // --- 1. GLOBAL FETCH INTERCEPTOR ---
-        const originalFetch = window.fetch;
-        window.fetch = async function (...args) {
-            try {
-                const response = await originalFetch(...args);
-                if (response.status === 401) {
-                    localStorage.removeItem('auth_token');
-                    localStorage.removeItem('user_data');
-                    window.location.href = 'login.html';
-                }
-                return response;
-            } catch (error) {
-                if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
-                    if (typeof showToast === 'function') {
-                        showToast('Cannot connect to server.', 'error');
-                    }
-                }
-                throw error;
-            }
-        };
 
         // --- 2. HEADER & UI INITIALIZATION ---
         async function refreshUserProfile() {
@@ -625,35 +611,6 @@
                 const headerHandle = document.getElementById('header-user-handle');
                 if (headerName) headerName.innerText = userData.name;
                 if (headerHandle) headerHandle.innerText = '@' + userData.name.toLowerCase().replace(/\s+/g, '');
-
-                // --- Admin Panel Link Logic ---
-                const dropdown = document.getElementById('profile-dropdown');
-                // Check if user has admin role (checking roles array from backend)
-                // Backend returns roles as array of objects: [{id:1, name:'super admin', ...}]
-                const isAdmin = userData.roles && userData.roles.some(r => 
-                    r.name === 'super admin' || r.name === 'admin' || r.name === 'Admin' || r.name === 'Super Admin' || r.name === 'moderator' || r.name === 'Moderator'
-                );
-
-                if (isAdmin && dropdown) {
-                    // Check if link already exists to prevent duplicates
-                    if (!document.getElementById('admin-panel-link')) {
-                        const adminLink = document.createElement('a');
-                        adminLink.id = 'admin-panel-link';
-                        adminLink.href = 'admin%20panel/admin-dashboard.html'; 
-                        adminLink.className = 'block px-4 py-3 text-sm text-yellow-500 hover:bg-white/5 hover:text-yellow-400 transition-colors flex items-center gap-2 font-bold';
-                        adminLink.innerHTML = '<span class="material-symbols-outlined text-[18px]">admin_panel_settings</span>Admin Panel';
-
-                        // Insert before the divider (which is before Logout)
-                        // Structure: [Profile Link] [Divider] [Logout Button]
-                        const divider = dropdown.querySelector('.h-px');
-                        if (divider) {
-                            dropdown.insertBefore(adminLink, divider);
-                        } else {
-                            // Fallback
-                            dropdown.insertBefore(adminLink, dropdown.lastElementChild);
-                        }
-                    }
-                }
             }
         }
 

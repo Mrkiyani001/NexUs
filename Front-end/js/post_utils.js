@@ -6,65 +6,7 @@ window.DEFAULT_AVATAR = (name) => `https://ui-avatars.com/api/?name=${encodeURIC
 console.log('Post Utils Loading...');
 
 // --- TOAST NOTIFICATION SYSTEM ---
-function injectToastStyles() {
-    if (document.getElementById('toast-styles')) return;
-    const style = document.createElement('style');
-    style.id = 'toast-styles';
-    style.textContent = `
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; }
-        }
-        .toast-notification {
-            animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .toast-notification.hiding {
-            animation: fadeOut 0.3s ease-in forwards;
-        }
-    `;
-    document.head.appendChild(style);
-}
-injectToastStyles();
-
-window.showToast = function (message, type = 'success') {
-    const container = document.getElementById('toast-container') || (() => {
-        const c = document.createElement('div');
-        c.id = 'toast-container';
-        c.className = 'fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none';
-        document.body.appendChild(c);
-        return c;
-    })();
-
-    const toast = document.createElement('div');
-    const bgColor = type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400';
-    const icon = type === 'success' ? 'check_circle' : 'error';
-
-    toast.className = `toast-notification ${bgColor} border backdrop-blur-xl px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 min-w-[300px] pointer-events-auto transform transition-all duration-300 hover:scale-[1.02] cursor-pointer`;
-    toast.innerHTML = `
-        <span class="material-symbols-outlined text-[20px]">${icon}</span>
-        <div class="flex-1 text-sm font-medium pr-2 text-white">${message}</div>
-    `;
-
-    // Remove on click
-    toast.onclick = () => {
-        toast.classList.add('hiding');
-        setTimeout(() => toast.remove(), 300);
-    };
-
-    container.appendChild(toast);
-
-    // Auto remove
-    setTimeout(() => {
-        if (toast.isConnected) {
-            toast.classList.add('hiding');
-            setTimeout(() => toast.remove(), 300);
-        }
-    }, 5000);
-};
+// Moved to utils.js for global availability
 
 // --- CUSTOM CONFIRM MODAL SYSTEM ---
 window.showConfirmModal = function (message, onConfirm) {
@@ -201,22 +143,7 @@ function renderAvatarHTML(user, classes = "size-10 rounded-full object-cover bor
 }
 
 
-function showToast(message, type = 'success') {
-    const toast = document.createElement('div');
-    toast.className = `fixed bottom-6 right-6 px-6 py-4 rounded-xl backdrop-blur-md shadow-2xl transform transition-all duration-500 translate-y-20 opacity-0 z-50 flex items-center gap-3 border ${type === 'success' ? 'bg-black/60 border-green-500/30' : 'bg-black/60 border-red-500/30'}`;
-    toast.innerHTML = `
-        <span class="material-symbols-outlined ${type === 'success' ? 'text-green-400' : 'text-red-400'}">
-            ${type === 'success' ? 'check_circle' : 'error'}
-        </span>
-        <span class="text-white font-medium text-sm">${message}</span>
-    `;
-    document.body.appendChild(toast);
-    requestAnimationFrame(() => toast.classList.remove('translate-y-20', 'opacity-0'));
-    setTimeout(() => {
-        toast.classList.add('translate-y-20', 'opacity-0');
-        setTimeout(() => toast.remove(), 500);
-    }, 3000);
-}
+
 
 // Inject Report Modal
 // Inject Report Modal
@@ -466,23 +393,20 @@ function renderDropdownContent(container) {
         `;
     }
 
-    // Role-based Admin Link
-    const roles = currentUser.roles ? currentUser.roles.map(r => (typeof r === 'object' ? r.name : r).toLowerCase()) : [];
-    const isAdmin = roles.some(r => ['admin', 'super admin', 'moderator'].includes(r));
-    const adminLinkHtml = isAdmin ? `
-        <a href="admin%20panel/admin-dashboard.html" class="block px-4 py-3 text-sm text-accent-purple hover:bg-accent-purple/10 transition-colors flex items-center gap-2">
-            <span class="material-symbols-outlined text-[18px]">shield_person</span>
-            Admin Portal
-        </a>
-    ` : '';
-
+    // Role-based Admin Link - REMOVED as per user request (User prefers header badge only)
+    
     container.innerHTML = `
         <div class="py-1">
             <a href="profile.html" class="block px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2">
                 <span class="material-symbols-outlined text-[18px]">person</span>
                 View Profile
             </a>
-            ${adminLinkHtml}
+            
+            <a href="setting-user.html" class="block px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px]">settings</span>
+                Settings
+            </a>
+
             <div class="h-px bg-white/5 my-1"></div>
             
             ${accountsHtml}
@@ -681,7 +605,7 @@ function createPostHTML(post, passedUserData = null) {
     const avatarHtml = renderAvatarHTML(userData, "w-10 h-10 rounded-full border border-white/10 cursor-pointer object-cover", `onclick="window.location.href='profile.html?id=${userData.id}'"`);
 
     return `
-    <article class="bg-card w-full rounded-xl border border-white/5 p-4 mb-4 animate-fade-in group hover:border-white/10 transition-colors" id="post-${post.id}">
+    <article class="bg-card w-full rounded-xl border border-white/5 p-3 md:p-4 mb-4 animate-fade-in group hover:border-white/10 transition-colors" id="post-${post.id}">
         <div class="flex gap-4">
             ${avatarHtml}
             <div class="flex-1 min-w-0">
@@ -761,9 +685,9 @@ function createPostHTML(post, passedUserData = null) {
         </div>
 
         <!-- Always Visible Comment Input (Inline Style) -->
-        <div class="px-4 py-3 border-t border-white/5 bg-transparent rounded-b-xl">
+        <div class="px-3 py-2 md:px-4 md:py-3 border-t border-white/5 bg-transparent rounded-b-xl">
             <div class="flex gap-3 items-end">
-                    ${renderAvatarHTML(currentUserData || userData, "w-8 h-8 rounded-full border border-white/10 mb-1 object-cover")}
+                    ${renderAvatarHTML(currentUserData || userData, "w-8 h-8 rounded-full border border-white/10 mb-1 object-cover cursor-pointer hover:opacity-80 transition-opacity", `onclick="window.location.href='profile.html?id=${(currentUserData || userData).id}'"`)}
                     
                     <div class="flex-1 bg-white/5 border border-white/10 rounded-2xl flex items-end gap-2 p-1.5 focus-within:border-primary/50 transition-colors">
                         <textarea id="comment-input-${post.id}" 
