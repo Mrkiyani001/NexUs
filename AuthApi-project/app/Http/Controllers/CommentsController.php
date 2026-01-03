@@ -11,6 +11,7 @@ use App\Models\Post;
 use Illuminate\Http\Request;
 use App\Models\Comments;
 use App\Models\Reel;
+use Illuminate\Support\Facades\Log;
 
 class CommentsController extends BaseController
 {
@@ -70,7 +71,8 @@ class CommentsController extends BaseController
                         ]);
                     }
                 } catch (\Exception $e) {
-                   // Log error but continue
+                   Log::error('Attachment creation failed: ' . $e->getMessage());
+                   return $this->response(false, 'Attachment creation failed: ' . $e->getMessage(), null, 500);
                 }
             }
 
@@ -104,16 +106,9 @@ class CommentsController extends BaseController
                 }
             }
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Comment created successfully',
-                'data' => $comment,
-            ], 201);
+            return $this->Response(true, 'Comment created successfully', $comment, 201);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
     public function update(Request $request)
@@ -134,13 +129,10 @@ class CommentsController extends BaseController
 
             $comment = Comments::find($request->id);
             if (is_null($comment)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Comment not found',
-                ], 404);
+                return $this->Response(false, 'Comment not found', null, 404);
             }
             if ($comment->user_id != $user->id) {
-                return $this->unauthorized();
+                return $this->NotAllowed();
             }
             $comment->fill([
                 'comment' => $request->comment,
@@ -169,17 +161,9 @@ class CommentsController extends BaseController
                 $uploadFiles
             );
             $comment->refresh(); // Refresh from DB
-            return response()->json([
-                'success' => true,
-                'message' => 'Comment updated successfully',
-                'data' => $comment, // Return full comment object
-                'upload_files' => $uploadFiles // Keep this for legacy if needed
-            ], 200);
+            return $this->Response(true, 'Comment updated successfully', $comment, 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
     public function destroy(Request $request)
@@ -194,64 +178,52 @@ class CommentsController extends BaseController
             }
             $comment = Comments::find($request->id);
             if (!$comment) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Comment not found',
-                ], 404);
+                return $this->Response(false, 'Comment not found', null, 404);
             }
             if ($comment->user_id == $user->id) {
                  DeleteComment::dispatch(
                 $user->id,
                 $request->id
             );
-            return response()->json([
-                'success' => true,
-                'message' => 'Comment deleted successfully',
-            ], 200);
+            return $this->Response(true, 'Comment deleted successfully', null, 200);
             }
             $owner = $comment->user;
             if(!$owner){
-                if($user->hasRole(['admin','super admin'])){
+                if($user->hasRole(['Admin','super admin'])){
                     DeleteComment::dispatch(
                         $user->id,
                         $request->id
                     );
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'Comment deleted successfully',
-                    ], 200);
+                    return $this->Response(true, 'Comment deleted successfully', null, 200);
                 }
-                return $this->unauthorized();
+                return $this->NotAllowed();
             }
             $authorized = false;
             if($owner->hasRole('super admin')){
                 if($user->hasRole('super admin')){
                     $authorized = true;
                 }
-            }elseif($owner->hasRole('admin')){
-                if($user->hasRole(['admin','super admin'])){
+            }elseif($owner->hasRole('Admin')){
+                if($user->hasRole(['Admin','super admin'])){
                     $authorized = true;
                 }
-            }elseif($owner->hasRole('moderator')){
-                if($user->hasRole(['moderator','admin','super admin'])){
+            }elseif($owner->hasRole('Moderator')){
+                if($user->hasRole(['Moderator','Admin','super admin'])){
                     $authorized = true;
                 }
             }else{
-                if($user->hasRole(['admin','super admin'])){
+                if($user->hasRole(['Admin','super admin'])){
                     $authorized = true;
                 }
             }
             if(!$authorized){
-                return $this->unauthorized();
+                return $this->NotAllowed();
             }
             DeleteComment::dispatch(
                 $user->id,
                 $request->id
             );
-            return response()->json([
-                'success' => true,
-                'message' => 'Comment deleted successfully',
-            ], 200);
+            return $this->Response(true, 'Comment deleted successfully', null, 200);
             // $comment = Comments::find($request->id);
             // if(is_null($comment)){
             //     return response()->json([
@@ -266,10 +238,7 @@ class CommentsController extends BaseController
             // ],200);
             // }
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
     public function get_comments_by_post(Request $request)
@@ -305,16 +274,9 @@ class CommentsController extends BaseController
                 ->paginate($limit);
 
             $data = $this->paginateData($comments, $comments->items());
-            return response()->json([
-                'success' => true,
-                'message' => 'Comments retrieved successfully',
-                'data' => $data,
-            ], 200);
+            return $this->Response(true, 'Comments retrieved successfully', $data, 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
     public function get_comments_by_reel(Request $request)
@@ -351,16 +313,9 @@ class CommentsController extends BaseController
                 ->paginate($limit);
 
             $data = $this->paginateData($comments, $comments->items());
-            return response()->json([
-                'success' => true,
-                'message' => 'Comments retrieved successfully',
-                'data' => $data,
-            ], 200);
+            return $this->Response(true, 'Comments retrieved successfully', $data, 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
 }

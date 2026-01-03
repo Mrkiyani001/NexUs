@@ -68,6 +68,7 @@ class CommentsRepliesController extends BaseController
                     }
                 } catch (\Exception $e) {
                     Log::error("Failed to upload attachments for comment reply ID " . $commentReply->id . ": " . $e->getMessage());
+                    return $this->Response(false, $e->getMessage(), null, 500);
                 }
             }
 
@@ -91,16 +92,9 @@ class CommentsRepliesController extends BaseController
             // We need to return structure matching what frontend expects if possible, 
             // but for now ID is critical.
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Comment Reply created successfully',
-                'data' => $commentReply
-            ], 201);
+            return $this->Response(true, 'Comment Reply created successfully', $commentReply, 201);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
 
@@ -121,13 +115,10 @@ class CommentsRepliesController extends BaseController
             }
             $commentReply = CommentReply::find($request->id);
             if (is_null($commentReply)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Comment Reply not found',
-                ], 404);
+                return $this->Response(false, 'Comment Reply not found', null, 404);
             }
             if ($commentReply->user_id != $user->id) {
-                return $this->unauthorized();
+                return $this->NotAllowed();
             }
 
             // Handle removal of attachments
@@ -155,15 +146,9 @@ class CommentsRepliesController extends BaseController
                 $uploadFiles
             );
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Comment Reply update in progress',
-            ], 202);
+            return $this->Response(true, 'Comment Reply update in progress', null, 202);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
 
@@ -179,10 +164,7 @@ class CommentsRepliesController extends BaseController
             }
             $commentReply = CommentReply::find($request->id);
             if (!$commentReply) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Comment Reply not found',
-                ], 404);
+                return $this->Response(false, 'Comment Reply not found', null, 404);
             }
             if ($commentReply->user_id == $user->id) {
 
@@ -191,61 +173,49 @@ class CommentsRepliesController extends BaseController
                 $request->id
             );
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Comment Reply deletion in progress',
-            ], 202);                
+            return $this->Response(true, 'Comment Reply deletion in progress', null, 202);                
             }
             $owner = $commentReply->user;
             if(!$owner){
-                if($user->hasRole(['super admin','admin'])){
+                if($user->hasRole(['super admin','Admin'])){
                     DeleteCommentReply::dispatch(
                         $user->id,
                         $request->id
                     );
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'Comment Reply deletion in progress',
-                    ], 202);                
+                    return $this->Response(true, 'Comment Reply deletion in progress', null, 202);                
                 }
-                return $this->unauthorized();
+                return $this->NotAllowed();
             }
             $authorized = false;
             if($owner->hasRole('super admin')){
                 if($user->hasRole('super admin')){
                     $authorized = true;
                 }
-            }elseif($owner->hasRole('admin')){
-                if($user->hasRole(['admin','super admin'])){
+            }elseif($owner->hasRole('Admin')){
+                if($user->hasRole(['Admin','super admin'])){
                     $authorized = true;
                 }
-            }elseif($owner->hasRole('moderator')){
-                if($user->hasRole(['moderator','admin','super admin'])){
+            }elseif($owner->hasRole('Moderator')){
+                if($user->hasRole(['Moderator','Admin','super admin'])){
                     $authorized = true;
                 }
             }else{
-                if($user->hasRole(['admin','super admin'])){
+                if($user->hasRole(['Admin','super admin'])){
                     $authorized = true;
                 }
             }
             if(!$authorized){
-                return $this->unauthorized();
+                return $this->NotAllowed();
             }
             DeleteCommentReply::dispatch(
                 $user->id,
                 $request->id
             );
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Comment Reply deletion in progress',
-            ], 202);                
+            return $this->Response(true, 'Comment Reply deletion in progress', null, 202);                
 
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
     public function get_replies_by_comment(Request $request)
@@ -264,15 +234,9 @@ class CommentsRepliesController extends BaseController
                 ->paginate($limit);
 
             $data = $this->paginateData($commentReplies, $commentReplies->items());
-            return response()->json([
-                'success' => true,
-                'data' => $data,
-            ], 200);
+            return $this->Response(true, 'Comment Replies fetched successfully', $data, 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
 }

@@ -22,6 +22,12 @@ class BaseController extends Controller
         }
         return true;
     }
+    public function NotAllowed(){
+        return response()->json([
+            'success' => false,
+            'message' => 'You are not authorized to perform this action.',
+        ], 403);
+    }
     protected function respondWithToken($token, $user)
     {
         // Ensure profile and avatar are loaded

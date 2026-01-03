@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\BaseController;
 use App\Models\Share;
+use Exception;
 use Illuminate\Http\Request;
 
 class ShareController extends BaseController
@@ -14,12 +15,15 @@ class ShareController extends BaseController
         ]);
         try{
             $user = auth('api')->user();
+            if (!$user) {
+                return $this->unauthorized();
+            }
             $share = Share::create([
                 'user_id' => $user->id,
                 'post_id' => $request->post_id,
             ]);
             return $this->Response(true, 'Post shared successfully', $share, 200);
-        }catch(\Exception $e){
+        }catch(Exception $e){
             return $this->Response(false, $e->getMessage(), null, 500);
         }
 
@@ -30,12 +34,15 @@ class ShareController extends BaseController
         ]);
         try{
             $user = auth('api')->user();
+            if (!$user) {
+                return $this->unauthorized();
+            }
             $share = Share::create([
                 'user_id' => $user->id,
                 'reel_id' => $request->reel_id,
             ]);
             return $this->Response(true, 'Reel shared successfully', $share, 200);
-        }catch(\Exception $e){
+        }catch(Exception $e){
             return $this->Response(false, $e->getMessage(), null, 500);
         }
     }

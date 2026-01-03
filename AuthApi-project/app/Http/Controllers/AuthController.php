@@ -23,8 +23,8 @@ class AuthController extends BaseController
         $this->validateRequest($request, [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6|confirmed',
-            'password_confirmation' => 'required|string|min:6',
+            'password' => 'required|string|min:8|confirmed',
+            'password_confirmation' => 'required|string|min:8',
         ]);
         try {
             // DB::beginTransaction();
@@ -47,17 +47,10 @@ class AuthController extends BaseController
             // // DB::commit();
             // $token = auth('api')->login($user);
             // return $this->respondWithToken($token, $user);
-            return response()->json([
-                'success' => true,
-                'message' => $message,
-                'data' => $user
-            ], 201);
+            return $this->Response(true, $message, $user, 201);
         } catch (\Exception $e) {
             // DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
     public function login(Request $request)
@@ -69,48 +62,58 @@ class AuthController extends BaseController
         try {
             $user = User::where(['email' => $request->email])->first();
             if (!$user) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'User not found',
-                ], 404);
+                return $this->Response(false, 'User not found', null, 404);
             }
             if (!Hash::check($request->password, $user->password)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid credentials',
-                ], 401);
+                return $this->Response(false, 'Invalid credentials', null, 401);
             }
 
             if ($user->is_banned == 1) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Your account has been banned. Please contact support.',
-                ], 403);
+                return $this->Response(false, 'Your account has been banned. Please contact support.', null, 403);
+            }
+
+            if ($user->status == 'Deactivated') {
+                 $user->status = 'Active';
+                 $user->save();
             }
 
             // Check Maintenance Mode
             $settings = Settings::first();
             if ($settings && $settings->maintenance_mode) {
-                if (!$user->hasRole('super admin') && !$user->hasRole('admin')) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Service Unavailable. The site is currently in maintenance mode.',
-                    ], 503);
+                if (!$user->hasRole(['Admin','super admin','Moderator'])) {
+                    return $this->Response(false, 'Service Unavailable. The site is currently in maintenance mode.', null, 503);
                 }
             }
 
             if (!$token = auth('api')->login($user)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized',
-                ], 401);
+                return $this->unauthorized();
+            }
+            if (!$user->hasVerifiedEmail()) {
+                auth('api')->logout();
+                return $this->Response(false, 'User not verified', null, 401);
             }
             return $this->respondWithToken($token, $user);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
+        }
+    }
+
+    public function deactivate_account(Request $request) 
+    {
+         try {
+            $user = auth('api')->user();
+            if (!$user) {
+                return $this->unauthorized();
+            }
+            
+            $user->status = 'Deactivated';
+            $user->save();
+            
+            auth('api')->logout();
+            
+            return $this->Response(true, 'Account deactivated successfully. Login to reactivate.', null, 200);
+         } catch (\Exception $e) {
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
 
@@ -120,40 +123,50 @@ class AuthController extends BaseController
         $user = User::find($request->route('id'));
 
         if (!$user) {
-             return response()->json(['message' => 'Invalid verification link.'], 400); 
+             return $this->Response(false, 'Invalid verification link.', null, 400); 
         }
 
         if (! hash_equals((string) $request->route('hash'), sha1($user->getEmailForVerification()))) {
-            return response()->json(['message' => 'Invalid verification link.'], 400);
+            return $this->Response(false, 'Invalid verification link.', null, 400);
         }
 
         if ($user->hasVerifiedEmail()) {
              // Redirect to frontend login with message
-             return redirect()->to('https://web.kiyanibhai.site/login.html?verified=1');
+             return redirect()->to(env('APP_URL').'/login.html?verified=1');
         }
 
         if ($user->markEmailAsVerified()) {
             event(new Verified($user));
         }
 
-        return redirect()->to('https://web.kiyanibhai.site/login.html?verified=1');
+        return redirect()->to(env('APP_URL').'/login.html?verified=1');
     }
 
     public function resend_verification(Request $request)
     {
-        $this->validateRequest($request, [
-             'email' => 'required|email|exists:users,email'
-        ]);
+        $user = auth('api')->user();
 
-        $user = User::where('email', $request->email)->first();
+        if ($user) {
+            // Logged in user
+        } else {
+            // Public endpoint usage (optional, if we want to allow it by email)
+            $this->validateRequest($request, [
+                'email' => 'required|email|exists:users,email'
+            ]);
+            $user = User::where('email', $request->email)->first();
+        }
+
+        if (!$user) {
+             return $this->Response(false, 'User not found.', null, 404);
+        }
 
         if ($user->hasVerifiedEmail()) {
-            return response()->json(['message' => 'Email already verified.']);
+            return $this->Response(false, 'Email already verified.', null, 400);
         }
 
         $user->sendEmailVerificationNotification();
 
-        return response()->json(['message' => 'Verification link sent!']);
+        return $this->Response(true, 'Verification link sent!');
     }
 
     public function getUser(Request $request)
@@ -168,16 +181,10 @@ class AuthController extends BaseController
             }
             $user = User::with(['roles', 'profile.avatar'])->find($request->id);
             if (is_null($user)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'User not found',
-                ], 404);
+                return $this->Response(false, 'User not found', null, 404);
             } 
             if($user->is_banned==1){
-                return response()->json([
-                    'success' => false,
-                    'message' => 'User is banned',
-                ], 403);
+                return $this->Response(false, 'User is banned', null, 403);
             }
             $fieldsToHide = ['password', 'remember_token', 'email_verified_at', 'show_email'];
             // roles might be needed, but strictly hiding password/tokens is key.
@@ -188,43 +195,42 @@ class AuthController extends BaseController
             }
 
             $user->makeHidden($fieldsToHide);
-                return response()->json([
-                    'success' => true,
-                    'data' => $user,
-                ], 200);
+                return $this->Response(true, 'User found', $user, 200);
             
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
 
     public function get_all_users(Request $request)
     {
         try {
+            $login_user = auth('api')->user();
+            if (!$login_user) {
+                return $this->unauthorized();
+            }
             $limit = (int) $request->input('limit', 10);
             $query = User::with(['roles', 'profile']);
 
             $users = $query->latest()->paginate($limit);
             $data = $this->paginateData($users, $users->items());
 
-            return response()->json([
-                'success' => true,
-                'data' => $data,
-            ], 200);
+            return $this->Response(true, 'Users found', $data, 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
 
     public function filter_users(Request $request)
     {
         try {
+            $login_user = auth('api')->user();
+            if (!$login_user) {
+                return $this->unauthorized();
+            }
+            if(!$login_user->hasRole(['Admin','super admin','Moderator'])) {
+                return $this->NotAllowed();
+            }
             $limit = (int) $request->input('limit', 10);
             $query = User::with(['roles', 'profile']);
 
@@ -237,11 +243,11 @@ class AuthController extends BaseController
                     $query->where('is_banned', 0);
                 } elseif ($filter === 'admins') {
                     $query->whereHas('roles', function ($q) {
-                        $q->whereIn('name', ['admin', 'super-admin', 'super admin']);
+                        $q->whereIn('name', ['Admin', 'super admin']);
                     });
                 } elseif ($filter === 'moderators') {
                     $query->whereHas('roles', function ($q) {
-                        $q->where('name', 'moderator');
+                        $q->whereIn('name', ['Moderator']);
                     });
                 }
             }
@@ -249,15 +255,9 @@ class AuthController extends BaseController
             $users = $query->latest()->paginate($limit);
             $data = $this->paginateData($users, $users->items());
 
-            return response()->json([
-                'success' => true,
-                'data' => $data,
-            ], 200);
+            return $this->Response(true, 'Users found', $data, 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
     public function update_user(Request $request)
@@ -266,20 +266,20 @@ class AuthController extends BaseController
             'id' => 'required|integer|exists:users,id',
             'name' => 'sometimes|string|max:255',
             'email' => 'sometimes|string|email|max:255|unique:users,email,' . $request->id,
-            'password' => 'sometimes|string|min:6|confirmed',
-            'password_confirmation' => 'sometimes|string|min:6',
+            'password' => 'sometimes|string|min:8|confirmed',
+            'password_confirmation' => 'sometimes|string|min:8',
         ]);
         try {
             $user = auth('api')->user();
             if (!$user) {
                 return $this->unauthorized();
             }
+            if($user->id!=$request->id){
+                return $this->NotAllowed();
+            }
             $user = User::find($request->id);
             if (is_null($user)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'User not found',
-                ], 404);
+                return $this->Response(false, 'User not found', null, 404);
             } else {
                 $user->fill($request->only(['name', 'email', 'password']));
             }
@@ -288,15 +288,9 @@ class AuthController extends BaseController
             }
             $user->save();
             $user->touch();
-            return response()->json([
-                'success' => true,
-                'data' => $user,
-            ], 200);
+            return $this->Response(true, 'User updated', $user, 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
 
@@ -305,35 +299,30 @@ class AuthController extends BaseController
         $this->validateRequest($request, [
             'id' => 'required|integer|exists:users,id',
             'current_password' => 'required|string|min:6',
-            'password' => 'required|string|min:6|confirmed',
-            'password_confirmation' => 'required|string|min:6',
+            'password' => 'required|string|min:8|confirmed',
+            'password_confirmation' => 'required|string|min:8',
         ]);
         try {
             $user = auth('api')->user();
             if (!$user) {
                 return $this->unauthorized();
             }
+            if($user->id!=$request->id){
+                return $this->NotAllowed();
+            }
             $user = User::find($request->id);
             if (is_null($user)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'User not found',
-                ], 404);
+                return $this->Response(false, 'User not found', null, 404);
             } else {
                 if (!HASH::check($request->current_password, $user->password)) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Current password is incorrect',
-                    ], 401);
+                    return $this->Response(false, 'Current password is incorrect', null, 401);
                 }
                 $user->password = HASH::make($request->password);
                 $user->save();
             }
+            return $this->Response(true, 'Password updated', null, 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
     public function delete_user(Request $request)
@@ -348,30 +337,20 @@ class AuthController extends BaseController
             }
             $user = User::find($request->id);
             if (is_null($user)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'User not found',
-                ], 404);
-            } else {
-                if($login_user->id != $user->id){
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'You are not authorized to delete this user',
-                    ], 401);
-                }
-                    $user->posts()->delete();
-                    $user->reels()->delete();
-                    $user->delete();
-                    return response()->json([
-                    'success' => true,
-                    'message' => 'User deleted successfully',
-                ], 200);
+                return $this->Response(false, 'User not found', null, 404);
+            }else{
+            // Allows: If User is Owner OR User is Super Admin
+            if ($login_user->id == $user->id || $login_user->hasRole(['super admin'])) {
+                $user->posts()->delete();
+                $user->reels()->delete();
+                $user->delete();
+                return $this->Response(true, 'User deleted successfully', null, 200);
             }
+
+            return $this->NotAllowed();
+        }
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
     public function logout()
@@ -391,7 +370,7 @@ class AuthController extends BaseController
         }
         if ($user->is_banned == 1) {
             auth('api')->logout(); // Invalidate the token immediately
-            return response()->json(['error' => 'Your account has been banned. Please contact support.'], 403);
+            return $this->Response(false, 'Your account has been banned. Please contact support.', null, 403);
         }
         $token = auth('api')->refresh();
         return $this->respondWithToken($token, $user);
@@ -414,15 +393,9 @@ class AuthController extends BaseController
                 })
                 ->paginate($limit);
             $data = $this->paginateData($users, $users->items());
-            return response()->json([
-                'success' => true,
-                'data' => $data,
-            ], 200);
+            return $this->Response(true, 'Users found', $data, 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
     public function forget_password(Request $request)
@@ -440,7 +413,7 @@ class AuthController extends BaseController
                     'created_at' => now()
                 ]
             );
-            $resetLink = "http://localhost:3000/create-new-pass.html?token=" . $token . "&email=" . $request->email;
+            $resetLink = env('APP_URL').'/create-new-pass.html?token=' . $token . '&email=' . $request->email;
             Mail::send([], [], function ($message) use ($request, $resetLink) {
                 $message->to($request->email)
                     ->subject('Reset Your Password')
@@ -451,10 +424,7 @@ class AuthController extends BaseController
                     <p>Or copy this link: $resetLink</p>
                 ");
             });
-            return response()->json([
-                'success' => true,
-                'message' => 'Forget password token sent successfully',
-            ], 200);
+            return $this->Response(true, 'Forget password token sent successfully', null, 200);
         }
     }
 
@@ -474,20 +444,14 @@ class AuthController extends BaseController
                 ->first();
 
             if (!$resetRecord) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid or expired password reset token.',
-                ], 400);
+                return $this->Response(false, 'Invalid or expired password reset token.', null, 400);
             }
 
             // Check if token is expired (older than 2 minutes)
             $tokenCreatedAt = Carbon::parse($resetRecord->created_at);
             if ($tokenCreatedAt->addMinutes(2)->isPast()) {
                 DB::table('password_reset_tokens')->where('email', $request->email)->delete();
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Password reset link has expired (2 minute limit). Please request a new one.',
-                ], 400);
+                return $this->Response(false, 'Password reset link has expired (2 minute limit). Please request a new one.', null, 400);
             }
 
             $user = User::where('email', $request->email)->first();
@@ -496,15 +460,9 @@ class AuthController extends BaseController
 
             DB::table('password_reset_tokens')->where('email', $request->email)->delete();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Password reset successful! You can now login.',
-            ], 200);
+            return $this->Response(true, 'Password reset successfully! You can now login.', null, 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
 }

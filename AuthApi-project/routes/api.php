@@ -32,6 +32,8 @@ Route::get('settings', [SettingsController::class, 'index']);
 Route::post('forget_password', [AuthController::class, 'forget_password']);
 Route::post('reset_password', [AuthController::class, 'reset_password']);
 
+Route::get('email/verify/{id}/{hash}', [AuthController::class, 'verify_email'])->name('verification.verify');
+
 Route::get('/debug-config', function () {
     return response()->json([
         'php_ini_path' => php_ini_loaded_file(),
@@ -118,12 +120,14 @@ Route::group(['middleware' => ['api', 'auth:api']], function () {
 
     // User Routes
     Route::post('logout', [AuthController::class, 'logout']);
+    Route::post('resend_verification', [AuthController::class, 'resend_verification']);
     Route::post('refresh', [AuthController::class, 'refresh_token']);
     Route::get('getallusers', [AuthController::class, 'get_all_users'])->middleware('permission:view access|manage access');
     Route::get('filter_users', [AuthController::class, 'filter_users'])->middleware('permission:view access|manage access');
     Route::post('getUser', [AuthController::class, 'getUser']);
     Route::put('updateUser', [AuthController::class, 'update_user']);
     Route::post('updatePassword', [AuthController::class, 'update_password']);
+    Route::post('deactivate_account', [AuthController::class, 'deactivate_account']);
     Route::delete('delete_user', [AuthController::class, 'delete_user']);
 
     // Post Routes
