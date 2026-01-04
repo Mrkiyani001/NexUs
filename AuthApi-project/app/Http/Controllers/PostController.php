@@ -11,6 +11,7 @@ use App\Models\Attachments;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\Post;
+use Carbon\Carbon;
 use App\Services\ContentModerationService;
 use Illuminate\Support\Facades\DB;
 
@@ -46,6 +47,12 @@ class PostController extends BaseController
             if ($user->hasRole(['admin', 'super admin', 'moderator'])) {
                 $is_approved = true;
             }
+            if(!$user->hasRole(['super admin'])){
+            $daily_post_count = Post::where('user_id', $user->id)->whereDate('created_at', Carbon::today())->count();
+            if($daily_post_count >= 10){
+                return $this->response(false, 'Daily limit reached', null, 429);
+            }
+        }
 
             AddPost::dispatch(
                 $user->id,
