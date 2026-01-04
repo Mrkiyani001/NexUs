@@ -107,7 +107,10 @@
         async function fetchAllRoles() {
             try {
                 const response = await fetch(`${API_BASE_URL}/get_all_roles`, {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
+                    credentials: 'include',
+                    headers: { 
+                        // 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` 
+                    }
                 });
                 
                 if(handleAdminApiError(response)) return;
@@ -190,8 +193,9 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/role/assign_role`, {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+                        // 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
@@ -236,7 +240,10 @@
             try {
                 console.log('Fetching Stats from:', `${API_BASE_URL}/admin/stats`);
                 const response = await fetch(`${API_BASE_URL}/admin/stats`, {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
+                    credentials: 'include',
+                    headers: { 
+                        // 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` 
+                    }
                 });
 
                 console.log('Stats Response Status:', response.status);
@@ -339,8 +346,9 @@
             try {
                 let url;
                 let options = {
+                    credentials: 'include',
                     headers: { 
-                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        // 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
                     }
                 };
 
@@ -395,8 +403,9 @@
                 try {
                     const response = await fetch(`${API_BASE_URL}/admin/ban_user`, {
                         method: 'POST',
+                        credentials: 'include',
                         headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+                            // 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({ user_id: userId, action: action })
@@ -425,8 +434,9 @@
                     // Let's try standard fetch DELETE with body.
                     const response = await fetch(`${API_BASE_URL}/delete_user`, {
                         method: 'DELETE',
+                        credentials: 'include',
                         headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+                            // 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({ id: userId })

@@ -94,8 +94,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 2. Phir Server se naya data lao
         try {
             const response = await fetch(`${BASE_URL}/api/settings?t=${new Date().getTime()}`, {
+                credentials: 'include',
                 headers: { 
-                    'Content-Type': 'application/json', 
                     'Accept': 'application/json'
                 }
             });

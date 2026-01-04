@@ -9,11 +9,12 @@ function getAdminUserData() {
 }
 
 // 1. Protection Logic: Ensure user has admin/moderator roles
-function checkAdminAccess() {
-    if (!localStorage.getItem('auth_token')) {
-        window.location.href = '../login.html';
-        return;
-    }
+ function checkAdminAccess() {
+    // Rely on global 401 handler or subsequent API calls.
+    // if (!localStorage.getItem('auth_token')) {
+    //     window.location.href = '../login.html';
+    //     return;
+    // }
 
     const userData = getAdminUserData();
     const roles = (userData.roles || []).map(r => (typeof r === 'object' ? r.name : r).toLowerCase());
@@ -138,8 +139,9 @@ async function banUser(userId) {
         try {
             const response = await fetch(`${API_BASE_URL}/delete_user`, {
                 method: 'DELETE',
+                credentials: 'include',
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+                    // 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ user_id: userId })

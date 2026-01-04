@@ -8,19 +8,21 @@ const NotificationService = {
 
     async fetchUnreadCount() {
         const token = localStorage.getItem('auth_token');
-        if (!token) return;
+        // if (!token) return;
 
         try {
+            // const token = localStorage.getItem('auth_token');
             const response = await fetch(`${API_BASE_URL}/get_unread_notification_count`, {
+                credentials: 'include',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
+                    // 'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'
                 }
             });
             const data = await response.json();
             if (data.success) {
                 // Smart Refresh: Only update DOM if count changed
-                if(this.unreadCount !== data.data.count) {
+                if (this.unreadCount !== data.data.count) {
                     this.unreadCount = data.data.count;
                     this.updateBadges();
                 }
@@ -32,7 +34,7 @@ const NotificationService = {
 
     startPolling() {
         this.fetchUnreadCount().finally(() => {
-             setTimeout(() => this.startPolling(), 3000);
+            setTimeout(() => this.startPolling(), 3000);
         });
     },
 
@@ -57,13 +59,15 @@ const NotificationService = {
 
     async markAllAsRead() {
         const token = localStorage.getItem('auth_token');
-        if (!token) return;
+        // if (!token) return;
 
         try {
+            // const token = localStorage.getItem('auth_token');
             const response = await fetch(`${API_BASE_URL}/mark_notification_as_read`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
+                    // 'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
@@ -83,13 +87,15 @@ const NotificationService = {
 
     async markOneAsRead(id) {
         const token = localStorage.getItem('auth_token');
-        if (!token) return;
+        // if (!token) return;
 
         try {
+            // const token = localStorage.getItem('auth_token');
             await fetch(`${API_BASE_URL}/mark_notification_as_read`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
+                    // 'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
@@ -104,7 +110,7 @@ const NotificationService = {
     async handleNotificationClick(notification) {
         console.log("Notification Clicked:", notification); // Debug Log
         await this.markOneAsRead(notification.id);
-        
+
         // Determine redirect path based on notifiable_type or content
         if (notification.notifiable_type.includes('Post')) {
             // Admin Redirect for Flagged Posts
@@ -120,36 +126,37 @@ const NotificationService = {
             // Handle Follow Request redirects
         } else if (notification.notifiable_type.includes('User')) {
             if (notification.title.includes('Request') || notification.title.includes('New Follower')) {
-                 if (notification.title.includes('Accepted')) {
-                     // If accepted, view their profile
-                     window.location.href = `profile.html?id=${notification.notifiable_id}`;
-                 } else {
-                     // If incoming request, go to requests page
-                     window.location.href = 'friendreq.html';
-                 }
+                if (notification.title.includes('Accepted')) {
+                    // If accepted, view their profile
+                    window.location.href = `profile.html?id=${notification.notifiable_id}`;
+                } else {
+                    // If incoming request, go to requests page
+                    window.location.href = 'friendreq.html';
+                }
             } else {
-                 window.location.href = `profile.html?id=${notification.notifiable_id}`;
+                window.location.href = `profile.html?id=${notification.notifiable_id}`;
             }
         } else if (notification.notifiable_type.includes('Comment')) {
-             // If it's a comment, we usually want to view the post it belongs to
-             // This might need more data from backend or a separate fetch
-             // For now, let's assume notifiable_id is the relevant entity
-             if (notification.text.toLowerCase().includes('post') || notification.title.toLowerCase().includes('post')) {
-                 // Try to guess if it's related to a post
-                 // Ideally backend should provide the post_id in data
-             }
+            // If it's a comment, we usually want to view the post it belongs to
+            // This might need more data from backend or a separate fetch
+            // For now, let's assume notifiable_id is the relevant entity
+            if (notification.text.toLowerCase().includes('post') || notification.title.toLowerCase().includes('post')) {
+                // Try to guess if it's related to a post
+                // Ideally backend should provide the post_id in data
+            }
         }
     }
 };
 // Initialize Global Notification Polling
 document.addEventListener('DOMContentLoaded', () => {
-    if(localStorage.getItem('auth_token')) {
+    // Check if we assume logged in (e.g. user_data exists or just try)
+    if (localStorage.getItem('user_data')) {
         NotificationService.startPolling();
     }
 });
 document.addEventListener('DOMContentLoaded', () => {
     // Only fetch if logged in
-    if (localStorage.getItem('auth_token')) {
+    if (localStorage.getItem('user_data')) {
         NotificationService.fetchUnreadCount();
         // Set interval to check every 10 seconds (Safe Refresh)
         setInterval(() => NotificationService.fetchUnreadCount(), 10000);

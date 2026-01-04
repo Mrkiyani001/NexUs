@@ -167,7 +167,7 @@
         // Initial Load
         document.addEventListener('DOMContentLoaded', async () => {
              renderAdminSidebar('roles'); // Render sidebar with active state
-             if(!localStorage.getItem('auth_token')) window.location.href = '../login.html';
+             // if(!localStorage.getItem('auth_token')) window.location.href = '../login.html'; // Auth handled by global interceptor
              await Promise.all([fetchRoles(), fetchPermissions()]);
              renderRolesList();
              startRolesPolling();
@@ -175,7 +175,11 @@
 
         async function fetchRoles(isAutoRefresh = false) {
             try {
-                const res = await fetch(`${API_BASE_URL}/get_all_roles`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` } });
+                const res = await fetch(`${API_BASE_URL}/get_all_roles`, { 
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include' 
+                });
                 
                 if(handleAdminApiError(res)) return;
 
@@ -201,7 +205,11 @@
 
         async function fetchPermissions() {
             try {
-                const res = await fetch(`${API_BASE_URL}/get_all_permissions`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` } });
+                const res = await fetch(`${API_BASE_URL}/get_all_permissions`, { 
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include'
+                });
 
                 if(handleAdminApiError(res)) return;
 
@@ -273,7 +281,8 @@
             try {
                 const res = await fetch(`${API_BASE_URL}/role/assign_role_permissions`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({ role_id: selectedRoleId, permissions: selectedPerms })
                 });
 
@@ -306,7 +315,8 @@
             try {
                 const res = await fetch(`${API_BASE_URL}/role/create_role`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({ name: name, permissions: [] }) // Start empty
                 });
 
@@ -332,7 +342,8 @@
                 try {
                     const res = await fetch(`${API_BASE_URL}/role/delete_role`, {
                         method: 'POST',
-                        headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Content-Type': 'application/json' },
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
                         body: JSON.stringify({ id: id })
                     });
                     if(handleAdminApiError(res)) return;
@@ -363,7 +374,8 @@
             try {
                 const res = await fetch(`${API_BASE_URL}/role/create_permission`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({ name: name })
                 });
 
@@ -390,7 +402,8 @@
                 try {
                 const res = await fetch(`${API_BASE_URL}/role/delete_permission`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({ name: name })
                 });
 

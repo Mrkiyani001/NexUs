@@ -307,11 +307,11 @@
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
     <script>
-    const token = localStorage.getItem('auth_token');
+    // const token = localStorage.getItem('auth_token');
     const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
     window.currentUserData = userData;
 
-    if (!token) window.location.href = 'login.html';
+    // if (!token) window.location.href = 'login.html';
 </script>
 <script src="js/post_utils.js"></script>
 <script src="js/notifications.js"></script>
@@ -376,7 +376,8 @@
         try {
             const response = await fetch(`${API_BASE_URL}/fetch_requests`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' }
             });
             const data = await response.json();
 
@@ -430,7 +431,8 @@
         try {
             const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user_id: userId })
             });
             const data = await response.json();
@@ -463,9 +465,10 @@
         btn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>';
         
         try {
-            const response = await fetch(`${API_BASE_URL}/unfollow_user`, {
+            const response = await fetch(`${API_BASE_URL}/unfollow`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user_id: userId }) // Ensure API accepts 'user_id' or 'id'
             });
             const data = await response.json();
@@ -556,7 +559,8 @@
         try {
             const response = await fetch(`${API_BASE_URL}/fetch_suggestions?page=${page}`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ limit: 10 }) 
             });
             const data = await response.json();
@@ -570,7 +574,8 @@
         try {
             const response = await fetch(`${API_BASE_URL}/fetch_following?page=${page}`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ limit: 10 }) 
             });
             const data = await response.json();
@@ -584,7 +589,8 @@
         try {
             const response = await fetch(`${API_BASE_URL}/fetch_requests?page=${page}`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ limit: 10 }) 
             });
             const data = await response.json();
@@ -598,7 +604,8 @@
         try {
             const response = await fetch(`${API_BASE_URL}/fetch_who_to_follow?page=${page}`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ limit: 10 }) 
             });
             const data = await response.json();
@@ -729,7 +736,8 @@
         try {
             const response = await fetch(`${API_BASE_URL}/follow`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user_id: userId })
             });
             const data = await response.json();

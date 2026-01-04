@@ -401,12 +401,15 @@
     <script src="js/utils.js"></script>
     <script>
 
-        window.token = localStorage.getItem('auth_token');
+        // window.token = localStorage.getItem('auth_token'); // Removed for HttpOnly
         window.currentUserData = JSON.parse(localStorage.getItem('user_data') || '{}');
         const urlParams = new URLSearchParams(window.location.search);
         const targetUserId = urlParams.get('id') || window.currentUserData.id;
-
-        if (!window.token) window.location.href = 'login.html';
+        
+        // Initial Auth Check based on User Data presence (Basic check, real auth happens via API 401)
+        // if (!window.currentUserData || !window.currentUserData.id) {
+        //      window.location.href = 'login.html';
+        // }
     </script>
     <script src="js/post_utils.js"></script>
     <script src="js/notifications.js"></script>
@@ -491,8 +494,8 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/view`, {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },
@@ -674,12 +677,14 @@
                     const [postsRes, reelsRes] = await Promise.all([
                         fetch(`${API_BASE_URL}/get_posts_by_user?limit=20`, {
                              method: 'POST',
-                             headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                             credentials: 'include',
+                             headers: { 'Content-Type': 'application/json' },
                              body: JSON.stringify(body)
                         }).then(r => r.json()),
                         fetch(`${API_BASE_URL}/get_reels_by_user`, {
                              method: 'POST',
-                             headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                             credentials: 'include',
+                             headers: { 'Content-Type': 'application/json' },
                              body: JSON.stringify(body)
                         }).then(r => r.json())
                     ]);
@@ -732,8 +737,8 @@
                 
                 const fetchOptions = {
                     method: method,
+                    credentials: 'include',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     }
@@ -984,8 +989,8 @@
 
                 const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },
@@ -1050,8 +1055,8 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/delete_reel`, {
                     method: 'POST', // or DELETE, usually POST in this project for actions
+                    credentials: 'include',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ reel_id: reelId })

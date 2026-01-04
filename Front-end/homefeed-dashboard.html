@@ -246,8 +246,13 @@
                     class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">mail</span>
                 <span class="hidden lg:block font-medium">Messages</span>
             </a>
+            <!-- Admin Panel Button (Hidden by default) -->
+            <!-- Removed from Nav -->
         </nav>
         <div class="flex items-center gap-2 md:gap-4 justify-end flex-1 md:flex-initial min-w-0">
+            <!-- Admin Badge (Visible on all screens if admin) -->
+            <!-- Admin Badge moved -->
+
             <!-- Search Bar -->
             <div
                 class="relative group hidden sm:block w-32 md:w-36 lg:w-48 transition-all focus-within:w-48 md:focus-within:w-52 lg:focus-within:w-64 shrink">
@@ -264,13 +269,21 @@
                 class="sm:hidden w-9 h-9 rounded-full hover:bg-white/5 flex items-center justify-center text-slate-300">
                 <span class="material-symbols-outlined text-[20px]">search</span>
             </button>
-            <div class="w-px h-8 bg-white/10 mx-1 hidden md:block"></div>
+            <!-- <div class="w-px h-8 bg-white/10 mx-1 hidden md:block"></div> -->
 
             <a href="notification.html" class="md:hidden relative group p-2 text-slate-400">
                 <span class="material-symbols-outlined text-[24px]">notifications</span>
                 <span id="notif-badge-mobile-header"
                     class="hidden absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-background-dark animate-pulse"></span>
             </a>
+
+            
+            <!-- Admin Badge (Visible on all screens if admin) -->
+            <!-- <a id="admin-panel-badge" href="admin panel/admin-dashboard.html" 
+               class="hidden items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white text-[11px] font-bold uppercase tracking-wider rounded-full shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 hover:scale-105 hover:animate-like-bounce transition-all mx-2">
+                <span class="material-symbols-outlined text-[16px]">shield_person</span>
+                <span>Admin</span>
+            </a> -->
 
             <div class="w-px h-8 bg-white/10 mx-1 hidden md:block"></div>
 
@@ -298,7 +311,7 @@
 
                 <!-- Dropdown Menu -->
                 <div id="profile-dropdown"
-                    class="hidden absolute top-full right-0 mt-3 w-48 bg-card-dark border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 animate-fade-in">
+                    class="hidden absolute top-full right-0 mt-3 w-48 bg-[#161b27] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-[100] animate-fade-in ring-1 ring-white/5">
                     <a href="profile.html"
                         class="block px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2">
                         <span class="material-symbols-outlined text-[18px]">person</span>
@@ -507,10 +520,17 @@
     <script>
         // API_BASE_URL and PUBLIC_URL are loaded from config.js
 
-        const token = localStorage.getItem('auth_token');
+        // Token is managed via HttpOnly Cookie
         const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
         window.currentUserData = userData;
-        if (!token) window.location.href = 'login.html';
+        
+        // Initial Auth Check
+        // We do NOT redirect immediately if localStorage is empty, because we might have a valid HttpOnly cookie.
+        // refreshUserProfile() will handle the check.
+        if (!userData.id) {
+             // console.log("Local user data missing, attempting to fetch via cookie...");
+             // No log needed, just proceed to refreshUserProfile
+        }
 
         function toggleProfileDropdown() {
             const dropdown = document.getElementById('profile-dropdown');
@@ -540,26 +560,45 @@
 
         // --- 2. HEADER & UI INITIALIZATION ---
         async function refreshUserProfile() {
-            if (!window.currentUserData || !window.currentUserData.id) return;
-            
             try {
-                // Fetch fresh data
+                // Using /getUser (without ID) as a safe read-only alternative to /refresh or /me
+                // This fetches current user data without rotating the token (preventing logout loop)
                 const response = await fetch(`${API_BASE_URL}/getUser`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: window.currentUserData.id })
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' }
                 });
-                const data = await response.json();
-                
-                if (data.success && data.data) {
-                    // Update Local Storage & Global State
-                    localStorage.setItem('user_data', JSON.stringify(data.data));
-                    window.currentUserData = data.data;
-                    log('User profile refreshed', data.data);
-                    
-                    // Re-init Header with fresh data
-                    initHeader(true);
+
+                if (response.status === 401) {
+                     console.warn("Dashboard Auth Check Failed: 401 Unauthorized. Redirecting to login...");
+                     window.location.href = 'login.html'; 
+                     return;
                 }
+
+                const data = await response.json();
+                if (data.success && data.data) {
+                    const user = data.data;
+                    window.currentUserData = user;
+                    localStorage.setItem('user_data', JSON.stringify(user));
+                    
+                    // Update UI
+                    const avatarUrl = getAvatarUrl(user);
+                    const headerAvatar = document.getElementById('header-user-avatar');
+                    if (headerAvatar) headerAvatar.src = avatarUrl;
+                    
+                    const headerName = document.getElementById('header-user-name');
+                    if(headerName) headerName.innerText = user.name;
+                    
+                    // Also update handle
+                    const headerHandle = document.getElementById('header-user-handle');
+                    if (headerHandle) headerHandle.innerText = '@' + user.name.toLowerCase().replace(/\s+/g, '');
+                    
+                    // Check Admin Access
+                    if (typeof checkAdminButtonVisibility === 'function') {
+                        checkAdminButtonVisibility(user);
+                    }
+                    
+                } 
             } catch (e) {
                 console.error("Failed to refresh user profile", e);
             }
@@ -611,6 +650,7 @@
                 const headerHandle = document.getElementById('header-user-handle');
                 if (headerName) headerName.innerText = userData.name;
                 if (headerHandle) headerHandle.innerText = '@' + userData.name.toLowerCase().replace(/\s+/g, '');
+                
             }
         }
 
@@ -665,7 +705,10 @@
                         const endpoint = isEditingPost ? `${API_BASE_URL}/update_post` : `${API_BASE_URL}/create_post`;
                         const response = await fetch(endpoint, {
                             method: 'POST',
-                            headers: { 'Authorization': `Bearer ${token}` },
+                            credentials: 'include',
+                            headers: {
+                                // 'Content-Type': 'multipart/form-data' // Fetch sets this automatically for FormData
+                            },
                             body: formData
                         });
                         const data = await response.json();
@@ -919,7 +962,8 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/get_all_posts?limit=100`, {
                     method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+                    credentials: 'include',
+                    headers: { 'Accept': 'application/json' }
                 });
 
                 console.log("Fetch response status:", response.status);
@@ -1015,7 +1059,10 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/fetch_requests`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    credentials: 'include',
+                    headers: {
+                       'Accept': 'application/json'
+                    }
                 });
                 const data = await response.json();
 
@@ -1067,7 +1114,8 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    headers: {  'Content-Type': 'application/json' },
                     body: JSON.stringify({ user_id: userId })
                 });
                 const data = await response.json();
@@ -1115,7 +1163,10 @@
                 console.log("Fetching pending requests...");
                 const response = await fetch(`${API_BASE_URL}/fetch_requests`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
                 });
                 const data = await response.json();
                 console.log("Pending Requests Data:", data);
@@ -1150,7 +1201,8 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/fetch_who_to_follow`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ limit: 5 })
                 });
                 const data = await response.json();
@@ -1200,7 +1252,8 @@
                 console.log("Fetching suggestions...");
                 const response = await fetch(`${API_BASE_URL}/fetch_suggestions`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ limit: 5 })
                 });
                 const data = await response.json();
@@ -1273,7 +1326,8 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/${action}`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ user_id: userId })
                 });
                 const data = await response.json();

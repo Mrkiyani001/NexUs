@@ -315,6 +315,7 @@
         try {
             const response = await fetch(`${API_BASE_URL}/register`, {
                 method: 'POST',
+                credentials: 'include', //  <-- Important for HttpOnly Cookie support
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'

@@ -1,9 +1,10 @@
 document.addEventListener('DOMContentLoaded', async () => {
     // API_BASE_URL is defined in config.js
     const apiBaseUrl = typeof API_BASE_URL !== 'undefined' ? API_BASE_URL : 'http://127.0.0.1:8000/api';
-    const authToken = localStorage.getItem('auth_token'); 
 
-    if (!authToken) {
+    // Auth Check relies on user_data for UI, backend handles auth via cookies
+    const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+    if (!userData.id) {
         window.location.href = 'login.html';
         return;
     }
@@ -15,16 +16,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const deactivateBtn = document.querySelector('#deactivate-btn');
     const deleteAccountBtn = document.querySelector('#delete-account-btn');
     const passwordForm = document.querySelector('form');
-    
+
     // Notification Checkboxes
     const emailLoginAlert = document.getElementById('email-login-alert');
     const pushLoginAlert = document.getElementById('push-login-alert');
     const suspiciousActivityAlert = document.getElementById('suspicious-activity-alert');
 
-    // Helper to get headers
+    // Helper to get headers (No Auth Header needed now)
     function getHeaders() {
         return {
-            'Authorization': `Bearer ${authToken}`,
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         };
@@ -32,22 +32,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function loadSettings() {
         try {
-            const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
-            if (!userData.id) {
-                // If no user data, try to fetch/me or redirect
-                // specific implementation depends on strictness. 
-                // For now, if no ID, we can't fetch settings easily without a /me endpoint.
-                // Assuming we stored user_data on login.
-                window.location.href = 'login.html';
-                return;
-            }
             window.currentUserId = userData.id;
 
-            const response = await fetch(`${apiBaseUrl}/getUser`, { 
+            const response = await fetch(`${apiBaseUrl}/getUser`, {
                 method: 'POST',
+                credentials: 'include', // Cookie
                 headers: getHeaders(),
                 body: JSON.stringify({ id: userData.id })
             });
+
+            if (response.status === 401) {
+                console.warn("Settings Load: 401 Unauthorized (Cookie missing). Redirecting to login...");
+                window.location.href = 'login.html';
+                return;
+            }
 
             const data = await response.json();
             console.log('Settings Data Recvd:', data);
@@ -56,7 +54,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const user = data.data;
                 updateUI(user);
             } else {
-                 showToast(data.message || 'Failed to load settings', 'error');
+                showToast(data.message || 'Failed to load settings', 'error');
             }
         } catch (error) {
             console.error(error);
@@ -67,7 +65,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function updateUI(user) {
         setToggleState(privacyToggleBtn, user.is_private);
         setToggleState(friendReqToggleBtn, user.allow_friend_request);
-        
+
         if (emailLoginAlert) emailLoginAlert.checked = user.email_login_alerts;
         if (pushLoginAlert) pushLoginAlert.checked = user.push_login_alerts;
         if (suspiciousActivityAlert) suspiciousActivityAlert.checked = user.suspicious_activity_alerts;
@@ -81,14 +79,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         const headerHandle = document.getElementById('header-user-handle');
 
         if (headerAvatar) {
-             const avatarUrl = getProfilePicture(user);
-             
-             if (headerAvatar.tagName === 'IMG') {
-                 headerAvatar.src = avatarUrl;
-             } else {
-                 headerAvatar.style.backgroundImage = `url("${avatarUrl}")`;
-             }
-             headerAvatar.setAttribute('title', user.name || 'User');
+            const avatarUrl = getProfilePicture(user);
+
+            if (headerAvatar.tagName === 'IMG') {
+                headerAvatar.src = avatarUrl;
+            } else {
+                headerAvatar.style.backgroundImage = `url("${avatarUrl}")`;
+            }
+            headerAvatar.setAttribute('title', user.name || 'User');
         }
 
         if (headerName) headerName.textContent = user.name || 'User';
@@ -115,17 +113,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Event Listeners for Toggles
     if (privacyToggleBtn) {
         privacyToggleBtn.addEventListener('click', () => {
-             const currentState = privacyToggleBtn.dataset.active === 'true';
-             const newState = !currentState;
-             toggleSetting('is_private', newState ? 1 : 0, privacyToggleBtn, newState);
+            const currentState = privacyToggleBtn.dataset.active === 'true';
+            const newState = !currentState;
+            toggleSetting('is_private', newState ? 1 : 0, privacyToggleBtn, newState);
         });
     }
 
     if (friendReqToggleBtn) {
         friendReqToggleBtn.addEventListener('click', () => {
-             const currentState = friendReqToggleBtn.dataset.active === 'true';
-             const newState = !currentState;
-             toggleSetting('allow_friend_request', newState ? 1 : 0, friendReqToggleBtn, newState);
+            const currentState = friendReqToggleBtn.dataset.active === 'true';
+            const newState = !currentState;
+            toggleSetting('allow_friend_request', newState ? 1 : 0, friendReqToggleBtn, newState);
         });
     }
 
@@ -141,27 +139,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     if (suspiciousActivityAlert) {
         suspiciousActivityAlert.addEventListener('change', (e) => {
-             if (e.isTrusted) updateNotificationSetting('suspicious_activity_alerts', suspiciousActivityAlert);
+            if (e.isTrusted) updateNotificationSetting('suspicious_activity_alerts', suspiciousActivityAlert);
         });
     }
 
     async function toggleSetting(key, value, btn, boolState) {
         // Optimistic UI update
-        if (btn) setToggleState(btn, boolState); 
-        
+        if (btn) setToggleState(btn, boolState);
+
         try {
             const formData = new FormData();
             formData.append(key, value);
-            
+
             const response = await fetch(`${apiBaseUrl}/update_profile`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
-                    'Authorization': `Bearer ${authToken}`,
                     'Accept': 'application/json'
                 },
                 body: formData
             });
-            
+
             const data = await response.json();
             if (!data.success && !data.status) {
                 throw new Error(data.message || 'Update failed');
@@ -170,37 +168,37 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (error) {
             console.error(error);
             showToast(error.message, 'error');
-            if(btn) setToggleState(btn, !boolState); // Revert
+            if (btn) setToggleState(btn, !boolState); // Revert
         }
     }
 
     async function updateNotificationSetting(key, checkbox) {
-         const originalState = !checkbox.checked; // State before change
-         const newValue = checkbox.checked ? 1 : 0;
-         
-         try {
-             const formData = new FormData();
-             formData.append(key, newValue);
-             
-             const response = await fetch(`${apiBaseUrl}/update-profile`, {
-                 method: 'POST',
-                 headers: {
-                     'Authorization': `Bearer ${authToken}`,
-                     'Accept': 'application/json'
-                 },
-                 body: formData
-             });
-             
-             const data = await response.json();
-             if (!data.success && !data.status) {
-                 throw new Error(data.message || 'Update failed');
-             }
-             showToast('Settings updated', 'success');
-         } catch (error) {
-             console.error(error);
-             showToast(error.message, 'error');
-             checkbox.checked = originalState; // Revert
-         }
+        const originalState = !checkbox.checked; // State before change
+        const newValue = checkbox.checked ? 1 : 0;
+
+        try {
+            const formData = new FormData();
+            formData.append(key, newValue);
+
+            const response = await fetch(`${apiBaseUrl}/update-profile`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json'
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+            if (!data.success && !data.status) {
+                throw new Error(data.message || 'Update failed');
+            }
+            showToast('Settings updated', 'success');
+        } catch (error) {
+            console.error(error);
+            showToast(error.message, 'error');
+            checkbox.checked = originalState; // Revert
+        }
     }
 
     // Password Change
@@ -228,7 +226,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         function updateStrengthMeter(password) {
             const strength = validatePassword(password);
-            
+
             // Reset bars
             strengthMeterBars.forEach(bar => {
                 bar.className = 'h-1 flex-1 rounded-full bg-surface-highlight transition-all duration-300';
@@ -251,11 +249,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 strengthMeterBars[0].classList.replace('bg-surface-highlight', 'bg-yellow-500');
                 strengthMeterBars[1].classList.replace('bg-surface-highlight', 'bg-yellow-500');
             } else if (strength === 3) {
-                 strengthText.textContent = 'Medium (add symbols)';
-                 strengthText.className = 'text-xs text-blue-500 px-1 font-medium';
-                 strengthMeterBars[0].classList.replace('bg-surface-highlight', 'bg-blue-500');
-                 strengthMeterBars[1].classList.replace('bg-surface-highlight', 'bg-blue-500');
-                 strengthMeterBars[2].classList.replace('bg-surface-highlight', 'bg-blue-500');
+                strengthText.textContent = 'Medium (add symbols)';
+                strengthText.className = 'text-xs text-blue-500 px-1 font-medium';
+                strengthMeterBars[0].classList.replace('bg-surface-highlight', 'bg-blue-500');
+                strengthMeterBars[1].classList.replace('bg-surface-highlight', 'bg-blue-500');
+                strengthMeterBars[2].classList.replace('bg-surface-highlight', 'bg-blue-500');
             } else if (strength === 4) {
                 strengthText.textContent = 'Strong password';
                 strengthText.className = 'text-xs text-green-500 px-1 font-medium';
@@ -275,8 +273,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
             if (newPass.length < 8) {
-                 showToast('Password must be at least 8 characters', 'error');
-                 return;
+                showToast('Password must be at least 8 characters', 'error');
+                return;
             }
             if (!hasLetters.test(newPass) || !hasNumbers.test(newPass) || !hasSymbols.test(newPass)) {
                 showToast('Password must contain alphabets, numbers, and symbols', 'error');
@@ -295,6 +293,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 const response = await fetch(`${apiBaseUrl}/updatePassword`, {
                     method: 'POST',
+                    credentials: 'include',
                     headers: getHeaders(),
                     body: JSON.stringify({
                         id: window.currentUserId,
@@ -320,24 +319,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Password Visibility Toggles
     const togglePasswordBtns = document.querySelectorAll('button span.material-symbols-outlined');
-    
+
     togglePasswordBtns.forEach(span => {
-        if(span.innerText.includes('visibility_off')) {
+        if (span.innerText.includes('visibility_off')) {
             const btn = span.closest('button');
-            if(btn) {
+            if (btn) {
                 btn.addEventListener('click', () => {
-                   const inputContainer = btn.closest('.relative');
-                   const input = inputContainer.querySelector('input');
-                   
-                   if(input) {
-                       if(input.type === 'password') {
-                           input.type = 'text';
-                           span.innerText = 'visibility';
-                       } else {
-                           input.type = 'password';
-                           span.innerText = 'visibility_off';
-                       }
-                   }
+                    const inputContainer = btn.closest('.relative');
+                    const input = inputContainer.querySelector('input');
+
+                    if (input) {
+                        if (input.type === 'password') {
+                            input.type = 'text';
+                            span.innerText = 'visibility';
+                        } else {
+                            input.type = 'password';
+                            span.innerText = 'visibility_off';
+                        }
+                    }
                 });
             }
         }
@@ -346,55 +345,55 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Deactivate Account
     if (deactivateBtn) {
         deactivateBtn.addEventListener('click', async () => {
-             if(confirm("Are you sure you want to deactivate your account? You can reactivate it by logging in again.")){
+            if (confirm("Are you sure you want to deactivate your account? You can reactivate it by logging in again.")) {
                 try {
                     const response = await fetch(`${apiBaseUrl}/deactivate_account`, {
                         method: 'POST',
+                        credentials: 'include',
                         headers: getHeaders()
                     });
                     const data = await response.json();
-                    if(data.success || data.status){
+                    if (data.success || data.status) {
                         showToast(data.message, 'success');
                         setTimeout(() => {
-                           localStorage.removeItem('auth_token');
-                           localStorage.removeItem('user_data');
-                           window.location.href = 'login.html';
+                            localStorage.removeItem('user_data');
+                            window.location.href = 'login.html';
                         }, 1500);
                     } else {
-                         showToast(data.message || 'Deactivation failed', 'error');
+                        showToast(data.message || 'Deactivation failed', 'error');
                     }
-                } catch(e) {
+                } catch (e) {
                     showToast('Error deactivating account', 'error');
                 }
-             }
+            }
         });
     }
 
     // Delete Account
     if (deleteAccountBtn) {
         deleteAccountBtn.addEventListener('click', async () => {
-            if(confirm("Are you sure you want to PERMANENTLY delete your account? This cannot be undone.")){
-                 if (!window.currentUserId) return;
-                 try {
+            if (confirm("Are you sure you want to PERMANENTLY delete your account? This cannot be undone.")) {
+                if (!window.currentUserId) return;
+                try {
                     const response = await fetch(`${apiBaseUrl}/delete_user`, {
                         method: 'DELETE',
+                        credentials: 'include',
                         headers: getHeaders(),
                         body: JSON.stringify({ id: window.currentUserId })
                     });
                     const data = await response.json();
-                    if(data.success || data.status){
+                    if (data.success || data.status) {
                         showToast('Account deleted', 'success');
-                         setTimeout(() => {
-                           localStorage.removeItem('auth_token');
-                           localStorage.removeItem('user_data');
-                           window.location.href = 'register.html';
+                        setTimeout(() => {
+                            localStorage.removeItem('user_data');
+                            window.location.href = 'register.html';
                         }, 1500);
                     } else {
                         showToast(data.message || 'Delete failed', 'error');
                     }
-                 } catch(e) {
-                     showToast('Error deleting account', 'error');
-                 }
+                } catch (e) {
+                    showToast('Error deleting account', 'error');
+                }
             }
         });
     }

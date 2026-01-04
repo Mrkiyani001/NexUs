@@ -267,9 +267,9 @@
     <script src="js/post_utils.js"></script> <!-- For showToast -->
     <script>
 
-        const token = localStorage.getItem('auth_token');
 
-        if (!token) window.location.href = 'login.html';
+        // const token = localStorage.getItem('auth_token');
+        // if (!token) window.location.href = 'login.html';
 
         // Elements
         const nameInput = document.getElementById('name-input');
@@ -292,8 +292,8 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/view`, {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     }
                 });
@@ -374,8 +374,9 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/update_profile`, {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
-                        'Authorization': `Bearer ${token}`
+                        // 'Authorization': `Bearer ${token}` 
                         // Content-Type must be undefined for FormData
                     },
                     body: formData

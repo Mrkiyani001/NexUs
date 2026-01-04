@@ -61,11 +61,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 1. Video Upload Logic ---
 
     // Check if token exists
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
-        window.location.href = 'login.html'; // Redirect if not logged in
-        return;
-    }
+    // Cookie Auth: No local check needed here, but we could do a /me check or just let it fail on 401 later.
+    // However, to keep UI responsiveness, we might want to ensure login.
+    // For now, removing strict local check.
+    // const token = localStorage.getItem('auth_token');
+    // if (!token) { window.location.href = 'login.html'; return; }
 
     // Trigger file input
     uploadState.addEventListener('click', () => {
@@ -332,8 +332,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const endpoint = isUpdateMode ? '/update_reel' : '/create_reel';
             const response = await fetch(`${window.API_BASE_URL}${endpoint}`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    // 'Authorization': `Bearer ${token}`
                 },
                 body: formData
             });
@@ -387,8 +388,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(user.id) {
                      const response = await fetch(`${window.API_BASE_URL}/get_reels_by_user`, {
                         method: 'POST',
+                        credentials: 'include',
                         headers: { 
-                            'Authorization': `Bearer ${token}`,
+                            // 'Authorization': `Bearer ${token}`,
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({ user_id: user.id })

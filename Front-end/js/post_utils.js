@@ -205,8 +205,8 @@ async function setupGlobalSearch() {
             try {
                 const response = await fetch(`${API_BASE_URL}/search_user`, {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ search: query, limit: 5 })
@@ -620,6 +620,10 @@ function createPostHTML(post, passedUserData = null) {
                         </button>
                         <div class="absolute right-0 top-8 w-48 bg-[#1e2330] border border-white/10 rounded-xl shadow-2xl py-1 z-20 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transform scale-95 group-hover/menu:scale-100 transition-all duration-200 origin-top-right">
                              
+                             <button onclick="window.location.href='post-detail-veiw.html?id=${post.id}'" class="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white flex items-center gap-2 transition-colors">
+                                <span class="material-symbols-outlined text-[18px]">visibility</span> View Post
+                             </button>
+                             
                              ${(currentUserData.id === userData.id) ? `
                              <button onclick="editPost(${post.id})" class="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white flex items-center gap-2 transition-colors">
                                 <span class="material-symbols-outlined text-[18px]">edit</span> Edit Post
@@ -641,9 +645,11 @@ function createPostHTML(post, passedUserData = null) {
                     </div>
                 </div>
                 
-                <div class="mt-3 text-gray-200 text-sm whitespace-pre-wrap break-words leading-relaxed">${escapeHtml(post.body || '')}</div>
+                <div class="mt-3 text-gray-200 text-sm whitespace-pre-wrap break-words leading-relaxed cursor-pointer hover:opacity-90 transition-opacity" onclick="window.location.href='post-detail-veiw.html?id=${post.id}'">${escapeHtml(post.body || '')}</div>
                 
-                ${renderAttachmentsHTML(post.attachments)}
+                <div class="cursor-pointer" onclick="window.location.href='post-detail-veiw.html?id=${post.id}'">
+                    ${renderAttachmentsHTML(post.attachments)}
+                </div>
                 
                 ${post.original_post ? renderRetweetHTML(post) : ''}
 
@@ -817,8 +823,8 @@ async function retweetPost(postId) {
     try {
         const response = await fetch(`${API_BASE_URL}/get_post`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ id: postId })
@@ -871,8 +877,8 @@ async function toggleCommentSection(postId) {
         try {
             const response = await fetch(`${API_BASE_URL}/get_comment`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ post_id: postId, limit: 20 })
@@ -1139,7 +1145,8 @@ async function likeComment(commentId, btn) {
     try {
         await fetch(`${API_BASE_URL}/add_reaction_to_comment`, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Content-Type': 'application/json' },
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ comment_id: commentId, type: 1 })
         });
     } catch (e) { console.error(e); }
@@ -1167,7 +1174,8 @@ async function likeReply(replyId, btn) {
     try {
         await fetch(`${API_BASE_URL}/add_reaction_to_comment_reply`, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Content-Type': 'application/json' },
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ comment_reply_id: replyId, type: 1 })
         });
     } catch (e) {
@@ -1192,7 +1200,8 @@ async function submitReply(commentId) {
 
         const response = await fetch(`${API_BASE_URL}/create_comment_reply`, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${window.token || localStorage.getItem('auth_token')}` },
+            credentials: 'include',
+            headers: { },
             body: formData
         });
         const data = await response.json();
@@ -1285,8 +1294,8 @@ async function submitComment(postId) {
 
         const response = await fetch(`${API_BASE_URL}/create_comment`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
                 // Content-Type must be undefined for FormData boundary
             },
             body: formData
@@ -1344,8 +1353,8 @@ async function likePost(id, btn) {
     try {
         await fetch(`${API_BASE_URL}/add_reaction_to_post`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
@@ -1441,8 +1450,8 @@ async function openUserListModal(arg1, arg2) {
     try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(body)
@@ -1537,8 +1546,8 @@ window.submitReport = async function () {
     try {
         const response = await fetch(`${API_BASE_URL}/report_content`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
@@ -1602,8 +1611,8 @@ async function sharePost(postId) {
             // For now, this lets us track the "Share Count".
             fetch(`${API_BASE_URL}/share_post`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ post_id: postId })
@@ -1650,11 +1659,11 @@ async function deletePost(postId) {
     });
 
     try {
-        const token = localStorage.getItem('auth_token');
+        // const token = localStorage.getItem('auth_token');
         const response = await fetch(`${API_BASE_URL}/delete_post`, {
             method: 'DELETE',
+            credentials: 'include',
             headers: {
-                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ id: postId })
@@ -1729,11 +1738,11 @@ async function editPost(postId) {
             if (newBody === null) return;
 
             try {
-                const token = localStorage.getItem('auth_token');
+                // const token = localStorage.getItem('auth_token');
                 const response = await fetch(`${API_BASE_URL}/update_post`, {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ id: postId, body: newBody })
@@ -1831,10 +1840,11 @@ window.deletePostComment = function (commentId, btn) {
         }
 
         try {
-            const token = localStorage.getItem('auth_token');
+            // const token = localStorage.getItem('auth_token');
             const response = await fetch(`${API_BASE_URL}/delete_comment`, {
                 method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: commentId })
             });
             const data = await response.json();
@@ -1897,10 +1907,11 @@ window.savePostCommentEdit = async function (commentId) {
     editContainer.remove();
 
     try {
-        const token = localStorage.getItem('auth_token');
+        // const token = localStorage.getItem('auth_token');
         const response = await fetch(`${API_BASE_URL}/update_comment`, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id: commentId, comment: newText })
         });
         const data = await response.json();
@@ -1957,10 +1968,11 @@ window.savePostReply = async function (replyId) {
     editContainer.remove();
 
     try {
-        const token = localStorage.getItem('auth_token');
+        // const token = localStorage.getItem('auth_token');
         const response = await fetch(`${API_BASE_URL}/update_comment_reply`, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id: replyId, reply: newText })
         });
         const data = await response.json();
@@ -1998,10 +2010,11 @@ window.deletePostReply = function (replyId, btn) {
         }
 
         try {
-            const token = localStorage.getItem('auth_token');
+            // const token = localStorage.getItem('auth_token');
             const response = await fetch(`${API_BASE_URL}/delete_comment_reply`, {
                 method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: replyId })
             });
             const data = await response.json();
@@ -2071,8 +2084,8 @@ window.deletePostReply = function (replyId, btn) {
 
             const response = await fetch(`${API_BASE_URL}/create_comment`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
-                    'Authorization': `Bearer ${window.token || localStorage.getItem('auth_token')}`
                 },
                 body: formData
             });
@@ -2133,8 +2146,8 @@ window.deletePostReply = function (replyId, btn) {
             try {
                 const response = await fetch(`${API_BASE_URL}/get_comment`, {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ post_id: postId, limit: 20 })
@@ -2358,8 +2371,8 @@ window.deletePostReply = function (replyId, btn) {
 
             const response = await fetch(`${API_BASE_URL}/create_comment_reply`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
-                    'Authorization': `Bearer ${window.token || localStorage.getItem('auth_token')}`
                 },
                 body: formData
             });

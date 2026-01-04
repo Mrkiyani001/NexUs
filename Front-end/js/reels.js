@@ -72,12 +72,8 @@ async function fetchReels(mode = 'foryou') {
     const container = document.getElementById('reels-container');
     if (!container) return; // Exit if container doesn't exist (e.g. on profile page)
 
-    const token = localStorage.getItem('auth_token');
-
-    if (!token) {
-        window.location.href = 'login.html';
-        return;
-    }
+    // const token = localStorage.getItem('auth_token'); // Removed for Cookie Auth
+    // if (!token) { window.location.href = 'login.html'; return; } // Handled by 401 check
 
     try {
         // Show loading state
@@ -99,8 +95,8 @@ async function fetchReels(mode = 'foryou') {
 
         const response = await fetch(endpoint, {
             method: 'GET',
+            credentials: 'include',
             headers: {
-                'Authorization': `Bearer ${token}`,
                 'Accept': 'application/json'
             }
         });
@@ -421,12 +417,13 @@ const toggleLike = async (btn, reelId) => {
     countSpan.textContent = formatNumber(currentCount);
 
     try {
-        const token = localStorage.getItem('auth_token');
+        // const token = localStorage.getItem('auth_token');
         const response = await fetch(`${window.API_BASE_URL}/add_reaction_to_reel`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
+                // 'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({ reel_id: reelId, type: 1 })
         });
@@ -471,12 +468,13 @@ const toggleSave = async (btn, reelId) => {
     }
 
     try {
-        const token = localStorage.getItem('auth_token');
+        // const token = localStorage.getItem('auth_token');
         const response = await fetch(`${window.API_BASE_URL}/save_reel`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
+                // 'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({ reel_id: reelId })
         });
@@ -553,13 +551,14 @@ const toggleFollowReel = async (userId, btn) => {
     }
 
     try {
-        const token = localStorage.getItem('auth_token');
+        // const token = localStorage.getItem('auth_token');
         const endpoint = isFollowing ? `${API_BASE_URL}/unfollow` : `${API_BASE_URL}/follow`;
 
         const response = await fetch(endpoint, {
             method: 'POST',
+            credentials: 'include',
             headers: {
-                'Authorization': `Bearer ${token}`,
+                // 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ user_id: userId })
@@ -591,28 +590,7 @@ const toggleFollowReel = async (userId, btn) => {
 };
 
 // Share Reel
-const shareReel = async (reelId) => {
-    try {
-        const token = localStorage.getItem('auth_token');
-        const response = await fetch(`${window.API_BASE_URL}/share_reel`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ reel_id: reelId })
-        });
-        const data = await response.json();
-        if (data.success) {
-            showToast('Reel shared successfully!', 'success');
-        } else {
-            showToast('Failed to share reel', 'error');
-        }
-    } catch (e) {
-        console.error(e);
-        showToast('Error sharing reel', 'error');
-    }
-}
+// function shareReel moved to window.shareReel logic below
 
 
 // --- Comments Logic ---
@@ -661,11 +639,12 @@ async function fetchComments(reelId) {
     list.innerHTML = '<div class="text-center text-slate-500 py-10">Loading...</div>';
 
     try {
-        const token = localStorage.getItem('auth_token');
+        // const token = localStorage.getItem('auth_token');
         const response = await fetch(`${API_BASE_URL}/get_reel_comments`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
-                'Authorization': `Bearer ${token}`,
+                // 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ reel_id: reelId, limit: 50 })
@@ -877,10 +856,14 @@ async function toggleReplies(commentId) {
         container.innerHTML = '<div class="text-xs text-slate-500 pl-4">Loading replies...</div>';
         
         try {
-            const token = localStorage.getItem('auth_token');
+            // const token = localStorage.getItem('auth_token');
             const response = await fetch(`${API_BASE_URL}/get_comment_replies`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                credentials: 'include',
+                headers: { 
+                    // 'Authorization': `Bearer ${token}`, 
+                    'Content-Type': 'application/json' 
+                },
                 body: JSON.stringify({ comment_id: commentId })
             });
             const data = await response.json();
@@ -1037,10 +1020,14 @@ async function toggleCommentLike(btn, id) {
     }
 
     try {
-        const token = localStorage.getItem('auth_token');
+        // const token = localStorage.getItem('auth_token');
         await fetch(`${API_BASE_URL}/add_reaction_to_comment`, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            credentials: 'include',
+            headers: { 
+                // 'Authorization': `Bearer ${token}`, 
+                'Content-Type': 'application/json' 
+            },
             body: JSON.stringify({ comment_id: id, type: 1 })
         });
     } catch (e) { console.error(e); }
@@ -1060,10 +1047,14 @@ async function toggleReplyLike(btn, id) {
     }
 
     try {
-        const token = localStorage.getItem('auth_token');
+        // const token = localStorage.getItem('auth_token');
         await fetch(`${API_BASE_URL}/add_reaction_to_comment_reply`, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            credentials: 'include',
+            headers: { 
+                // 'Authorization': `Bearer ${token}`, 
+                'Content-Type': 'application/json' 
+            },
             body: JSON.stringify({ comment_reply_id: id, type: 1 })
         });
     } catch (e) { console.error(e); }
@@ -1291,12 +1282,12 @@ const fetchSuggestions = async () => {
     if (!list) return;
 
     try {
-        const token = localStorage.getItem('auth_token');
+        // const token = localStorage.getItem('auth_token');
         const response = await fetch(`${API_BASE_URL}/fetch_suggestions?limit=5`, {
-            method: 'POST', // or GET depending on API (Controller shows POST for fetchSuggestions usually if using body, but here it uses query param? Let's check Controller)
-            // Controller: fetchSuggestions(Request $request). Route?
+            method: 'POST', 
+            credentials: 'include',
             headers: {
-                'Authorization': `Bearer ${token}`,
+                // 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             }
         });
@@ -1356,12 +1347,13 @@ window.followUser = async (userId, btn) => {
     btn.disabled = true;
 
     try {
-        const token = localStorage.getItem('auth_token');
+        // const token = localStorage.getItem('auth_token');
         const response = await fetch(`${API_BASE_URL}/follow`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
+                // 'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({ user_id: userId })
         });
@@ -1409,11 +1401,12 @@ window.followUserReel = async (userId, btn) => {
         btn.outerHTML = `<button onclick="followUserReel(${userId}, this)" class="text-[10px] font-bold text-blue-400 bg-blue-400/10 px-1.5 py-0.5 rounded-md border border-blue-400/20 backdrop-blur-sm hover:bg-blue-400/20 transition-colors" id="temp-follow-${userId}">Follow</button>`;
 
         try {
-            const token = localStorage.getItem('auth_token');
+            // const token = localStorage.getItem('auth_token');
             const response = await fetch(`${API_BASE_URL}/unfollow`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
+                    // 'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ user_id: userId })
@@ -1435,11 +1428,12 @@ window.followUserReel = async (userId, btn) => {
         btn.outerHTML = `<span class="text-[10px] font-bold text-slate-300 bg-white/10 px-1.5 py-0.5 rounded-md border border-white/10 backdrop-blur-sm" id="temp-following-${userId}">Following</span>`;
 
         try {
-            const token = localStorage.getItem('auth_token');
+            // const token = localStorage.getItem('auth_token');
             const response = await fetch(`${API_BASE_URL}/follow`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
+                    // 'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ user_id: userId })
@@ -1485,7 +1479,7 @@ if (sendCommentBtn && commentInput) {
         sendCommentBtn.innerHTML = '<div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>';
 
         try {
-            const token = localStorage.getItem('auth_token');
+            // const token = localStorage.getItem('auth_token');
             const formData = new FormData();
             
             // Check if Replying
@@ -1499,7 +1493,10 @@ if (sendCommentBtn && commentInput) {
 
                 const response = await fetch(`${API_BASE_URL}/create_comment_reply`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` },
+                    credentials: 'include',
+                    headers: { 
+                        // 'Authorization': `Bearer ${token}` 
+                    },
                     body: formData
                 });
                 const data = await response.json();
@@ -1605,7 +1602,10 @@ if (sendCommentBtn && commentInput) {
 
                 const response = await fetch(`${API_BASE_URL}/create_comment`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` },
+                    credentials: 'include',
+                    headers: { 
+                        // 'Authorization': `Bearer ${token}` 
+                    },
                     body: formData
                 });
                 const data = await response.json();
@@ -1772,11 +1772,12 @@ async function incrementReelView(reelId) {
     viewedReelsSession.add(reelId);
 
     try {
-        const token = localStorage.getItem('auth_token');
+        // const token = localStorage.getItem('auth_token');
         await fetch(`${API_BASE_URL}/add_view_to_reel`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
-                'Authorization': `Bearer ${token}`,
+                // 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ reel_id: reelId })
@@ -1806,12 +1807,13 @@ window.deleteReel = function(reelId) {
             removed = true;
         }
 
-        try {
-            const token = localStorage.getItem('auth_token');
+            try {
+            // const token = localStorage.getItem('auth_token');
             const response = await fetch(`${API_BASE_URL}/delete_reel`, {
                 method: 'DELETE',
+                credentials: 'include',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
+                    // 'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ reel_id: reelId })
@@ -1907,11 +1909,12 @@ window.submitReport = async function() {
     closeReportModal();
 
     try {
-        const token = localStorage.getItem('auth_token');
+        // const token = localStorage.getItem('auth_token');
         const response = await fetch(`${API_BASE_URL}/report_content`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
-                'Authorization': `Bearer ${token}`,
+                // 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
@@ -1981,13 +1984,17 @@ window.deleteReelComment = function(commentId, btn, type) {
         }
         
         try {
-            const token = localStorage.getItem('auth_token');
+            // const token = localStorage.getItem('auth_token');
             // Define endpoint and body based on type
             const endpoint = type === 'reply' ? `${API_BASE_URL}/delete_comment_reply` : `${API_BASE_URL}/delete_comment`;
             
             const response = await fetch(endpoint, {
                 method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                credentials: 'include',
+                headers: { 
+                    // 'Authorization': `Bearer ${token}`, 
+                    'Content-Type': 'application/json' 
+                },
                 body: JSON.stringify({ id: commentId })
             });
             const data = await response.json();
@@ -2074,7 +2081,7 @@ window.saveEditComment = async function(commentId, type) {
     editContainer.remove();
     
     try {
-        const token = localStorage.getItem('auth_token');
+        // const token = localStorage.getItem('auth_token');
         let endpoint = `${API_BASE_URL}/update_comment`;
         let body = { id: commentId, comment: newText };
 
@@ -2085,7 +2092,11 @@ window.saveEditComment = async function(commentId, type) {
 
         const response = await fetch(endpoint, {
             method: 'POST', 
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            credentials: 'include',
+            headers: { 
+                // 'Authorization': `Bearer ${token}`, 
+                'Content-Type': 'application/json' 
+            },
             body: JSON.stringify(body)
         });
         const data = await response.json();
@@ -2175,6 +2186,19 @@ window.handleReelCommentFileSelect = handleReelCommentFileSelect;
 // Share Functionality
 window.shareReel = async (reelId) => {
     const shareUrl = `${window.location.origin}/reels.html?id=${reelId}`;
+    
+    // 1. Track Share in Backend (Optimistic, don't wait for UI)
+    try {
+        fetch(`${window.API_BASE_URL}/share_reel`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reel_id: reelId })
+        }).then(res => res.json()).then(data => {
+            if(data.success) console.log('Share tracked');
+        }).catch(err => console.error('Share track error', err));
+    } catch(e) {}
+
     const shareData = {
         title: 'Check out this Reel!',
         text: 'Watch this amazing reel on NexUs',

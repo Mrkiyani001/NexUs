@@ -3,14 +3,6 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>NexUs - Connect at the Speed of Light</title>
-    <!-- <script>
-        // Simple Route Guard: If logged in, redirect to Dashboard
-        const token = localStorage.getItem('auth_token');
-        if (token) {
-            window.location.href = 'homefeed-dashboard.html';
-        }
-    </script> -->
-
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
@@ -124,7 +116,7 @@
                             </p>
 </div>
 <div class="flex flex-col sm:flex-row gap-5 pt-4">
-<button class="h-14 px-8 rounded-xl bg-white text-black font-bold text-lg shadow-lg hover:bg-gray-200 transition-all flex items-center justify-center gap-2">
+<button onclick="window.location.href='register.html'" class="h-14 px-8 rounded-xl bg-white text-black font-bold text-lg shadow-lg hover:bg-gray-200 transition-all flex items-center justify-center gap-2">
                                 Start Building
                                 <span class="material-symbols-outlined">arrow_forward</span>
 </button>
@@ -576,4 +568,27 @@
     </script>
     <script src="js/config.js"></script>
     <script src="js/site_branding.js"></script>
-</body></html>
+    <script>
+        // Check if user is already logged in via HttpOnly cookie
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/me`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        // User is authenticated, redirect to dashboard
+                        window.location.href = 'homefeed-dashboard.html';
+                    }
+                }
+            } catch (e) {
+                // Ignore errors, stay on landing page
+            }
+        });
+    </script>
+</body>
+</html>
