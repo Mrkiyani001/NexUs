@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -130,5 +131,24 @@ class BaseController extends Controller
                 'total_pages' => $paginate->lastPage(),
             ]
         ];
+    }
+    protected function getAuthCookie($token)
+{
+    return cookie(
+        'jwt_token',
+        $token,
+        60 * 24,
+        null,
+        null,
+        request()->secure(), // <--- Ye automatic check karega (HTTP hai ya HTTPS)
+        true,
+        false,
+        'Lax'
+    );
+}
+protected function getLogoutCookie()
+    {
+        // Cookie ko "forget" karna asal mein usay expire kar dena hota hai
+        return Cookie::forget('jwt_token');
     }
 }

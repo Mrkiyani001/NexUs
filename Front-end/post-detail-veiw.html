@@ -235,7 +235,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const postId = urlParams.get('id');
 
-        if (!token) window.location.href = 'login.html';
+        // if (!token) window.location.href = 'login.html';
         if (!postId) window.location.href = 'homefeed-dashboard.html';
 
 
@@ -267,8 +267,9 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/get_post`, {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
+                        // 'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },

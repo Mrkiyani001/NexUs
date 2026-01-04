@@ -92,7 +92,7 @@ class AuthController extends BaseController
                 auth('api')->logout();
                 return $this->Response(false, 'User not verified', null, 401);
             }
-            return $this->respondWithToken($token, $user);
+            return $this->Response(true, 'User logged in successfully', $user, 200)->withCookie($this->getAuthCookie($token));
         } catch (\Exception $e) {
             return $this->Response(false, $e->getMessage(), null, 500);
         }
@@ -111,7 +111,7 @@ class AuthController extends BaseController
             
             auth('api')->logout();
             
-            return $this->Response(true, 'Account deactivated successfully. Login to reactivate.', null, 200);
+            return $this->Response(true, 'Account deactivated successfully. Login to reactivate.', null, 200)->withCookie($this->getLogoutCookie());
          } catch (\Exception $e) {
             return $this->Response(false, $e->getMessage(), null, 500);
         }
@@ -171,14 +171,22 @@ class AuthController extends BaseController
 
     public function getUser(Request $request)
     {
-        $this->validateRequest($request, [
-            'id' => 'required|integer|exists:users,id',
-        ]);
         try {
             $login_user = auth('api')->user();
             if (!$login_user) {
                 return $this->unauthorized();
             }
+
+            // If no ID provided, return the current logged-in user (Acts as /me)
+            if (!$request->has('id')) {
+                $login_user->load('roles', 'profile');
+                return $this->Response(true, 'Current user', $login_user, 200);
+            }
+
+            $this->validateRequest($request, [
+                'id' => 'required|integer|exists:users,id',
+            ]);
+
             $user = User::with(['roles', 'profile.avatar'])->find($request->id);
             if (is_null($user)) {
                 return $this->Response(false, 'User not found', null, 404);
@@ -360,7 +368,7 @@ class AuthController extends BaseController
             return $this->unauthorized();
         }
         auth('api')->logout();
-        return response()->json(['message' => 'Successfully logged out']);
+        return $this->Response(true, 'Successfully logged out', null, 200)->withCookie($this->getLogoutCookie());
     }
     public function refresh_token()
     {
@@ -370,10 +378,11 @@ class AuthController extends BaseController
         }
         if ($user->is_banned == 1) {
             auth('api')->logout(); // Invalidate the token immediately
-            return $this->Response(false, 'Your account has been banned. Please contact support.', null, 403);
+            return $this->Response(false, 'Your account has been banned. Please contact support.', null, 403)->withCookie($this->getLogoutCookie());
         }
         $token = auth('api')->refresh();
-        return $this->respondWithToken($token, $user);
+        $user->load('roles', 'profile'); // Return fresh user data
+        return $this->Response(true, 'Token refreshed successfully', $user, 200)->withCookie($this->getAuthCookie($token));
     }
     public function search_user(Request $request)
     {

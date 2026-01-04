@@ -22,7 +22,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'check.banned' => \App\Http\Middleware\CheckBanned::class,
         ]);
 
-        // Optionally append to api group directly if we want it global
+        // Create cookie capability and attach auth from cookie
+        $middleware->api(prepend: [
+            \App\Http\Middleware\AttachAuthToken::class,
+        ]);
+
         $middleware->api(append: [
             \App\Http\Middleware\CheckBanned::class,
             \App\Http\Middleware\CheckMaintenanceMode::class,

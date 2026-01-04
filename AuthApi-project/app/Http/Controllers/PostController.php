@@ -225,6 +225,7 @@ class PostController extends BaseController
             if (!$user) {
                 return $this->unauthorized();
             }
+            $limit = (int) $request->input('limit', 10);
             $post = Post::approved()->find($request->id);
             if (is_null($post)) {
                 return $this->response(false, 'Post not found', null, 404);
@@ -272,7 +273,7 @@ class PostController extends BaseController
             return $this->response(false, $e->getMessage(), null, 500);
         }
     }
-    public function PendingPosts()
+    public function PendingPosts(Request $request)
     {
         try {
             $user = auth('api')->user();
@@ -282,8 +283,45 @@ class PostController extends BaseController
             if (!$user->hasRole(['Admin', 'super admin','Moderator'])) {
                 return $this->NotAllowed();
             }
-            $posts = Post::pending()->with('attachments', 'creator', 'updator', 'user.profile.avatar')->get();
-            return $this->response(true, 'Posts found', $posts, 200);
+            // Use paginate(25) as requested
+            $posts = Post::pending()->with('attachments', 'creator', 'updator', 'user.profile.avatar')->paginate(25);
+            
+            // Use the base controller helper for standardized pagination response
+            $data = $this->paginateData($posts, $posts->items());
+            
+            return $this->response(true, 'Posts found', $data, 200);
+        } catch (\Exception $e) {
+            return $this->response(false, $e->getMessage(), null, 500);
+        }
+    }
+    public function Approve_all()
+    {
+        try {
+            $user = auth('api')->user();
+            if (!$user) {
+                return $this->unauthorized();
+            }
+            if (!$user->hasRole(['Admin', 'super admin'])) {
+                return $this->NotAllowed();
+            }
+            $posts = Post::withoutGlobalScopes()->where('status', 0)->update(['status' => 1]);
+            return $this->response(true, 'All posts approved successfully', null, 200);
+        } catch (\Exception $e) {
+            return $this->response(false, $e->getMessage(), null, 500);
+        }
+    }
+    public function Reject_all()
+    {
+        try {
+            $user = auth('api')->user();
+            if (!$user) {
+                return $this->unauthorized();
+            }
+            if (!$user->hasRole(['Admin', 'super admin'])) {
+                return $this->NotAllowed();
+            }
+            $posts = Post::withoutGlobalScopes()->where('status', '0')->update(['status' => 2]);
+            return $this->response(true, 'All posts rejected successfully', null, 200);
         } catch (\Exception $e) {
             return $this->response(false, $e->getMessage(), null, 500);
         }

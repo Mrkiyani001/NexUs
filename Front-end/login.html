@@ -80,6 +80,7 @@
             gap: 10px;
             pointer-events: none;
         }
+
         .toast {
             background: rgba(16, 21, 34, 0.95);
             backdrop-filter: blur(10px);
@@ -92,18 +93,25 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             opacity: 0;
             transform: translateY(-20px);
             transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
             pointer-events: auto;
         }
+
         .toast.show {
             opacity: 1;
             transform: translateY(0);
         }
-        .toast.success { border-left: 4px solid #215bed; }
-        .toast.error { border-left: 4px solid #ef4444; }
+
+        .toast.success {
+            border-left: 4px solid #215bed;
+        }
+
+        .toast.error {
+            border-left: 4px solid #ef4444;
+        }
     </style>
 </head>
 
@@ -134,7 +142,8 @@
                 <p class="text-slate-400 text-base text-center max-w-xs">Enter your details to access your account.</p>
             </div>
             <!-- Form Content -->
-            <div class="px-8 py-6 flex flex-col gap-5">
+            <form id="login-form" class="px-8 py-6 flex flex-col gap-5"
+                onsubmit="event.preventDefault(); handleLogin();">
                 <!-- Email Field -->
                 <label class="flex flex-col gap-2">
                     <span class="text-sm font-semibold text-slate-300 ml-1">Email Address</span>
@@ -145,7 +154,7 @@
                         </div>
                         <input id="email"
                             class="w-full bg-surface-dark/80 border border-slate-700/50 rounded-xl px-4 py-3.5 pl-12 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300"
-                            placeholder="name@example.com" type="email" />
+                            placeholder="name@example.com" type="email" required autocomplete="email" />
                     </div>
                 </label>
                 <!-- Password Field -->
@@ -162,7 +171,7 @@
                         </div>
                         <input id="password"
                             class="w-full bg-surface-dark/80 border border-slate-700/50 rounded-xl px-4 py-3.5 pl-12 pr-12 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300"
-                            placeholder="••••••••" type="password" />
+                            placeholder="••••••••" type="password" required autocomplete="current-password" />
                         <button
                             class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
                             type="button" onclick="togglePassword('password', this)">
@@ -171,76 +180,78 @@
                     </div>
                 </label>
                 <!-- Login Button -->
-                <!-- Login Button -->
-                <button id="login-btn"
+                <button id="login-btn" type="submit"
                     class="mt-2 w-full bg-primary hover:bg-blue-600 text-white font-bold py-3.5 rounded-xl transition-all duration-300 shadow-lg shadow-primary/25 hover:shadow-primary/40 transform hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]">
                     Log In
                 </button>
                 <!-- Divider -->
-                <div class="flex items-center gap-4 my-2">
-                    <div class="h-[1px] flex-1 bg-slate-700/50"></div>
-                    <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Or continue with</span>
-                    <div class="h-[1px] flex-1 bg-slate-700/50"></div>
-                </div>
-                <!-- Social Login Buttons -->
-                <div class="grid grid-cols-2 gap-4">
-                    <button
-                        class="flex items-center justify-center gap-3 bg-surface-dark border border-slate-700/50 hover:bg-slate-800 hover:border-slate-600 rounded-xl py-3 transition-all duration-300 group">
-                        <!-- Google SVG Icon -->
-                        <svg class="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none"
-                            viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M23.766 12.2764C23.766 11.4607 23.6999 10.6406 23.5588 9.83807H12.24V14.4591H18.7217C18.4528 15.9494 17.5885 17.2678 16.323 18.1056V21.1039H20.19C22.4608 19.0139 23.766 15.9274 23.766 12.2764Z"
-                                fill="#4285F4"></path>
-                            <path
-                                d="M12.24 24.0008C15.4765 24.0008 18.2058 22.9382 20.1945 21.1039L16.3275 18.1055C15.2517 18.8375 13.8627 19.252 12.2445 19.252C9.11388 19.252 6.45946 17.1399 5.50705 14.3003H1.5166V17.3912C3.55371 21.4434 7.7029 24.0008 12.24 24.0008Z"
-                                fill="#34A853"></path>
-                            <path
-                                d="M5.50253 14.3003C5.00236 12.8199 5.00236 11.1799 5.50253 9.69967V6.60879H1.5166C-0.18551 10.0056 -0.18551 13.9945 1.5166 17.3912L5.50253 14.3003Z"
-                                fill="#FBBC05"></path>
-                            <path
-                                d="M12.24 4.74966C13.9509 4.7232 15.6044 5.36697 16.8434 6.54867L20.2695 3.12262C18.1001 1.0855 15.2208 -0.034466 12.24 0.000808666C7.7029 0.000808666 3.55371 2.55822 1.5166 6.60879L5.50253 9.69967C6.45064 6.86106 9.10447 4.74966 12.24 4.74966Z"
-                                fill="#EA4335"></path>
-                        </svg>
-                        <span class="text-sm font-semibold text-slate-300 group-hover:text-white">Google</span>
-                    </button>
-                    <button
-                        class="flex items-center justify-center gap-3 bg-surface-dark border border-slate-700/50 hover:bg-slate-800 hover:border-slate-600 rounded-xl py-3 transition-all duration-300 group">
-                        <!-- Apple SVG Icon -->
-                        <svg class="w-5 h-5 fill-white group-hover:scale-110 transition-transform duration-300"
-                            viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M17.5318 13.0853C17.5076 15.6429 19.6738 17.1557 19.756 17.2038C19.7028 17.3753 19.3858 18.4715 18.6185 19.5936C17.957 20.5555 17.2662 21.5039 16.1662 21.525C15.0903 21.5459 14.7461 20.887 13.507 20.887C12.2676 20.887 11.8795 21.525 10.8688 21.5459C9.83584 21.5671 9.07062 20.6974 8.39704 19.7196C7.02672 17.7348 5.97544 14.1032 7.3792 11.6669C8.07764 10.4568 9.32488 9.69192 10.7416 9.67086C11.7753 9.64998 12.7441 10.3686 13.3776 10.3686C14.0113 10.3686 15.2015 9.47954 16.4251 9.64998C16.9407 9.67198 18.381 9.8596 19.2934 11.1923C19.2155 11.2384 17.5562 12.2078 17.5318 13.0853ZM15.0211 7.22858C15.5847 6.54556 15.9622 5.59758 15.8585 4.65918C15.0216 4.69288 14.0113 5.21814 13.4111 5.91636C12.8942 6.51658 12.4285 7.49132 12.5454 8.41846C13.4725 8.49072 14.4578 7.9118 15.0211 7.22858Z">
-                            </path>
-                        </svg>
-                        <span class="text-sm font-semibold text-slate-300 group-hover:text-white">Apple</span>
-                    </button>
-                </div>
+
+            <!-- Divider -->
+            <div class="flex items-center gap-4 my-2">
+                <div class="h-[1px] flex-1 bg-slate-700/50"></div>
+                <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Or continue with</span>
+                <div class="h-[1px] flex-1 bg-slate-700/50"></div>
             </div>
-            <!-- Card Footer -->
-            <div class="px-8 pb-10 pt-2 text-center">
-                <p class="text-slate-400 text-sm">
-                    Don't have an account?
-                    <a class="text-white font-bold hover:text-primary transition-colors hover:underline"
-                        href="register.html">Register</a>
-                </p>
-            </div>
-            <!-- Background Texture for Glass Card (Noise) -->
-            <div class="absolute inset-0 opacity-[0.03] pointer-events-none z-[-1]"
-                style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB3NAyP4C8uPU0LVQ8IGAbaYzPVfZcnkzzLAnEIkyl16KKxCrha_V35Z4Pc872Bqsr8ksyyQcv3toyJ01MM0uVuAo_xswb5nWFV_sNDvVmmULen7j9Yl4tH9EUpAcdvuzTg40Q1dRfK7dSthbJy-BNOz381G2ZB_VbfMNfNPoO_GFbW5VqldneGws0AqI7SIFEZ4_E-wszv0E9DIXIjaIiB_vnxx85P3BSJm-d5R47s5e52l2k6SGGLX1I_AzEtYbk6czzfXvGzYYU');">
+            <!-- Social Login Buttons -->
+            <div class="grid grid-cols-2 gap-4">
+                <button
+                    class="flex items-center justify-center gap-3 bg-surface-dark border border-slate-700/50 hover:bg-slate-800 hover:border-slate-600 rounded-xl py-3 transition-all duration-300 group">
+                    <!-- Google SVG Icon -->
+                    <svg class="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none"
+                        viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M23.766 12.2764C23.766 11.4607 23.6999 10.6406 23.5588 9.83807H12.24V14.4591H18.7217C18.4528 15.9494 17.5885 17.2678 16.323 18.1056V21.1039H20.19C22.4608 19.0139 23.766 15.9274 23.766 12.2764Z"
+                            fill="#4285F4"></path>
+                        <path
+                            d="M12.24 24.0008C15.4765 24.0008 18.2058 22.9382 20.1945 21.1039L16.3275 18.1055C15.2517 18.8375 13.8627 19.252 12.2445 19.252C9.11388 19.252 6.45946 17.1399 5.50705 14.3003H1.5166V17.3912C3.55371 21.4434 7.7029 24.0008 12.24 24.0008Z"
+                            fill="#34A853"></path>
+                        <path
+                            d="M5.50253 14.3003C5.00236 12.8199 5.00236 11.1799 5.50253 9.69967V6.60879H1.5166C-0.18551 10.0056 -0.18551 13.9945 1.5166 17.3912L5.50253 14.3003Z"
+                            fill="#FBBC05"></path>
+                        <path
+                            d="M12.24 4.74966C13.9509 4.7232 15.6044 5.36697 16.8434 6.54867L20.2695 3.12262C18.1001 1.0855 15.2208 -0.034466 12.24 0.000808666C7.7029 0.000808666 3.55371 2.55822 1.5166 6.60879L5.50253 9.69967C6.45064 6.86106 9.10447 4.74966 12.24 4.74966Z"
+                            fill="#EA4335"></path>
+                    </svg>
+                    <span class="text-sm font-semibold text-slate-300 group-hover:text-white">Google</span>
+                </button>
+                <button
+                    class="flex items-center justify-center gap-3 bg-surface-dark border border-slate-700/50 hover:bg-slate-800 hover:border-slate-600 rounded-xl py-3 transition-all duration-300 group">
+                    <!-- Apple SVG Icon -->
+                    <svg class="w-5 h-5 fill-white group-hover:scale-110 transition-transform duration-300"
+                        viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M17.5318 13.0853C17.5076 15.6429 19.6738 17.1557 19.756 17.2038C19.7028 17.3753 19.3858 18.4715 18.6185 19.5936C17.957 20.5555 17.2662 21.5039 16.1662 21.525C15.0903 21.5459 14.7461 20.887 13.507 20.887C12.2676 20.887 11.8795 21.525 10.8688 21.5459C9.83584 21.5671 9.07062 20.6974 8.39704 19.7196C7.02672 17.7348 5.97544 14.1032 7.3792 11.6669C8.07764 10.4568 9.32488 9.69192 10.7416 9.67086C11.7753 9.64998 12.7441 10.3686 13.3776 10.3686C14.0113 10.3686 15.2015 9.47954 16.4251 9.64998C16.9407 9.67198 18.381 9.8596 19.2934 11.1923C19.2155 11.2384 17.5562 12.2078 17.5318 13.0853ZM15.0211 7.22858C15.5847 6.54556 15.9622 5.59758 15.8585 4.65918C15.0216 4.69288 14.0113 5.21814 13.4111 5.91636C12.8942 6.51658 12.4285 7.49132 12.5454 8.41846C13.4725 8.49072 14.4578 7.9118 15.0211 7.22858Z">
+                        </path>
+                    </svg>
+                    <span class="text-sm font-semibold text-slate-300 group-hover:text-white">Apple</span>
+                </button>
             </div>
         </div>
-        <!-- Footer Info -->
-        <div class="mt-8 text-center">
-            <p id="site-footer-text" class="text-xs text-slate-600 font-medium"></p>
-            <div class="flex gap-4 justify-center mt-2 text-xs text-slate-600">
-                <a class="hover:text-slate-400" href="privacy.html">Privacy</a>
-                <a class="hover:text-slate-400" href="terms.html">Terms</a>
-                <a id="support-link" class="hover:text-slate-400" href="#">Contact</a>
-            </div>
+        <!-- Card Footer -->
+        <div class="px-8 pb-10 pt-2 text-center">
+            <p class="text-slate-400 text-sm">
+                Don't have an account?
+                <a class="text-white font-bold hover:text-primary transition-colors hover:underline"
+                    href="register.html">Register</a>
+            </p>
+        </div>
+        <!-- Background Texture for Glass Card (Noise) -->
+        <div class="absolute inset-0 opacity-[0.03] pointer-events-none z-[-1]"
+            style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB3NAyP4C8uPU0LVQ8IGAbaYzPVfZcnkzzLAnEIkyl16KKxCrha_V35Z4Pc872Bqsr8ksyyQcv3toyJ01MM0uVuAo_xswb5nWFV_sNDvVmmULen7j9Yl4tH9EUpAcdvuzTg40Q1dRfK7dSthbJy-BNOz381G2ZB_VbfMNfNPoO_GFbW5VqldneGws0AqI7SIFEZ4_E-wszv0E9DIXIjaIiB_vnxx85P3BSJm-d5R47s5e52l2k6SGGLX1I_AzEtYbk6czzfXvGzYYU');">
+        </div>
+    </div>
+    <!-- Footer Info -->
+    <div class="mt-8 text-center">
+        <p id="site-footer-text" class="text-xs text-slate-600 font-medium"></p>
+        <div class="flex gap-4 justify-center mt-2 text-xs text-slate-600">
+            <a class="hover:text-slate-400" href="privacy.html">Privacy</a>
+            <a class="hover:text-slate-400" href="terms.html">Terms</a>
+            <a id="support-link" class="hover:text-slate-400" href="#">Contact</a>
         </div>
     </div>
     </div>
+    </div>
+</form>
     <script>
         function togglePassword(inputId, btn) {
             const input = document.getElementById(inputId);
@@ -250,28 +261,28 @@
                 icon.textContent = 'visibility';
             } else {
                 input.type = 'password';
-        icon.textContent = 'visibility_off';
+                icon.textContent = 'visibility_off';
             }
         }
     </script>
 </body>
-    <script src="js/config.js"></script>
-    <script>
-    
+<script src="js/config.js"></script>
+<script>
+
     function showToast(message, type = 'success') {
         const container = document.getElementById('toast-container');
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
-        
+
         let icon = type === 'success' ? 'check_circle' : 'error';
-        
+
         toast.innerHTML = `
             <span class="material-symbols-outlined text-${type === 'success' ? 'emerald-400' : 'red-400'}">${icon}</span>
             <span>${message}</span>
         `;
-        
+
         container.appendChild(toast);
-        
+
         // Trigger animation
         requestAnimationFrame(() => {
             toast.classList.add('show');
@@ -283,7 +294,7 @@
         }, 3000);
     }
 
-    document.getElementById('login-btn').addEventListener('click', async () => {
+    async function handleLogin() {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const btn = document.getElementById('login-btn');
@@ -300,6 +311,7 @@
         try {
             const response = await fetch(`${API_BASE_URL}/login`, {
                 method: 'POST',
+                credentials: 'include', //  <-- Important for HttpOnly Cookie support
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
@@ -309,20 +321,17 @@
 
             const data = await response.json();
 
-            if (response.ok) {
-                // Check multiple token locations just in case
-                const token = data.access_token || (data.data && data.data.token) || data.token;
-
-                if (token) {
-                    localStorage.setItem('auth_token', token);
-                    if (data.user) localStorage.setItem('user_data', JSON.stringify(data.user));
-                    showToast('Login Successful!', 'success');
-                    // Redirect logic
-                    setTimeout(() => window.location.href = 'loading-screen.html', 1500);
-                } else {
-                    console.log('Login success but no token found in expected paths', data);
-                    showToast('Login successful but check console.', 'error');
+            if (response.ok && data.success) {
+                // HttpOnly Cookie is automatically handled by the browser
+                if (data.user || data.data.user) {
+                    // Still save user_data for UI (Name, Avatar, etc.) - Safe to do
+                    const user = data.user || data.data.user;
+                    localStorage.setItem('user_data', JSON.stringify(user));
                 }
+
+                showToast('Login Successful!', 'success');
+                // Redirect logic
+                setTimeout(() => window.location.href = 'loading-screen.html', 1500);
             } else {
                 showToast(data.message || 'Login failed', 'error');
             }
@@ -333,7 +342,7 @@
             btn.innerHTML = originalText;
             btn.disabled = false;
         }
-    });
+    }
 </script>
 <script src="js/site_branding.js"></script>
 

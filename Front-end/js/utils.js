@@ -77,16 +77,16 @@ window.showToast = function (message, type = 'success') {
 
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    
+
     let icon = type === 'success' ? 'check_circle' : 'error';
-    
+
     toast.innerHTML = `
         <span class="material-symbols-outlined">${icon}</span>
         <span>${message}</span>
     `;
-    
+
     container.appendChild(toast);
-    
+
     // Trigger animation
     requestAnimationFrame(() => {
         toast.classList.add('show');
@@ -104,21 +104,23 @@ window.showToast = function (message, type = 'success') {
 // 3. Global Fetch Interceptor (For auto-logout on 401)
 if (!window.isUtilsLoaded) {
     window.isUtilsLoaded = true;
-    (function() {
+    (function () {
         const originalFetch = window.fetch;
-        window.fetch = async function(...args) {
+        window.fetch = async function (...args) {
             try {
                 const response = await originalFetch(...args);
 
                 // Handle 401 Unauthorized -> Logout
+                // Handle 401 Unauthorized -> Logout
                 if (response.status === 401) {
+                    console.warn("Global Fetch Interceptor: 401 Unauthorized. Redirecting to login...");
                     // Don't loop on login page
                     if (!window.location.pathname.includes('login.html')) {
-                        localStorage.removeItem('auth_token');
+                        // localStorage.removeItem('auth_token'); // Optional: Clear token if you want hard logout
                         window.location.href = 'login.html';
                     }
                 }
-                
+
                 return response;
             } catch (error) {
                 // If it's a network error, we might want to show a toast

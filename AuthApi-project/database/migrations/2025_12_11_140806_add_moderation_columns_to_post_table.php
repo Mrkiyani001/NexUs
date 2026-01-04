@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('post', function (Blueprint $table) {
-            $table->smallInteger('status')->default(0)->comment('0: Draft, 1: Pending, 2: Approved, 3: Rejected');
+            $table->smallInteger('status')->default(0)->comment('0: Pending, 1: Approved, 2: Rejected');
             $table->dateTime('moderated_at')->nullable();
             $table->integer('moderated_by')->nullable();
         });

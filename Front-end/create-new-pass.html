@@ -222,6 +222,7 @@
     </div>
 
     <script src="js/config.js"></script>
+    <script src="js/utils.js"></script> <!-- Added utils.js for showToast -->
     <script>
 
         // Toggle Password Visibility
@@ -379,6 +380,7 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/reset_password`, {
                     method: 'POST',
+                    credentials: 'include', //  <-- Important for HttpOnly Cookie support
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
@@ -395,16 +397,16 @@
 
                 if (response.ok && data.success) {
                     isSuccess = true;
-                    showToast('Password reset successful! Redirecting to login...');
+                    showToast('Password reset successful! Redirecting to login...', 'success');
                     setTimeout(() => {
                         window.location.href = 'login.html';
                     }, 1500);
                 } else {
-                    showToast(data.message || 'Failed to reset password.');
+                    showToast(data.message || 'Failed to reset password.', 'error');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                showToast('An error occurred. Please try again.');
+                showToast('An error occurred. Please try again.', 'error');
             } finally {
                 if (!isSuccess) {
                     btnText.textContent = originalText;

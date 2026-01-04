@@ -255,8 +255,12 @@
     <script>
         const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
         const token = localStorage.getItem('auth_token');
+        console.log(token);
 
-        if (!token) window.location.href = 'login.html';
+        // if (!token) {
+        //      console.warn("Notification Page: No Local Token found. Redirecting to login...");
+        //      window.location.href = 'login.html';
+        // }
     </script>
     <script src="js/post_utils.js"></script>
     <script src="js/notifications.js"></script>
@@ -321,10 +325,14 @@
 
             // 2. Fetch Fresh
             try {
+                // const token = localStorage.getItem('auth_token');
                 const response = await fetch(`${API_BASE_URL}/get_user_notifications`, {
-                    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+                    credentials: 'include',
+                    headers: { 
+                        // 'Authorization': `Bearer ${token}`, 
+                        'Accept': 'application/json' 
+                    }
                 });
-
                 if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
 
                 const data = await response.json();

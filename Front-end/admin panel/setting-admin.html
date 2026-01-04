@@ -276,8 +276,8 @@
         async function loadSettings() {
             try {
                 const response = await fetch(`${API_BASE_URL}/settings`, {
+                    credentials: 'include',
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
                         'Accept': 'application/json'
                     }
                 });
@@ -366,9 +366,10 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/admin/settings`, {
                     method: 'POST',
+                    credentials: 'include', // Important for cookies
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
                         'Accept': 'application/json'
+                        // No Content-Type for FormData, browser sets it with boundary
                     },
                     body: formData
                 });

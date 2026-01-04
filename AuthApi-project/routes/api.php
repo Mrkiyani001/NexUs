@@ -97,7 +97,8 @@ Route::group(['middleware' => ['api', 'auth:api']], function () {
         Route::post('ban_user', [AdminController::class, 'banUser'])->middleware('permission:manage access');
     });
 
-
+    Route::post('approve_all_post', [PostController::class, 'Approve_all'])->middleware('permission:posts approve');
+    Route::post('reject_all_post', [PostController::class, 'Reject_all'])->middleware('permission:posts reject');
     Route::post('approve_post', [PostController::class, 'Approved'])->middleware('permission:posts approve');
     Route::post('reject_post', [PostController::class, 'Rejected'])->middleware('permission:posts reject');
     Route::get('pending_posts', [PostController::class, 'PendingPosts'])->middleware('permission:posts view pending');
@@ -150,7 +151,7 @@ Route::group(['middleware' => ['api', 'auth:api']], function () {
     Route::post('get_liked_reels', [ReelsController::class, 'get_liked_reels'])->middleware('permission:view posts');
     Route::post('save_reel', [ReelsController::class, 'saveReel'])->middleware('permission:create posts');
     Route::get('get_saved_reels', [ReelsController::class, 'getSavedReels'])->middleware('permission:view posts');
-    
+
     // Comment Routes
     Route::post('create_comment', [CommentsController::class, 'create'])->middleware('permission:comments create');
     Route::post('update_comment', [CommentsController::class, 'update'])->middleware('permission:comments update');
@@ -195,4 +196,3 @@ Route::group(['middleware' => ['api', 'auth:api']], function () {
 });
 
 // Use full namespace for public route to avoid alias issues if valid
-
