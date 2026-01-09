@@ -11,6 +11,7 @@ use App\Models\Post;
 use Illuminate\Http\Request;
 use App\Models\Comments;
 use App\Models\Reel;
+use Illuminate\Support\Facades\Log;
 
 class CommentsController extends BaseController
 {
@@ -36,17 +37,47 @@ class CommentsController extends BaseController
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
                     $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                    $file->move(public_path('comments'), $filename);
+                    $file->move(public_path('storage/comments'), $filename);
                     $uploadFiles[] = $filename;
                 }
             }
-            AddComment::dispatch(
-                $user->id,
-                $post_id,
-                $reel_id,
-                $comment,
-                $uploadFiles
-            );
+            // Direct synchronous creation for instant ID return
+            $comment = Comments::create([
+                'post_id' => $post_id,
+                'reel_id' => $reel_id,
+                'user_id' => $user->id,
+                'comment' => $comment,
+                'created_by' => $user->id,
+                'updated_by' => $user->id,
+            ]);
+
+            // Handle Attachments
+            if (!empty($uploadFiles)) {
+                try {
+                    foreach ($uploadFiles as $filename) {
+                        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+                        $type = match (true) {
+                            in_array($extension, ['jpg', 'jpeg', 'png', 'gif']) => 'image',
+                            in_array($extension, ['mp4', 'avi', 'mov']) => 'video',
+                            $extension === 'pdf' => 'pdf',
+                            in_array($extension, ['doc', 'docx']) => 'word',
+                            in_array($extension, ['zip', 'rar', '7z']) => 'zip',
+                            default => 'other',
+                        };
+                        $comment->attachments()->create([
+                            'file_name' => $filename,
+                            'file_type' => $type,
+                            'file_path' => 'storage/comments/' . $filename,
+                        ]);
+                    }
+                } catch (\Exception $e) {
+                   Log::error('Attachment creation failed: ' . $e->getMessage());
+                   return $this->response(false, 'Attachment creation failed: ' . $e->getMessage(), null, 500);
+                }
+            }
+
+            // Load relationships to return full structure
+             $comment->load('user.profile.avatar', 'attachments');
 
             // Notification Logic
             if ($post_id) {
@@ -74,26 +105,10 @@ class CommentsController extends BaseController
                     );
                 }
             }
-            //     $comment = Comments::create([
-            //         'post_id'=>$request->post_id,
-            //         'comment'=>$request->comment,
-            //         'created_by'=>$user->id,
-            //         'updated_by'=>$user->id,
-            //     ]);
-            //     if($request->hasFile('attachments')){
-            //         foreach($request->file('attachments')as $file)
-            //             $this->upload($file,'comments',$comment);
-            // }
-            return response()->json([
-                'success' => true,
-                'message' => 'Comment created successfully',
-                'data' => $uploadFiles,
-            ], 201);
+
+            return $this->Response(true, 'Comment created successfully', $comment, 201);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
     public function update(Request $request)
@@ -114,13 +129,10 @@ class CommentsController extends BaseController
 
             $comment = Comments::find($request->id);
             if (is_null($comment)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Comment not found',
-                ], 404);
+                return $this->Response(false, 'Comment not found', null, 404);
             }
             if ($comment->user_id != $user->id) {
-                return $this->unauthorized();
+                return $this->NotAllowed();
             }
             $comment->fill([
                 'comment' => $request->comment,
@@ -149,17 +161,9 @@ class CommentsController extends BaseController
                 $uploadFiles
             );
             $comment->refresh(); // Refresh from DB
-            return response()->json([
-                'success' => true,
-                'message' => 'Comment updated successfully',
-                'data' => $comment, // Return full comment object
-                'upload_files' => $uploadFiles // Keep this for legacy if needed
-            ], 200);
+            return $this->Response(true, 'Comment updated successfully', $comment, 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
     public function destroy(Request $request)
@@ -174,22 +178,52 @@ class CommentsController extends BaseController
             }
             $comment = Comments::find($request->id);
             if (!$comment) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Comment not found',
-                ], 404);
+                return $this->Response(false, 'Comment not found', null, 404);
             }
-            if ($comment->user_id != $user->id) {
-                return $this->unauthorized();
+            if ($comment->user_id == $user->id) {
+                 DeleteComment::dispatch(
+                $user->id,
+                $request->id
+            );
+            return $this->Response(true, 'Comment deleted successfully', null, 200);
+            }
+            $owner = $comment->user;
+            if(!$owner){
+                if($user->hasRole(['Admin','super admin'])){
+                    DeleteComment::dispatch(
+                        $user->id,
+                        $request->id
+                    );
+                    return $this->Response(true, 'Comment deleted successfully', null, 200);
+                }
+                return $this->NotAllowed();
+            }
+            $authorized = false;
+            if($owner->hasRole('super admin')){
+                if($user->hasRole('super admin')){
+                    $authorized = true;
+                }
+            }elseif($owner->hasRole('Admin')){
+                if($user->hasRole(['Admin','super admin'])){
+                    $authorized = true;
+                }
+            }elseif($owner->hasRole('Moderator')){
+                if($user->hasRole(['Moderator','Admin','super admin'])){
+                    $authorized = true;
+                }
+            }else{
+                if($user->hasRole(['Admin','super admin'])){
+                    $authorized = true;
+                }
+            }
+            if(!$authorized){
+                return $this->NotAllowed();
             }
             DeleteComment::dispatch(
                 $user->id,
                 $request->id
             );
-            return response()->json([
-                'success' => true,
-                'message' => 'Comment deleted successfully',
-            ], 200);
+            return $this->Response(true, 'Comment deleted successfully', null, 200);
             // $comment = Comments::find($request->id);
             // if(is_null($comment)){
             //     return response()->json([
@@ -204,10 +238,7 @@ class CommentsController extends BaseController
             // ],200);
             // }
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
     public function get_comments_by_post(Request $request)
@@ -230,29 +261,22 @@ class CommentsController extends BaseController
                     $q->where('type', 1);
                 }])
                 ->withCount('replies')
-                ->with(['replies' => function($q) use ($user) {
-                    $q->with('creator.profile.avatar')
-                      ->withExists(['reactions as is_liked' => function ($q2) use ($user) {
-                          $q2->where('created_by', $user->id)->where('type', 1);
-                      }])
-                      ->withCount(['reactions as like_count' => function ($q2) {
-                          $q2->where('type', 1);
-                      }]);
+                ->with(['replies' => function ($q) use ($user) {
+                    $q->with('attachments', 'creator.profile.avatar')
+                        ->withExists(['reactions as is_liked' => function ($q2) use ($user) {
+                            $q2->where('created_by', $user->id)->where('type', 1);
+                        }])
+                        ->withCount(['reactions as like_count' => function ($q2) {
+                            $q2->where('type', 1);
+                        }]);
                 }])
                 ->orderby('created_at', 'desc')
                 ->paginate($limit);
 
             $data = $this->paginateData($comments, $comments->items());
-            return response()->json([
-                'success' => true,
-                'message' => 'Comments retrieved successfully',
-                'data' => $data,
-            ], 200);
+            return $this->Response(true, 'Comments retrieved successfully', $data, 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
     public function get_comments_by_reel(Request $request)
@@ -275,29 +299,23 @@ class CommentsController extends BaseController
                     $q->where('type', 1);
                 }])
                 ->withCount('replies')
-                ->with(['replies' => function($q) use ($user) {
+                ->with(['replies' => function ($q) use ($user) {
                     $q->with('creator.profile.avatar')
-                      ->withExists(['reactions as is_liked' => function ($q2) use ($user) {
-                          $q2->where('created_by', $user->id)->where('type', 1);
-                      }])
-                      ->withCount(['reactions as like_count' => function ($q2) {
-                          $q2->where('type', 1);
-                      }]);
+                        ->with('attachments') // Eager load attachments for replies
+                        ->withExists(['reactions as is_liked' => function ($q2) use ($user) {
+                            $q2->where('created_by', $user->id)->where('type', 1);
+                        }])
+                        ->withCount(['reactions as like_count' => function ($q2) {
+                            $q2->where('type', 1);
+                        }]);
                 }])
                 ->orderby('created_at', 'desc')
                 ->paginate($limit);
 
             $data = $this->paginateData($comments, $comments->items());
-            return response()->json([
-                'success' => true,
-                'message' => 'Comments retrieved successfully',
-                'data' => $data,
-            ], 200);
+            return $this->Response(true, 'Comments retrieved successfully', $data, 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
 }

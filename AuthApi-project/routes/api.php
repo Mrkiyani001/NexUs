@@ -11,6 +11,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ReelsController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\ShareController;
@@ -21,6 +22,7 @@ use Prism\Prism\Enums\Provider;
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
 // })->middleware('auth:sanctum');
+
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 Route::get('login', function () {
@@ -30,6 +32,8 @@ Route::get('settings', [SettingsController::class, 'index']);
 
 Route::post('forget_password', [AuthController::class, 'forget_password']);
 Route::post('reset_password', [AuthController::class, 'reset_password']);
+
+Route::get('email/verify/{id}/{hash}', [AuthController::class, 'verify_email'])->name('verification.verify');
 
 Route::get('/debug-config', function () {
     return response()->json([
@@ -94,7 +98,8 @@ Route::group(['middleware' => ['api', 'auth:api']], function () {
         Route::post('ban_user', [AdminController::class, 'banUser'])->middleware('permission:manage access');
     });
 
-
+    Route::post('approve_all_post', [PostController::class, 'Approve_all'])->middleware('permission:posts approve');
+    Route::post('reject_all_post', [PostController::class, 'Reject_all'])->middleware('permission:posts reject');
     Route::post('approve_post', [PostController::class, 'Approved'])->middleware('permission:posts approve');
     Route::post('reject_post', [PostController::class, 'Rejected'])->middleware('permission:posts reject');
     Route::get('pending_posts', [PostController::class, 'PendingPosts'])->middleware('permission:posts view pending');
@@ -117,12 +122,14 @@ Route::group(['middleware' => ['api', 'auth:api']], function () {
 
     // User Routes
     Route::post('logout', [AuthController::class, 'logout']);
+    Route::post('resend_verification', [AuthController::class, 'resend_verification']);
     Route::post('refresh', [AuthController::class, 'refresh_token']);
     Route::get('getallusers', [AuthController::class, 'get_all_users'])->middleware('permission:view access|manage access');
     Route::get('filter_users', [AuthController::class, 'filter_users'])->middleware('permission:view access|manage access');
     Route::post('getUser', [AuthController::class, 'getUser']);
     Route::put('updateUser', [AuthController::class, 'update_user']);
     Route::post('updatePassword', [AuthController::class, 'update_password']);
+    Route::post('deactivate_account', [AuthController::class, 'deactivate_account']);
     Route::delete('delete_user', [AuthController::class, 'delete_user']);
 
     // Post Routes
@@ -136,16 +143,16 @@ Route::group(['middleware' => ['api', 'auth:api']], function () {
     Route::post('get_liked_posts', [PostController::class, 'get_liked_posts'])->middleware('permission:view posts');
 
     // Reel Routes
-    Route::post('create_reel', [ReelsController::class, 'create_reel'])->middleware('permission:create posts');
-    Route::post('update_reel', [ReelsController::class, 'update_reel'])->middleware('permission:update posts');
-    Route::delete('delete_reel', [ReelsController::class, 'destroy_reel'])->middleware('permission:delete posts');
-    Route::post('get_reels_by_user', [ReelsController::class, 'getreelofuser'])->middleware('permission:view posts');
-    Route::get('get_all_reels', [ReelsController::class, 'getreelofall'])->middleware('permission:view posts');
-    Route::get('get_following_reels', [ReelsController::class, 'get_following_reels'])->middleware('permission:view posts');
-    Route::post('get_liked_reels', [ReelsController::class, 'get_liked_reels'])->middleware('permission:view posts');
-    Route::post('save_reel', [ReelsController::class, 'saveReel'])->middleware('permission:create posts');
-    Route::get('get_saved_reels', [ReelsController::class, 'getSavedReels'])->middleware('permission:view posts');
-    
+    Route::post('create_reel', [ReelsController::class, 'create_reel'])->middleware('permission:create reel');
+    Route::post('update_reel', [ReelsController::class, 'update_reel'])->middleware('permission:update reel');
+    Route::delete('delete_reel', [ReelsController::class, 'destroy_reel'])->middleware('permission:delete reel');
+    Route::post('get_reels_by_user', [ReelsController::class, 'getreelofuser'])->middleware('permission:get reel');
+    Route::get('get_all_reels', [ReelsController::class, 'getreelofall'])->middleware('permission:get reel');
+    Route::get('get_following_reels', [ReelsController::class, 'get_following_reels'])->middleware('permission:get reel');
+    Route::post('get_liked_reels', [ReelsController::class, 'get_liked_reels'])->middleware('permission:get posts');
+    Route::post('save_reel', [ReelsController::class, 'saveReel'])->middleware('permission:get reel');
+    Route::get('get_saved_reels', [ReelsController::class, 'getSavedReels'])->middleware('permission:get reel');
+
     // Comment Routes
     Route::post('create_comment', [CommentsController::class, 'create'])->middleware('permission:comments create');
     Route::post('update_comment', [CommentsController::class, 'update'])->middleware('permission:comments update');
@@ -187,7 +194,18 @@ Route::group(['middleware' => ['api', 'auth:api']], function () {
 
     // Site Settings Routes (Admin Update)
     Route::post('admin/settings', [SettingsController::class, 'update'])->middleware('permission:manage access');
+
+    // Message Routes
+    Route::post('sendmessage', [MessageController::class, 'sendMessage'])->middleware('permission:message send');
+    Route::post('updatemessage', [MessageController::class, 'updateMessage'])->middleware('permission:message update');
+    Route::delete('deletemessage', [MessageController::class, 'deleteMessage'])->middleware('permission:message delete');
+    Route::post('getmessages', [MessageController::class, 'getMessages'])->middleware('permission:get messages');
+
+    Route::get('getconversations', [MessageController::class, 'getConversation'])->middleware('permission:get conversation');
+    Route::get('/users/search', [MessageController::class, 'searchUsers']);
 });
+
+
 
 // Use full namespace for public route to avoid alias issues if valid
 

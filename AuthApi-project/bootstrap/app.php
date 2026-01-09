@@ -9,6 +9,7 @@ use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
+        channels: __DIR__.'/../routes/channels.php',
         web: __DIR__ . '/../routes/web.php',
         api: __DIR__ . '/../routes/api.php',
         commands: __DIR__ . '/../routes/console.php',
@@ -22,7 +23,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'check.banned' => \App\Http\Middleware\CheckBanned::class,
         ]);
 
-        // Optionally append to api group directly if we want it global
+        // Create cookie capability and attach auth from cookie
+        $middleware->api(prepend: [
+            \App\Http\Middleware\AttachAuthToken::class,
+        ]);
+
         $middleware->api(append: [
             \App\Http\Middleware\CheckBanned::class,
             \App\Http\Middleware\CheckMaintenanceMode::class,

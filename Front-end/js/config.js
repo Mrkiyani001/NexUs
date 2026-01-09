@@ -1,19 +1,34 @@
-
 /**
- * Global Configuration
- * Central source of truth for API URLs
- */
+ * Global Configuration
+ * Central source of truth for API URLs
+ */
 
-// Toggle this for local vs production
-const IS_LOCAL = false; // <--- YEH CHANGE HUA HAI (FALSE)
+// Auto-detect Local Environment
+if (typeof IS_LOCAL === 'undefined') {
+    var IS_LOCAL = window.location.hostname === '127.0.0.1' || 
+                   window.location.hostname === 'localhost' || 
+                   window.location.protocol === 'file:';
+}
 
-const API_BASE_URL = IS_LOCAL
-    ? 'http://127.0.0.1:8000/api'
-    : 'http://54.248.199.202/api'; // <--- YEH CHANGE HUA HAI (AWS IP)
+// Auto-detect Local Environment
+if (typeof IS_LOCAL === 'undefined') {
+    var IS_LOCAL = window.location.hostname === '127.0.0.1' || 
+                   window.location.hostname === 'localhost' || 
+                   window.location.protocol === 'file:';
+}
 
-const PUBLIC_URL = IS_LOCAL
-    ? 'http://127.0.0.1:8000'
-    : 'http://54.248.199.202'; // <--- YEH CHANGE HUA HAI (AWS IP)
+// Dynamic API Host: Matches 'localhost' or '127.0.0.1' to prevent Cross-Site mismatches
+var localApiHost = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
+    ? window.location.hostname 
+    : '127.0.0.1';
+
+var API_BASE_URL = IS_LOCAL
+    ? `http://${localApiHost}:8000/api`
+    : 'https://web.kiyanibhai.site/api';
+
+var PUBLIC_URL = IS_LOCAL
+    ? `http://${localApiHost}:8000`
+    : 'https://web.kiyanibhai.site';
 
 // Expose to window for global access
 window.API_BASE_URL = API_BASE_URL;

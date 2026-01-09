@@ -116,44 +116,48 @@
     <script src="js/config.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', async () => {
-        // Check for authentication token
-        const token = localStorage.getItem('auth_token');
-
-        if (!token) {
-            window.location.href = 'login.html';
-            return;
-        }
-
         // Start minimum wait timer (2 seconds)
         const waitPromise = new Promise(resolve => setTimeout(resolve, 2000));
 
-        // Start data fetch
-        const fetchPromise = fetch(`${API_BASE_URL}/get_all_posts?limit=50`, {
+        // Start data fetch (using HttpOnly cookies)
+        // Start data fetch (using HttpOnly cookies)
+        const fetchPromise = fetch(`${API_BASE_URL}/get_all_posts`, {
             method: 'GET',
+            credentials: 'include',
             headers: {
-                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
                 'Accept': 'application/json'
             }
         })
-            .then(response => response.json())
+            .then(async response => {
+                if (response.status === 401) {
+                     console.warn("Pre-fetch 401 (Proceeding to dashboard)");
+                     return null;
+                }
+                return response.json();
+            })
             .then(data => {
-                if (data.success) {
+                if (data && data.success) {
                     localStorage.setItem('cached_posts', JSON.stringify(data));
                 }
+                return data;
             })
-            .catch(err => console.error('Pre-fetch failed', err));
+            .catch(err => {
+                console.error('Pre-fetch failed', err);
+            });
 
-        // Wait for both (or at least the timer)
-        // We want to ensure at least 2 seconds passed for the visual effect
-        // If fetch takes longer, we might want to wait a bit more or just let the dashboard handle it?
-        // Let's await both to ensure data IS ready, but cap the fetch wait?
-        // For now, simpler: await both.
-
-        await Promise.all([waitPromise, fetchPromise]);
-
-        window.location.href = 'homefeed-dashboard.html';
+        try {
+            await Promise.all([waitPromise, fetchPromise]);
+            // If we are here, fetch didn't throw Unauthorized (or it was caught and redirected)
+            // If redirected, this next line runs but location change happens.
+            // Check if we are still on this page?
+            if (!fetchPromise || (await fetchPromise)) {
+                 window.location.href = 'homefeed-dashboard.html';
+            }
+        } catch (e) {
+            // If unauthorized, we redirected.
+        }
     });
-</script>
+    </script>
 <script src="js/site_branding.js"></script>
-
 </html>

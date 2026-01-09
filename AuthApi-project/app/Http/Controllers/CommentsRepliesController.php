@@ -33,7 +33,7 @@ class CommentsRepliesController extends BaseController
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
                     $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                    $file->move(public_path('comment_replies'), $filename);
+                    $file->move(public_path('storage/comment_replies'), $filename);
                     $uploadFiles[] = $filename;
                 }
             }
@@ -63,11 +63,12 @@ class CommentsRepliesController extends BaseController
                         $commentReply->attachments()->create([
                             'file_name' => $filename,
                             'file_type' => $type,
-                            'file_path' => 'comment_replies/' . $filename,
+                            'file_path' => 'storage/comment_replies/' . $filename,
                         ]);
                     }
                 } catch (\Exception $e) {
                     Log::error("Failed to upload attachments for comment reply ID " . $commentReply->id . ": " . $e->getMessage());
+                    return $this->Response(false, $e->getMessage(), null, 500);
                 }
             }
 
@@ -90,17 +91,10 @@ class CommentsRepliesController extends BaseController
             // Reload to get relationships if needed (e.g. avatar) or just return what we have
             // We need to return structure matching what frontend expects if possible, 
             // but for now ID is critical.
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Comment Reply created successfully',
-                'data' => $commentReply
-            ], 201);
+
+            return $this->Response(true, 'Comment Reply created successfully', $commentReply, 201);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
 
@@ -121,13 +115,10 @@ class CommentsRepliesController extends BaseController
             }
             $commentReply = CommentReply::find($request->id);
             if (is_null($commentReply)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Comment Reply not found',
-                ], 404);
+                return $this->Response(false, 'Comment Reply not found', null, 404);
             }
             if ($commentReply->user_id != $user->id) {
-                return $this->unauthorized();
+                return $this->NotAllowed();
             }
 
             // Handle removal of attachments
@@ -143,7 +134,7 @@ class CommentsRepliesController extends BaseController
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
                     $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                    $file->move(public_path('comment_replies'), $filename);
+                    $file->move(public_path('storage/comment_replies'), $filename);
                     $uploadFiles[] = $filename;
                 }
             }
@@ -155,15 +146,9 @@ class CommentsRepliesController extends BaseController
                 $uploadFiles
             );
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Comment Reply update in progress',
-            ], 202);
+            return $this->Response(true, 'Comment Reply update in progress', null, 202);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
 
@@ -179,29 +164,58 @@ class CommentsRepliesController extends BaseController
             }
             $commentReply = CommentReply::find($request->id);
             if (!$commentReply) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Comment Reply not found',
-                ], 404);
+                return $this->Response(false, 'Comment Reply not found', null, 404);
             }
-            if ($commentReply->user_id != $user->id) {
-                return $this->unauthorized();
-            }
+            if ($commentReply->user_id == $user->id) {
 
             DeleteCommentReply::dispatch(
                 $user->id,
                 $request->id
             );
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Comment Reply deletion in progress',
-            ], 202);
+            return $this->Response(true, 'Comment Reply deletion in progress', null, 202);                
+            }
+            $owner = $commentReply->user;
+            if(!$owner){
+                if($user->hasRole(['super admin','Admin'])){
+                    DeleteCommentReply::dispatch(
+                        $user->id,
+                        $request->id
+                    );
+                    return $this->Response(true, 'Comment Reply deletion in progress', null, 202);                
+                }
+                return $this->NotAllowed();
+            }
+            $authorized = false;
+            if($owner->hasRole('super admin')){
+                if($user->hasRole('super admin')){
+                    $authorized = true;
+                }
+            }elseif($owner->hasRole('Admin')){
+                if($user->hasRole(['Admin','super admin'])){
+                    $authorized = true;
+                }
+            }elseif($owner->hasRole('Moderator')){
+                if($user->hasRole(['Moderator','Admin','super admin'])){
+                    $authorized = true;
+                }
+            }else{
+                if($user->hasRole(['Admin','super admin'])){
+                    $authorized = true;
+                }
+            }
+            if(!$authorized){
+                return $this->NotAllowed();
+            }
+            DeleteCommentReply::dispatch(
+                $user->id,
+                $request->id
+            );
+
+            return $this->Response(true, 'Comment Reply deletion in progress', null, 202);                
+
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
     public function get_replies_by_comment(Request $request)
@@ -220,15 +234,9 @@ class CommentsRepliesController extends BaseController
                 ->paginate($limit);
 
             $data = $this->paginateData($commentReplies, $commentReplies->items());
-            return response()->json([
-                'success' => true,
-                'data' => $data,
-            ], 200);
+            return $this->Response(true, 'Comment Replies fetched successfully', $data, 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
 }

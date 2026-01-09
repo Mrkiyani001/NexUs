@@ -53,102 +53,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Check for Edit Mode ---
     const urlParams = new URLSearchParams(window.location.search);
-    const urlEditId = urlParams.get('edit_id');
+    const urlEditId = urlParams.get('edit') || urlParams.get('edit_id');
     const editData = localStorage.getItem('edit_reel_data');
     
-    // Priority: LocalStorage -> URL
-    if (editData || urlEditId) {
-        try {
-            let reel = null;
-            if(editData) {
-                reel = JSON.parse(editData);
-            } else if(urlEditId) {
-                // If only ID in URL, we need to fetch or trust.
-                // Since we can't sync fetch easily here without refactor, we assume basic edit mode 
-                // but we might miss pre-filled data if not in storage.
-                // However, user problem is STATE desync.
-                // If we have ID, we set checking true.
-                state.editId = urlEditId;
-                state.isEditing = true;
-                document.querySelector('h1').textContent = "Edit Reel";
-                postBtn.querySelector('#post-btn-text').textContent = "Update Reel";
-                // We might rely on backend to just update what we send? 
-                // But we need to pre-fill. 
-                // If URL used, we should fetch. 
-                // For now sticking to fixing strict check.
-            }
 
-            if(reel) {
-                state.isEditing = true;
-                state.editId = reel.id;
-                state.privacy = reel.privacy || 'public';
-
-
-            // UI Updates for Edit Mode
-            document.querySelector('h1').textContent = "Edit Reel";
-            document.title = "Edit Reel - NexUs";
-            captionInput.value = reel.caption || '';
-            updatePrivacyUI(); // Sync privacy buttons
-
-            // LOCK Video & Thumbnail ALWAYS for Edit Mode (User Request)
-            uploadState.innerHTML = `
-                <div class="h-16 w-16 rounded-full bg-white/5 flex items-center justify-center mb-4 border border-white/10">
-                    <span class="material-symbols-outlined text-3xl text-gray-500">lock</span>
-                </div>
-                <p class="text-gray-200 font-bold mb-1">Video Locked</p>
-                <p class="text-gray-500 text-xs text-center px-4">Video and thumbnail cannot be changed during update.</p>
-            `;
-            uploadState.style.pointerEvents = 'none';
-            changeVideoBtn.style.display = 'none';
-
-            const upThumbBtn = document.getElementById('upload-thumb-btn');
-            if (upThumbBtn) upThumbBtn.style.display = 'none';
-
-            const selFrameBtn = document.getElementById('select-frame-btn');
-            if (selFrameBtn) selFrameBtn.style.display = 'none';
-
-            // Show current thumbnail preview static
-            let thumb = reel.thumbnail_path;
-            if (thumb && !thumb.startsWith('http')) thumb = `${window.PUBLIC_URL}/storage/${thumb}`;
-            if (thumb) {
-                thumbnailImg.src = thumb;
-                thumbnailImg.classList.remove('hidden');
-            }
-
-            // Note: Video is not shown in preview to avoid loading larg files, or we can show it if URL is available.
-            // Let's show it if available but control inputs are hidden.
-            let vidUrl = reel.video_path;
-            if (vidUrl && !vidUrl.startsWith('http')) vidUrl = `${window.PUBLIC_URL}/storage/${vidUrl}`;
-
-            if (vidUrl) {
-                videoPreview.src = vidUrl;
-                videoPreview.classList.remove('hidden');
-                uploadState.classList.add('hidden');
-                // Hide Controls overlay that allows changing?
-                // Actually handleVideoSelect hides uploadState.
-                // Here we just show preview.
-            }
-
-
-            // Change Button Text
-            postBtn.querySelector('#post-btn-text').textContent = "Update Reel";
-            postBtn.querySelector('#post-btn-icon').textContent = "save";
-
-            
-            // Clear storage - REMOVING this to persist state on reload. 
-            // We will clear it on Success instead.
-            
-        } } catch (e) { console.error("Edit parse error", e); }
-    }
 
     // --- 1. Video Upload Logic ---
 
     // Check if token exists
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
-        window.location.href = 'login.html'; // Redirect if not logged in
-        return;
-    }
+    // Cookie Auth: No local check needed here, but we could do a /me check or just let it fail on 401 later.
+    // However, to keep UI responsiveness, we might want to ensure login.
+    // For now, removing strict local check.
+    // const token = localStorage.getItem('auth_token');
+    // if (!token) { window.location.href = 'login.html'; return; }
 
     // Trigger file input
     uploadState.addEventListener('click', () => {
@@ -163,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const handleVideoSelect = (file) => {
         if (file.size > 100 * 1024 * 1024) { // 100MB limit
-            alert('File too large. Max size is 100MB.');
+            showToast('File too large. Max size is 100MB.');
             return;
         }
 
@@ -251,14 +168,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Option B: Select Frame
     selectFrameBtn.addEventListener('click', () => {
         if (!state.videoFile && !state.isEditing) { // Allow if editing might have existing video? No, need file object for capture usually.
-            alert("Please upload a video first.");
+            showToast("Please upload a video first.");
             return;
         }
 
         // If editing and no new file, we can't capture easily from cross-origin video (CORS).
         // Check if we have a file.
         if (state.isEditing && !state.videoFile) {
-            alert("Cannot edit thumbnail of existing video. Please upload a new video to change thumbnail.");
+            showToast("Cannot edit thumbnail of existing video. Please upload a new video to change thumbnail.");
             return;
         }
 
@@ -346,13 +263,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const btnText = postBtn.querySelector('#post-btn-text').textContent;
         const isUpdateMode = state.isEditing || btnText.includes('Update');
         
+        // Strict check: Only require video if NOT updating
         if (!state.videoFile && !isUpdateMode) {
-            alert('Please select a video first.');
+            showToast('Please select a video first.');
             return;
         }
 
         const formData = new FormData();
-        // If editing, only append video if provided
+        // If editing, only append video if provided (though UI prevents it)
         if (state.videoFile) formData.append('video', state.videoFile);
 
         formData.append('caption', captionInput.value);
@@ -360,7 +278,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Ensure we send ID if update mode
         if (isUpdateMode) {
-             formData.append('reel_id', state.editId || new URLSearchParams(window.location.search).get('edit_id'));
+             const urlParams = new URLSearchParams(window.location.search);
+             formData.append('reel_id', state.editId || urlParams.get('edit') || urlParams.get('edit_id'));
         }
 
         if (state.thumbnailFile) {
@@ -413,8 +332,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const endpoint = isUpdateMode ? '/update_reel' : '/create_reel';
             const response = await fetch(`${window.API_BASE_URL}${endpoint}`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    // 'Authorization': `Bearer ${token}`
                 },
                 body: formData
             });
@@ -431,7 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error(error);
-            alert('Error: ' + error.message);
+            showToast('Error: ' + error.message);
             // Reset Button
             postBtn.disabled = false;
             postBtn.querySelector('#post-btn-text').textContent = originalText;
@@ -452,4 +372,106 @@ document.addEventListener('DOMContentLoaded', () => {
         const s = Math.floor(seconds % 60);
         return `${m}:${s.toString().padStart(2, '0')}`;
     }
+    // --- Init Edit Mode (at end to ensure dependencies exist) ---
+    const initEditMode = async () => {
+        let reel = null;
+
+        if (editData) {
+            try { reel = JSON.parse(editData); } catch (e) {}
+        } 
+        
+        // If no local data but we have ID, fetch it
+        if (!reel && urlEditId) {
+             try {
+                // Fetch user's reels to find this one
+                const user = JSON.parse(localStorage.getItem('user_data') || '{}');
+                if(user.id) {
+                     const response = await fetch(`${window.API_BASE_URL}/get_reels_by_user`, {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: { 
+                            // 'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ user_id: user.id })
+                     });
+                     if(!response.ok) throw new Error("API Error");
+                     const data = await response.json();
+                     if(data.success && data.data) {
+                         reel = data.data.find(r => r.id == urlEditId);
+                     }
+                }
+             } catch(e) { console.error("Fetch reel failed", e); }
+        }
+
+        if (reel || urlEditId) {
+             state.isEditing = true;
+             state.editId = reel ? reel.id : urlEditId;
+             if(reel) state.privacy = reel.privacy || 'public';
+             
+             // UI Updates
+             const h1 = document.querySelector('h1');
+             if(h1) h1.textContent = "Edit Reel";
+             document.title = "Edit Reel - NexUs";
+             if(reel) captionInput.value = reel.caption || '';
+             // Ensure this function is defined before calling
+             if(typeof updatePrivacyUI === 'function') updatePrivacyUI();
+
+             // Lock Video UI
+             if(uploadState) {
+                 uploadState.innerHTML = `
+                    <div class="h-16 w-16 rounded-full bg-white/5 flex items-center justify-center mb-4 border border-white/10">
+                        <span class="material-symbols-outlined text-3xl text-gray-500">lock</span>
+                    </div>
+                    <p class="text-gray-200 font-bold mb-1">Video Locked</p>
+                    <p class="text-gray-500 text-xs text-center px-4">Video cannot be changed during update.</p>
+                 `;
+                 uploadState.style.pointerEvents = 'none';
+             }
+             if(changeVideoBtn) changeVideoBtn.style.display = 'none';
+
+             const upThumbBtn = document.getElementById('upload-thumb-btn');
+             if (upThumbBtn) upThumbBtn.style.display = 'none';
+
+             const selFrameBtn = document.getElementById('select-frame-btn');
+             if (selFrameBtn) selFrameBtn.style.display = 'none';
+
+             // Preview if available
+             if(reel) {
+                 // Helper for URL construction
+                 const getFullUrl = (path) => {
+                     if (!path) return null;
+                     if (path.startsWith('http')) return path;
+                     if (path.startsWith('/')) path = path.substring(1);
+                     if (!path.startsWith('storage/')) path = 'storage/' + path;
+                     // Use config variable only
+                     const baseUrl = window.PUBLIC_URL;
+                     return `${baseUrl}/${path}`;
+                 };
+
+                 let thumb = getFullUrl(reel.thumbnail_path);
+                 if (thumb && thumbnailImg) {
+                     thumbnailImg.src = thumb;
+                     thumbnailImg.classList.remove('hidden');
+                 }
+                 
+                 // Show video preview if possible (for context)
+                 let vidUrl = getFullUrl(reel.video_path);
+                 if(vidUrl && videoPreview) {
+                      videoPreview.src = vidUrl;
+                      videoPreview.classList.remove('hidden');
+                      if(uploadState) uploadState.classList.add('hidden');
+                 }
+             }
+
+             if(postBtn) {
+                const btnText = postBtn.querySelector('#post-btn-text');
+                const btnIcon = postBtn.querySelector('#post-btn-icon');
+                if(btnText) btnText.textContent = "Update Reel";
+                if(btnIcon) btnIcon.textContent = "save";
+             }
+        }
+    };
+
+    initEditMode();
 });

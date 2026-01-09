@@ -6,30 +6,28 @@ use App\Models\Profile;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
-
 use App\Models\Attachments; // Add this import
 use App\Jobs\SendNotification;
 
 class ProfileController extends BaseController
 {
+
     public function viewProfile(Request $request)
     {
-        // ... existing viewProfile logic ...
-        // (No changes needed in viewProfile unless we want to load 'avatar' relation explicitly, 
-        //  but with(['profile.avatar']) might be needed if not automatically loaded. 
-        //  For now user only asked for update logic rewrite.)
         try {
             $userId = $request->id ?? auth('api')->id();
             if (!$userId) {
                 return $this->unauthorized();
             }
 
-            // User data ka sath Profile, Followers, or Following load kro
+            // Connection Status Logic Here Use function CheckfollowStatus from uSER MODEL
+            $loggedInUser = auth('api')->user();
+
             $user = User::with([
                 'profile.avatar',
                 'followers' => function ($q) {
                     $q->wherePivot('status', 'accepted')->with('profile.avatar');
-                },
+                }, 
                 'following' => function ($q) {
                     $q->wherePivot('status', 'accepted')->with('profile.avatar');
                 }
@@ -37,7 +35,7 @@ class ProfileController extends BaseController
                 ->withCount([
                     'followers' => function ($q) {
                         $q->where('followers.status', 'accepted');
-                    }, // 'followers' table alias is usually 'followers' ? No, eloquent relation count
+                    },
                     'following' => function ($q) {
                         $q->where('followers.status', 'accepted');
                     }
@@ -45,25 +43,36 @@ class ProfileController extends BaseController
                 ->find($userId);
 
             if (!$user) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'User not found'
-                ], 404);
+                return $this->Response(false, 'User not found', null, 404);
+            }
+            if($user->status == 'Deactivated') {
+                return $this->Response(false, 'User is deactivated', null, 404);
+            }
+            if ($user->is_banned == 1) {
+                return $this->Response(false, 'User is banned', null, 401);
             }
             // Email Visibility Logic
-            if ($userId !== $user->id && $user->show_email == false) {
+            if ($loggedInUser && $userId !== $loggedInUser->id && $user->show_email == false) {
                 $user->makeHidden(['email']);
             }
+             $user->makeHidden(['password','remember_token','email_verified_at','created_at','updated_at']);
+             
+            $connection_status = $loggedInUser ? $loggedInUser->getFollowStatus($user->id) : 'none';
+            $is_me = $loggedInUser && $loggedInUser->id === $user->id;
+            $is_friend = $connection_status === 'accepted';
+            $is_admin = $loggedInUser && $loggedInUser->hasRole(['super admin']);
+            // Privacy Logic
+            if ($user->is_private && !$is_me && !$is_friend && !$is_admin) {
+                 $user->setRelation('followers', collect());
+                 $user->setRelation('following', collect());
+                 $user->makeHidden(['email', 'phone', 'address', 'city', 'state', 'country', 'zip_code']);
+                 if($user->profile){
+                    $user->profile->makeHidden(['phone', 'address', 'city', 'state', 'country', 'zip_code']);
+                 }
+                 // Only show basic info + counts
+            }
 
-            // Connection Status Logic Here Use function CheckfollowStatus from uSER MODEL
-            $loggedInUser = auth('api')->user();
-            $user->connection_status = $loggedInUser ? $loggedInUser->getFollowStatus($user->id) : 'none';
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Profile retrieved successfully',
-                'data' => $user
-            ], 200);
+            return $this->Response(true, 'Profile retrieved successfully', $user, 200);
         } catch (Exception $e) {
             return $this->Response(false, $e->getMessage(), null, 500);
         }
@@ -75,6 +84,11 @@ class ProfileController extends BaseController
             'name' => 'string|max:255',
             'email' => 'email|max:255|unique:users,email,' . auth('api')->id(),
             'show_email' => 'boolean',
+            'is_private' => 'boolean',
+            'allow_friend_request' => 'boolean',
+            'email_login_alerts' => 'boolean',
+            'push_login_alerts' => 'boolean',
+            'suspicious_activity_alerts' => 'boolean',
             'bio' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:255',
@@ -94,7 +108,7 @@ class ProfileController extends BaseController
             }
             // If ID is provided, verify it matches the logged-in user
             if ($request->has('id') && $request->id != $user->id) {
-                return response()->json(['success' => false, 'message' => 'Unauthorized: You can only update your own profile'], 401);
+                return $this->NotAllowed();
             }
             if ($request->filled('name')) {
                 $user->name = $request->name;
@@ -104,6 +118,21 @@ class ProfileController extends BaseController
             }
             if ($request->has('show_email')) {
                 $user->show_email = $request->boolean('show_email');
+            }
+            if ($request->has('is_private')) {
+                $user->is_private = $request->boolean('is_private');
+            }
+            if ($request->has('allow_friend_request')) {
+                $user->allow_friend_request = $request->boolean('allow_friend_request');
+            }
+            if ($request->has('email_login_alerts')) {
+                $user->email_login_alerts = $request->boolean('email_login_alerts');
+            }
+            if ($request->has('push_login_alerts')) {
+                $user->push_login_alerts = $request->boolean('push_login_alerts');
+            }
+            if ($request->has('suspicious_activity_alerts')) {
+                $user->suspicious_activity_alerts = $request->boolean('suspicious_activity_alerts');
             }
             $user->save();
             $profileData = [];
@@ -144,7 +173,7 @@ class ProfileController extends BaseController
                 $filename = time() . '_' . uniqid() . '.' . $extension;
 
                 // Ensure directory exists
-                $folderPath = public_path('profiles/avatars');
+                $folderPath = public_path('storage/profiles/avatars');
                 if (!file_exists($folderPath)) {
                     mkdir($folderPath, 0777, true);
                 }
@@ -152,7 +181,7 @@ class ProfileController extends BaseController
                 $file->move($folderPath, $filename);
 
                 // Path for DB (relative to public)
-                $dbPath = 'profiles/avatars/' . $filename;
+                $dbPath = 'storage/profiles/avatars/' . $filename;
 
                 // Create Attachment Record
                 $profile->avatar()->create([
@@ -199,22 +228,37 @@ class ProfileController extends BaseController
             if ($user->id == $request->user_id) {
                 return $this->Response(false, 'You cannot follow yourself', null, 400);
             }
+            $targetUser = User::find($request->user_id);
+            if(!$targetUser->allow_friend_request){
+                 return $this->Response(false, 'This user does not accept friend requests', null, 403);
+            }
+            
             if ($user->following()->where('following_id', $request->user_id)->exists()) {
                 return $this->Response(false, 'You are already following this user', null, 400);
             }
 
             $status = 'pending';
+            // If user is public, auto accept?
+            if(!$targetUser->is_private){
+               // $status = 'accepted'; // Optionally for public profiles
+               // Lets keep it pending for consistent 'Friend Request' logic as requested, or
+               // Typically 'Following' is direct for public. User said "Friend Request" (Facebook style) usually implies approval needed.
+               // But if it's "Follow" (Instagram style), public = auto accept.
+               // Given "Friend Request" wording, let's keep it pending?
+               // User asked for "Friend Request" allow toggle. That implies approval system.
+               // Let's stick to Pending.
+            }
+
             $user->follow($request->user_id, ['status' => $status]);
 
             // Notification Logic
-            $followedUser = User::find($request->user_id);
-            if ($followedUser) {
+            if ($targetUser) {
                 SendNotification::dispatchSync(
                     $user->id,
                     'New Follower',
                     $user->name . ' sent you a follow request.',
-                    $followedUser->id,
-                    $followedUser, // Notifiable is the User model
+                    $targetUser->id,
+                    $targetUser, // Notifiable is the User model
                     'N'
                 );
             }
@@ -321,6 +365,19 @@ class ProfileController extends BaseController
             if (!$user) {
                 return $this->Response(false, 'User not found', null, 404);
             }
+            
+            // Privacy Check for Viewer
+             $loggedInUser = auth('api')->user();
+             $connection_status = $loggedInUser ? $loggedInUser->getFollowStatus($user->id) : 'none';
+             $is_me = $loggedInUser && $loggedInUser->id === $user->id;
+             $is_friend = $connection_status === 'accepted';
+             $is_admin = $loggedInUser && $loggedInUser->hasRole(['super admin']);
+            // Privacy Logic
+            if ($user->is_private && !$is_me && !$is_friend && !$is_admin) {
+                 return $this->Response(false, 'This Account is Private', null, 403);
+             }
+
+
             return $this->Response(true, 'User followers retrieved successfully', $user->followers);
         } catch (Exception $e) {
             return $this->Response(false, $e->getMessage(), null, 500);
@@ -359,6 +416,16 @@ class ProfileController extends BaseController
             $user = User::find($targetUserId);
             if (!$user) {
                 return $this->Response(false, 'User not found', null, 404);
+            }
+             // Privacy Check for Viewer
+             $loggedInUser = auth('api')->user();
+             $connection_status = $loggedInUser ? $loggedInUser->getFollowStatus($user->id) : 'none';
+            $is_me = $loggedInUser && $loggedInUser->id === $user->id;
+            $is_friend = $connection_status === 'accepted';
+            $is_admin = $loggedInUser && $loggedInUser->hasRole(['super admin']);
+            // Privacy Logic
+            if ($user->is_private && !$is_me && !$is_friend && !$is_admin) {
+                return $this->Response(false, 'This Account is Private', null, 403);
             }
 
             $limit = $request->input('limit', 10);

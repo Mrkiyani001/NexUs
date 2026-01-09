@@ -14,6 +14,9 @@
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
         rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="js/config.js"></script>
+    <script src="js/post_utils.js"></script>
+    <script src="js/site_branding.js"></script>
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -119,7 +122,7 @@
                     class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">movie</span>
                 <span class="hidden lg:block font-medium">Reels</span>
             </a>
-            <a class="flex items-center gap-2 px-3 lg:px-4 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group relative"
+            <a class="flex items-center gap-2 px-3 lg:px-4 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
                 href="notification.html">
                 <div class="relative">
                     <span
@@ -130,7 +133,7 @@
                 <span class="hidden lg:block font-medium">Notifications</span>
             </a>
             <a class="flex items-center gap-2 px-3 lg:px-4 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
-                href="#">
+                href="message.html">
                 <span
                     class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">mail</span>
                 <span class="hidden lg:block font-medium">Messages</span>
@@ -194,6 +197,12 @@
                         class="block px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2">
                         <span class="material-symbols-outlined text-[18px]">person</span>
                         View Profile
+                    </a>
+                    <div class="h-px bg-white/5 my-1"></div>
+                    <a href="setting-user.html"
+                        class="block px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">settings</span>
+                        Settings
                     </a>
                     <div class="h-px bg-white/5 my-1"></div>
                     <button
@@ -349,13 +358,19 @@
             <span class="text-[10px] font-medium">Reels</span>
         </a>
 
-        <!-- 4. Notifications -->
-        <a href="notification.html" class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400 relative">
+        <!-- Friends -->
+        <a href="friendreq.html" class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400 relative">
             <div class="relative">
-                <span class="material-symbols-outlined text-[26px]">notifications</span>
-                <span id="notif-badge-mobile" class="hidden absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#0f111a]"></span>
+                <span class="material-symbols-outlined text-[26px]">group</span>
+                <span id="mobile-nav-requests-badge" class="hidden absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#0f111a]"></span>
             </div>
-            <span class="text-[10px] font-medium">Activity</span>
+            <span class="text-[10px] font-medium">Friends</span>
+        </a>
+
+        <!-- 4. Messages -->
+        <a href="message.html" class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400 relative">
+             <span class="material-symbols-outlined text-[26px]">mail</span>
+             <span class="text-[10px] font-medium">Messages</span>
         </a>
 
         <!-- 5. Profile (Active) -->
@@ -383,14 +398,18 @@
     </div>
 
     <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
     <script>
 
-        const token = localStorage.getItem('auth_token');
-        const currentUserData = JSON.parse(localStorage.getItem('user_data') || '{}');
+        // window.token = localStorage.getItem('auth_token'); // Removed for HttpOnly
+        window.currentUserData = JSON.parse(localStorage.getItem('user_data') || '{}');
         const urlParams = new URLSearchParams(window.location.search);
-        const targetUserId = urlParams.get('id') || currentUserData.id;
-
-        if (!token) window.location.href = 'login.html';
+        const targetUserId = urlParams.get('id') || window.currentUserData.id;
+        
+        // Initial Auth Check based on User Data presence (Basic check, real auth happens via API 401)
+        // if (!window.currentUserData || !window.currentUserData.id) {
+        //      window.location.href = 'login.html';
+        // }
     </script>
     <script src="js/post_utils.js"></script>
     <script src="js/notifications.js"></script>
@@ -429,29 +448,10 @@
              });
         });
 
-        // Global Fetch Interceptor for Token Expiration (401)
-        const originalFetch = window.fetch;
-        window.fetch = async function (...args) {
-            try {
-                const response = await originalFetch(...args);
-                if (response.status === 401) {
-                    // Token expired or invalid
-                    localStorage.removeItem('auth_token');
-                    localStorage.removeItem('user_data');
-                    window.location.href = 'login.html';
-                }
-                return response;
-            } catch (error) {
-                throw error;
-            }
-        };
-
-
-
         // Header Init
         if (currentUserData.name) {
-            const initialsUrl = DEFAULT_AVATAR(currentUserData.name);
-            const avatarUrl = getAvatarUrl(currentUserData) || initialsUrl;
+            const initialsUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUserData.name)}&background=random`;
+            const avatarUrl = getProfilePicture(currentUserData) || initialsUrl;
 
             const headerAvatar = document.getElementById('header-user-avatar');
 
@@ -494,8 +494,8 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/view`, {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },
@@ -509,7 +509,7 @@
                     renderProfile(data.data);
                     loadTabContent();
                 } else {
-                    alert('User not found');
+                    showToast('User not found', 'error');
                 }
             } catch (e) {
                 console.error(e);
@@ -602,15 +602,15 @@
             postsEl.textContent = user.posts_count || 0; // Assuming posts_count is available or calculate it
 
             // Interaction Handlers
-            followersEl.parentElement.onclick = () => openUserListModal('Followers', user.followers || []);
-            followingEl.parentElement.onclick = () => openUserListModal('Following', user.following || []);
+            followersEl.parentElement.onclick = () => openUserListModal(user.id, 'followers');
+            followingEl.parentElement.onclick = () => openUserListModal(user.id, 'following');
 
             postsEl.parentElement.onclick = () => {
                 document.getElementById('user-posts-container').scrollIntoView({ behavior: 'smooth' });
             };
 
             // Avatar handling with fallback
-            const initialsUrl = DEFAULT_AVATAR(user.name);
+            const initialsUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`;
             const avatarUrl = getAvatarUrl(user) || initialsUrl;
 
             const profileAvatar = document.getElementById('profile-avatar-display');
@@ -624,7 +624,7 @@
 
             // Header Avatar Init (Standardize here too)
             if (currentUserData && currentUserData.name) {
-                const hInitials = DEFAULT_AVATAR(currentUserData.name);
+                const hInitials = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUserData.name)}&background=random`;
                 const hAvatar = getAvatarUrl(currentUserData) || hInitials;
                 const headerAvatar = document.getElementById('header-user-avatar');
                 if (headerAvatar) {
@@ -677,12 +677,14 @@
                     const [postsRes, reelsRes] = await Promise.all([
                         fetch(`${API_BASE_URL}/get_posts_by_user?limit=20`, {
                              method: 'POST',
-                             headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                             credentials: 'include',
+                             headers: { 'Content-Type': 'application/json' },
                              body: JSON.stringify(body)
                         }).then(r => r.json()),
                         fetch(`${API_BASE_URL}/get_reels_by_user`, {
                              method: 'POST',
-                             headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                             credentials: 'include',
+                             headers: { 'Content-Type': 'application/json' },
                              body: JSON.stringify(body)
                         }).then(r => r.json())
                     ]);
@@ -735,8 +737,8 @@
                 
                 const fetchOptions = {
                     method: method,
+                    credentials: 'include',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     }
@@ -811,13 +813,21 @@
             let videoUrl = reel.video_path;
             if (videoUrl && !videoUrl.startsWith('http')) {
                 const clean = videoUrl.startsWith('/') ? videoUrl.substring(1) : videoUrl;
-                videoUrl = `${PUBLIC_URL}/storage/${clean}`;
+                if (clean.startsWith('storage/')) {
+                    videoUrl = `${PUBLIC_URL}/${clean}`;
+                } else {
+                    videoUrl = `${PUBLIC_URL}/storage/${clean}`;
+                }
             }
 
             let thumbUrl = reel.thumbnail_path;
             if (thumbUrl && !thumbUrl.startsWith('http')) {
                  const clean = thumbUrl.startsWith('/') ? thumbUrl.substring(1) : thumbUrl;
-                 thumbUrl = `${PUBLIC_URL}/storage/${clean}`;
+                 if (clean.startsWith('storage/')) {
+                    thumbUrl = `${PUBLIC_URL}/${clean}`;
+                 } else {
+                    thumbUrl = `${PUBLIC_URL}/storage/${clean}`;
+                 }
             }
             
             return `
@@ -826,10 +836,37 @@
                      <div class="flex items-center gap-3">
                         <img src="${avatar}" class="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-700" onerror="this.src='https://ui-avatars.com/api/?name=User&background=random'">
                         <div>
-                             <h3 class="font-bold text-slate-900 dark:text-white text-sm">${user.name || 'Unknown User'}</h3>
+                             <h3 class="font-bold text-slate-900 dark:text-white text-sm cursor-pointer">${user.name || 'Unknown User'}</h3>
                              <p class="text-xs text-slate-500">${time} • <span class="material-symbols-outlined text-[10px] align-middle">movie</span> Reel</p>
                         </div>
                      </div>
+                     
+                     <!-- 3-Dot Menu -->
+                     <div class="relative group/menu">
+                        <button class="text-slate-500 hover:text-white transition-colors p-1 rounded-full hover:bg-white/5">
+                            <span class="material-symbols-outlined">more_horiz</span>
+                        </button>
+                        <div class="absolute right-0 top-8 w-48 bg-[#1e2330] border border-white/10 rounded-xl shadow-2xl py-1 z-20 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transform scale-95 group-hover/menu:scale-100 transition-all duration-200 origin-top-right">
+                             
+                             ${(currentUserData.id === user.id) ? `
+                             <button onclick="window.location.href='create-reel.html?edit=${reel.id}'" class="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white flex items-center gap-2 transition-colors">
+                                <span class="material-symbols-outlined text-[18px]">edit</span> Edit Reel
+                             </button>
+                             ` : ''}
+                             
+                             ${(typeof window.canDeleteContent === 'function' && window.canDeleteContent(currentUserData, user)) ? `
+                             <button onclick="deleteReel(${reel.id})" class="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-white/5 hover:text-red-300 flex items-center gap-2 transition-colors">
+                                <span class="material-symbols-outlined text-[18px]">delete</span> Delete Reel
+                             </button>
+                             ` : ''}
+
+                             ${(currentUserData.id !== user.id) ? `
+                             <button onclick="openReportModal(${reel.id}, 'reel')" class="w-full text-left px-4 py-2.5 text-sm text-yellow-500 hover:bg-white/5 hover:text-yellow-400 flex items-center gap-2 transition-colors">
+                                <span class="material-symbols-outlined text-[18px]">flag</span> Report Reel
+                             </button>
+                             ` : ''}
+                        </div>
+                    </div>
                 </div>
                 <div class="relative bg-black aspect-[9/16] max-h-[500px] flex items-center justify-center cursor-pointer group" onclick="window.location.href='reels.html?id=${reel.id}'">
                      <!-- Just a thumbnail preview for profile feed, link to reels player -->
@@ -952,8 +989,8 @@
 
                 const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },
@@ -1011,14 +1048,42 @@
 
 
 
+
+        async function deleteReel(reelId) {
+            if(!confirm("Are you sure you want to delete this reel?")) return;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/delete_reel`, {
+                    method: 'POST', // or DELETE, usually POST in this project for actions
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ reel_id: reelId })
+                });
+                const data = await response.json();
+                
+                if(data.success) {
+                    showToast('Reel deleted successfully');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showToast(data.message || 'Failed to delete reel', 'error');
+                }
+            } catch(e) {
+                console.error(e);
+                showToast('Error deleting reel', 'error');
+            }
+        }
     </script>
     <script>
-        loadProfile();
-        setupGlobalSearch();
+        document.addEventListener('DOMContentLoaded', () => {
+             loadProfile();
+             // setupGlobalSearch(); // Check if this exists in post_utils.js, if not it will error. Commenting out for now if unsure, or assuming it is in post_utils since Grep found it.
+             if (typeof setupGlobalSearch === 'function') setupGlobalSearch(); 
+        });
     </script>
 
 
-    <script src="js/site_branding.js"></script>
 </body>
 
 </html>

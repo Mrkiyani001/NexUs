@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NexUs - Connect at the Speed of Light</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#215bed",
+                        "primary-dark": "#1a4ac2",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#0a0c10",
+                        "surface-dark": "#13161c",
+                        "surface-light": "#1e232e",
+                    },
+                    fontFamily: {
+                        "display": ["Spline Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "2xl": "2rem",
+                        "full": "9999px"
+                    },
+                    backgroundImage: {
+                        'glow-gradient': 'radial-gradient(circle at center, rgba(33, 91, 237, 0.15) 0%, rgba(17, 19, 24, 0) 70%)',
+                        'grid-pattern': "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23215bed' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
+                    }
+                },
+            },
+        }
+    </script>
+<style>::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0c10;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #282d39;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b4254;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .text-glow {
+            text-shadow: 0 0 20px rgba(33, 91, 237, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-x-hidden antialiased selection:bg-primary/30 selection:text-white">
+<div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+<div class="absolute inset-0 bg-grid-pattern opacity-20"></div>
+<div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary/10 blur-[150px]"></div>
+<div class="absolute top-[40%] right-[-10%] w-[40%] h-[40%] rounded-full bg-purple-600/10 blur-[150px]"></div>
+<div class="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] rounded-full bg-cyan-600/10 blur-[150px]"></div>
+</div>
+<div class="relative z-10 flex min-h-screen flex-col">
+<header class="sticky top-0 z-50 w-full border-b border-white/5 bg-background-dark/80 backdrop-blur-xl">
+<div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 sm:px-10">
+                    <div class="flex items-center gap-3 cursor-pointer">
+                        <div class="text-primary w-14 h-14 p-2 bg-primary/10 rounded-lg flex items-center justify-center bg-cover bg-center bg-no-repeat" id="site-logo-img">
+                            <span class="material-symbols-outlined text-3xl">hub</span>
+                        </div>
+                        <h2 class="text-white text-2xl font-bold tracking-tight" id="site-logo-text">NexUs</h2>
+                    </div>
+<nav class="hidden lg:flex items-center gap-10">
+<a class="text-sm font-medium text-gray-400 hover:text-white transition-colors" href="#features">Platform</a>
+<a class="text-sm font-medium text-gray-400 hover:text-white transition-colors" href="#content">Content</a>
+<a class="text-sm font-medium text-gray-400 hover:text-white transition-colors" href="#community">Community</a>
+<a class="text-sm font-medium text-gray-400 hover:text-white transition-colors" href="#admin">Admin</a>
+</nav>
+<div class="flex items-center gap-4">
+<button onclick="window.location.href='login.html'" class="hidden sm:flex h-10 items-center justify-center rounded-lg px-5 text-sm font-bold text-gray-300 hover:text-white hover:bg-white/5 transition-all">
+                        Login
+                    </button>
+<button onclick="window.location.href='register.html'" class="flex h-10 items-center justify-center rounded-lg bg-primary hover:bg-primary-dark px-6 text-sm font-bold text-white shadow-[0_0_20px_rgba(33,91,237,0.3)] transition-all hover:scale-105 active:scale-95">
+                        Register
+                    </button>
+                    <!-- Mobile Menu Button -->
+                    <button onclick="toggleMobileMenu()" class="lg:hidden p-2 text-gray-300 hover:text-white">
+                        <span class="material-symbols-outlined text-3xl">menu</span>
+                    </button>
+                </div>
+</div>
+</header>
+<main class="flex-grow flex flex-col items-center w-full">
+<section class="w-full px-6 pt-24 pb-20 flex justify-center relative overflow-hidden">
+<div class="max-w-7xl w-full grid lg:grid-cols-2 gap-16 items-center">
+<div class="flex flex-col gap-8 text-left z-10">
+<div class="inline-flex items-center self-start gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 backdrop-blur-md">
+<span class="flex h-2 w-2 rounded-full bg-primary animate-pulse"></span>
+<span class="text-xs font-semibold text-primary-300 tracking-wide uppercase">v2.0 System Online</span>
+</div>
+<div class="flex flex-col gap-6">
+                            <h1 class="text-4xl sm:text-5xl lg:text-7xl font-bold leading-[1.05] tracking-tight text-white">
+                                The Social Layer for <br/>
+<span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-400">Digital Evolution</span>
+</h1>
+<p class="text-xl text-gray-400 font-light leading-relaxed max-w-lg">
+                                NexUs is a high-performance social architecture. Experience real-time connection, dynamic content streams, and powerful community management tools built for the future.
+                            </p>
+</div>
+<div class="flex flex-col sm:flex-row gap-5 pt-4">
+<button onclick="window.location.href='register.html'" class="h-14 px-8 rounded-xl bg-white text-black font-bold text-lg shadow-lg hover:bg-gray-200 transition-all flex items-center justify-center gap-2">
+                                Start Building
+                                <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<button class="h-14 px-8 rounded-xl glass-panel text-white font-bold text-lg hover:bg-white/10 transition-all flex items-center justify-center gap-2 border border-white/10">
+<span class="material-symbols-outlined">play_circle</span>
+                                System Demo
+                            </button>
+</div>
+<div class="flex items-center gap-6 pt-8 text-sm text-gray-500 font-medium">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-green-500 text-lg">check_circle</span>
+<span>Free to Use</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-green-500 text-lg">check_circle</span>
+<span>Open Access</span>
+</div>
+</div>
+</div>
+<div class="relative w-full aspect-square lg:aspect-[4/3] rounded-2xl bg-surface-dark border border-white/5 overflow-hidden shadow-2xl group">
+<div class="absolute inset-0 bg-gradient-to-br from-surface-dark via-[#1a1d26] to-black"></div>
+<div class="absolute inset-4 rounded-xl overflow-hidden border border-white/5 bg-black/40 backdrop-blur-sm">
+<div class="w-full h-full bg-cover bg-center opacity-80 mix-blend-screen" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCzSRG7hTXsc9uAmRRs4hECgMkntoHq32klQlKirf8TViHgViPiDKPDuBhP9UbTtETWtggpZ9t48GJncKPMkns6Ppx61Zva8E_wFWWBT_89Mt50GDG4zm6pdnXdqre3oFJtzfoB96edJcObAMi9tSxfw3vT-NEKQqInbIKAXpoiRiDpcq0QMKrD1hRvdIlYFyCo4kxMZsQ9lESkWe1HrXsy334o6Ul7fptvhmfv-ZCroc7eTVi2lwZtwovdw8W0H6wYjvkHYL8BWlU");'></div>
+<div class="absolute top-10 left-10 right-10 flex flex-col gap-4">
+<div class="glass-panel p-4 rounded-xl flex gap-4 animate-[pulse_4s_ease-in-out_infinite]">
+<div class="h-12 w-12 rounded-full bg-gradient-to-tr from-primary to-purple-500"></div>
+<div class="flex-1 space-y-2 py-1">
+<div class="h-3 bg-white/20 rounded w-1/4"></div>
+<div class="h-2 bg-white/10 rounded w-3/4"></div>
+<div class="h-2 bg-white/10 rounded w-1/2"></div>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="glass-panel p-4 rounded-xl flex-1 flex flex-col gap-2">
+<span class="text-xs text-gray-400 uppercase">Active Users</span>
+<span class="text-2xl font-bold text-white">12.5k</span>
+</div>
+<div class="glass-panel p-4 rounded-xl flex-1 flex flex-col gap-2">
+<span class="text-xs text-gray-400 uppercase">Engagement</span>
+<span class="text-2xl font-bold text-green-400">+24%</span>
+</div>
+</div>
+</div>
+</div>
+<div class="absolute -bottom-20 -right-20 w-64 h-64 bg-primary/30 blur-[80px]"></div>
+</div>
+</div>
+</section>
+<section class="w-full border-y border-white/5 bg-black/20 py-10">
+<div class="max-w-7xl mx-auto px-6 text-center">
+<p class="text-sm font-mono text-gray-500 mb-8 uppercase tracking-widest">Powering Next-Gen Communities</p>
+<div class="flex flex-wrap justify-center gap-12 opacity-40 grayscale">
+<div class="text-xl font-bold text-white">ORION</div>
+<div class="text-xl font-bold text-white">VERTEX</div>
+<div class="text-xl font-bold text-white">NEXUS LABS</div>
+<div class="text-xl font-bold text-white">SYNTH WAVE</div>
+<div class="text-xl font-bold text-white">QUANTUM</div>
+</div>
+</div>
+</section>
+<section class="w-full px-6 py-32 bg-background-dark relative" id="features">
+<div class="max-w-7xl mx-auto grid lg:grid-cols-12 gap-16 items-center">
+<div class="lg:col-span-5 order-2 lg:order-1 relative">
+<div class="absolute inset-0 bg-primary/20 blur-[100px] -z-10"></div>
+<div class="rounded-2xl border border-white/10 bg-surface-dark p-2 rotate-2 hover:rotate-0 transition-transform duration-500">
+<div class="aspect-[4/5] rounded-xl bg-black/50 overflow-hidden relative">
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 p-6 glass-panel rounded-2xl border border-white/10">
+<div class="flex justify-center mb-6">
+<span class="material-symbols-outlined text-4xl text-primary">lock_person</span>
+</div>
+<div class="space-y-4">
+<div class="h-10 bg-white/5 rounded-lg border border-white/10"></div>
+<div class="h-10 bg-white/5 rounded-lg border border-white/10"></div>
+<button class="w-full h-10 bg-primary rounded-lg text-sm font-bold text-white">Authenticate</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="lg:col-span-7 order-1 lg:order-2 flex flex-col gap-8">
+<div class="h-12 w-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 mb-4">
+<span class="material-symbols-outlined text-2xl">security</span>
+</div>
+<h2 class="text-4xl lg:text-5xl font-bold text-white">Fortified Authentication &amp; <br/><span class="text-blue-500">Granular Access</span></h2>
+<p class="text-xl text-gray-400 leading-relaxed">
+                            Built on industry-standard protocols, NexUs provides a secure gateway for your users. Our Role-Based Access Control (RBAC) system ensures that permissions are managed with surgical precision, from simple users to super-admins.
+                        </p>
+<ul class="grid sm:grid-cols-2 gap-6 mt-4">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-green-500 mt-1">verified_user</span>
+<div>
+<h4 class="font-bold text-white">Multi-Factor Auth</h4>
+<p class="text-sm text-gray-500">Enhanced account protection standard.</p>
+</div>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-green-500 mt-1">admin_panel_settings</span>
+<div>
+<h4 class="font-bold text-white">Advanced RBAC</h4>
+<p class="text-sm text-gray-500">Custom roles and permission scopes.</p>
+</div>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-green-500 mt-1">encrypted</span>
+<div>
+<h4 class="font-bold text-white">End-to-End Encryption</h4>
+<p class="text-sm text-gray-500">Data remains private and secure.</p>
+</div>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-green-500 mt-1">history</span>
+<div>
+<h4 class="font-bold text-white">Audit Logs</h4>
+<p class="text-sm text-gray-500">Track every secure action taken.</p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</section>
+<section class="w-full px-6 py-32 bg-surface-dark/30 border-y border-white/5 relative overflow-hidden">
+<div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-20 items-center">
+<div class="flex-1 flex flex-col gap-8">
+<div class="h-12 w-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 mb-4">
+<span class="material-symbols-outlined text-2xl">share_reviews</span>
+</div>
+<h2 class="text-4xl lg:text-5xl font-bold text-white">Intelligent <br/><span class="text-purple-500">Social Graph</span></h2>
+<p class="text-xl text-gray-400 leading-relaxed">
+                            Map the connections that matter. NexUs employs graph theory algorithms to suggest friends, track followers, and visualize the complex web of community interactions in real-time.
+                        </p>
+<div class="flex flex-col gap-4 mt-6">
+<div class="p-4 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] transition-colors">
+<h3 class="text-lg font-bold text-white mb-1">Smart Suggestions</h3>
+<p class="text-sm text-gray-500">Algorithmic recommendations based on mutual interests and activity.</p>
+</div>
+<div class="p-4 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] transition-colors">
+<h3 class="text-lg font-bold text-white mb-1">Activity Feeds</h3>
+<p class="text-sm text-gray-500">Live updates when connections interact with your content.</p>
+</div>
+</div>
+</div>
+<div class="flex-1 w-full relative">
+<div class="aspect-square relative rounded-full border border-white/5 bg-gradient-to-tr from-black via-surface-dark to-purple-900/20 flex items-center justify-center animate-[pulse_8s_ease-in-out_infinite]">
+<div class="absolute inset-0 bg-[url('https://cdn.pixabay.com/photo/2016/06/02/02/33/triangles-1430105_1280.png')] bg-cover bg-center opacity-10 mix-blend-screen rounded-full"></div>
+<div class="h-24 w-24 rounded-full bg-white p-1 shadow-[0_0_50px_rgba(168,85,247,0.5)] z-20">
+<div class="h-full w-full rounded-full bg-gray-900 bg-cover bg-center" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCVi3llocBeZjFz1V0h7lM6uuPpA_PKMNdWyfYzIts8pdEZXBKQLrKTG25MPb_ZE_XcOpoc7u5c-ciwkjyqrKh6gLxV6mTx0NxUpAADvpEFbTQwyV3ScEhmXOtjhxRh8Ae5HMOnsv6UomH90MJancA3TtoBYzIcoBf4FyHw2MbJUPpxsBMKsf9ErRuWsWNnVIyDMjReVc-Z763d1Rz10LxtjENzZyY_SHj2IIZPbYwli1oslaIAQdf-QclRhMLcB0pPG0TWSkIIneY")'></div>
+</div>
+<div class="absolute top-10 left-10 h-14 w-14 rounded-full bg-white/10 backdrop-blur-md p-1 border border-white/20 animate-bounce" style="animation-duration: 3s"></div>
+<div class="absolute bottom-20 right-10 h-16 w-16 rounded-full bg-white/10 backdrop-blur-md p-1 border border-white/20 animate-bounce" style="animation-duration: 4s"></div>
+<div class="absolute top-1/2 right-4 h-12 w-12 rounded-full bg-white/10 backdrop-blur-md p-1 border border-white/20 animate-bounce" style="animation-duration: 5s"></div>
+<svg class="absolute inset-0 w-full h-full pointer-events-none stroke-white/20" viewBox="0 0 100 100">
+<line stroke-width="0.5" x1="50" x2="20" y1="50" y2="20"></line>
+<line stroke-width="0.5" x1="50" x2="80" y1="50" y2="80"></line>
+<line stroke-width="0.5" x1="50" x2="90" y1="50" y2="50"></line>
+</svg>
+</div>
+</div>
+</div>
+</section>
+<section class="w-full px-6 py-32 bg-background-dark" id="content">
+<div class="max-w-7xl mx-auto flex flex-col gap-16">
+<div class="text-center max-w-3xl mx-auto flex flex-col gap-6">
+<div class="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-pink-500/10 text-pink-500 mx-auto">
+<span class="material-symbols-outlined text-2xl">movie</span>
+</div>
+<h2 class="text-4xl lg:text-6xl font-bold text-white tracking-tight">Immersive <br/>Content Experience</h2>
+<p class="text-xl text-gray-400">From fleeting moments to in-depth stories. Our dynamic content engine supports high-fidelity media, infinite scrolling, and instant loading.</p>
+</div>
+<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+<div class="group relative rounded-3xl overflow-hidden aspect-[9/16] border border-white/10 bg-black">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110 opacity-60" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC09LVCytqoFbwIMqUH3FM3T1otlpbCRAwPu_RtFnC02VPGIHMtJGOQ1yHgi9m_Kw3IqDcIwQ5JYPKiVjjDQwPvBgKKf2C9A_-R-7JNMOR1MfhIKTh7FsS50FBIp0nZowH7mm6vLIRpGA-5RS1FRz7C2AFj50EvK9vJMO_ERXvXunonKeQhFzTWDKQgUTDHhILEeZ4CFJWNtOEpK1NYagqNpJ-K-Bn26FkqkNGkGxXbZrJuBYuaudUPPvggvXkYRcxGw6Sgk344M04");'></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+<div class="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4">
+<div class="h-10 w-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white">
+<span class="material-symbols-outlined">play_arrow</span>
+</div>
+<div>
+<h3 class="text-2xl font-bold text-white">Reels &amp; Short Video</h3>
+<p class="text-gray-300 mt-2 text-sm line-clamp-2">Vertical, full-screen video experience optimized for mobile and desktop viewing.</p>
+</div>
+</div>
+</div>
+<div class="col-span-1 lg:col-span-2 flex flex-col gap-8">
+<div class="flex-1 rounded-3xl border border-white/10 bg-surface-dark p-8 flex flex-col justify-between group hover:border-primary/50 transition-colors">
+<div class="flex justify-between items-start">
+<div class="flex gap-4">
+<div class="h-12 w-12 rounded-full bg-gray-700"></div>
+<div>
+<div class="h-4 w-32 bg-white/10 rounded mb-2"></div>
+<div class="h-3 w-20 bg-white/5 rounded"></div>
+</div>
+</div>
+<span class="material-symbols-outlined text-gray-500">more_horiz</span>
+</div>
+<div class="py-6 space-y-3">
+<div class="h-4 w-full bg-white/5 rounded"></div>
+<div class="h-4 w-5/6 bg-white/5 rounded"></div>
+<div class="h-4 w-4/6 bg-white/5 rounded"></div>
+</div>
+<div class="h-48 w-full rounded-xl bg-gradient-to-br from-primary/20 to-purple-500/20 border border-white/5 mb-6 relative overflow-hidden">
+<div class="absolute -right-10 -bottom-10 w-32 h-32 bg-primary/40 blur-2xl rounded-full"></div>
+</div>
+<div class="flex gap-6 text-gray-400">
+<div class="flex items-center gap-2 hover:text-pink-500 transition-colors cursor-pointer">
+<span class="material-symbols-outlined">favorite</span>
+<span>2.4k</span>
+</div>
+<div class="flex items-center gap-2 hover:text-blue-500 transition-colors cursor-pointer">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span>84</span>
+</div>
+<div class="flex items-center gap-2 hover:text-green-500 transition-colors cursor-pointer ml-auto">
+<span class="material-symbols-outlined">share</span>
+</div>
+</div>
+</div>
+<div class="rounded-3xl border border-white/10 bg-gradient-to-r from-surface-dark to-[#1a1d26] p-8 flex items-center gap-6">
+<div class="h-16 w-16 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500 flex-shrink-0">
+<span class="material-symbols-outlined text-3xl">format_shapes</span>
+</div>
+<div>
+<h3 class="text-xl font-bold text-white">Rich Text Editor</h3>
+<p class="text-gray-400 text-sm mt-1">Markdown support, code blocks, and embedded media for creators.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="w-full px-6 py-24 bg-surface-dark/50" id="community">
+<div class="max-w-5xl mx-auto">
+<div class="flex flex-col gap-6 mb-16 text-center">
+<h2 class="text-3xl lg:text-4xl font-bold text-white">Deep Engagement Tools</h2>
+<p class="text-gray-400">Meaningful interactions beyond just 'likes'.</p>
+</div>
+<div class="grid md:grid-cols-2 gap-12">
+<div class="flex flex-col gap-6">
+<h3 class="text-2xl font-bold text-white flex items-center gap-3">
+<span class="material-symbols-outlined text-yellow-500">forum</span>
+                                Threaded Discussions
+                            </h3>
+<p class="text-gray-400">Keep conversations organized with infinite nesting and context-aware replies.</p>
+<div class="rounded-xl bg-background-dark border border-white/10 p-6 space-y-4">
+<div class="flex gap-3">
+<div class="w-8 h-8 rounded-full bg-blue-500/20"></div>
+<div class="flex-1 bg-white/5 p-3 rounded-lg rounded-tl-none">
+<div class="h-2 w-20 bg-white/10 rounded mb-2"></div>
+<div class="h-2 w-full bg-white/5 rounded"></div>
+</div>
+</div>
+<div class="flex gap-3 pl-8 relative">
+<div class="absolute left-4 top-[-20px] bottom-6 w-[2px] bg-white/10 rounded-b-lg border-b-0"></div>
+<div class="absolute left-4 top-6 w-4 h-[2px] bg-white/10"></div>
+<div class="w-8 h-8 rounded-full bg-purple-500/20"></div>
+<div class="flex-1 bg-white/5 p-3 rounded-lg rounded-tl-none border border-primary/30">
+<div class="h-2 w-20 bg-white/10 rounded mb-2"></div>
+<div class="h-2 w-3/4 bg-white/5 rounded"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-6">
+<h3 class="text-2xl font-bold text-white flex items-center gap-3">
+<span class="material-symbols-outlined text-red-500">add_reaction</span>
+                                Live Reactions
+                            </h3>
+<p class="text-gray-400">Express yourself with a full range of emoji reactions that animate in real-time.</p>
+<div class="h-full rounded-xl bg-background-dark border border-white/10 p-6 flex items-center justify-center relative overflow-hidden" data-alt="Color gradients representing emotional reactions and emojis popping up" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDJHm1tEOGt70UtMhmqUJgDSIIjzNP-YjpBT6Huq7vVK-05D3GydrbjHWPTU5eqAMnQnJLjkATLpivOqlnRA_ouYrIUaxd-AX_6MvqJ8_vftTMPNLVJH-3imTCWEP1PJKsrvzibZYXIRbJpN56Lr_7P1KSbZYIOc65vmZSOkaiBd0ZWGca-cSkQTAR9ed1Q10_1ym1qIyRzLg0m2hl87bUEybHkbXTpMxbKhekGVr49Tun4M-i4umpqaARTa5cPwpOKW3kUlWMba3s"); background-size: cover;'>
+<div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+<div class="relative z-10 flex gap-4">
+<button class="h-12 w-12 rounded-full bg-white/10 hover:bg-white/20 hover:scale-125 transition-all text-2xl flex items-center justify-center border border-white/5">👍</button>
+<button class="h-12 w-12 rounded-full bg-white/10 hover:bg-white/20 hover:scale-125 transition-all text-2xl flex items-center justify-center border border-white/5">❤️</button>
+<button class="h-12 w-12 rounded-full bg-white/10 hover:bg-white/20 hover:scale-125 transition-all text-2xl flex items-center justify-center border border-white/5">😂</button>
+<button class="h-12 w-12 rounded-full bg-white/10 hover:bg-white/20 hover:scale-125 transition-all text-2xl flex items-center justify-center border border-white/5">🔥</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="w-full px-6 py-32 bg-background-dark" id="admin">
+<div class="max-w-7xl mx-auto">
+<div class="flex flex-col lg:flex-row gap-16 items-center">
+<div class="lg:w-1/3 flex flex-col gap-6">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 self-start">
+<span class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
+<span class="text-xs font-bold text-green-500 uppercase">Live Monitoring</span>
+</div>
+<h2 class="text-4xl font-bold text-white">Total Control Center</h2>
+<p class="text-gray-400 text-lg leading-relaxed">
+                                A powerful admin dashboard designed for community managers. Moderate content, manage users, and analyze growth metrics from a single pane of glass.
+                            </p>
+<ul class="space-y-4 mt-4">
+<li class="flex items-center gap-3 text-gray-300">
+<span class="material-symbols-outlined text-primary">check</span>
+<span>Real-time Analytics Dashboard</span>
+</li>
+<li class="flex items-center gap-3 text-gray-300">
+<span class="material-symbols-outlined text-primary">check</span>
+<span>User Management &amp; Ban System</span>
+</li>
+<li class="flex items-center gap-3 text-gray-300">
+<span class="material-symbols-outlined text-primary">check</span>
+<span>Content Moderation Queue</span>
+</li>
+</ul>
+</div>
+<div class="lg:w-2/3 w-full">
+<div class="rounded-xl bg-[#13161c] border border-white/10 p-1 shadow-2xl">
+<div class="bg-black/40 rounded-lg p-6 flex flex-col gap-6">
+<div class="flex justify-between items-center border-b border-white/5 pb-4">
+<div class="h-6 w-32 bg-white/10 rounded"></div>
+<div class="flex gap-2">
+<div class="h-8 w-8 rounded bg-white/5"></div>
+<div class="h-8 w-8 rounded bg-white/5"></div>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-4">
+<div class="h-32 rounded bg-primary/5 border border-primary/10 relative overflow-hidden">
+<div class="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-primary/20 to-transparent"></div>
+<div class="absolute bottom-4 left-4 h-4 w-12 bg-primary/30 rounded"></div>
+</div>
+<div class="h-32 rounded bg-white/5 border border-white/5"></div>
+<div class="h-32 rounded bg-white/5 border border-white/5"></div>
+</div>
+<div class="space-y-3">
+<div class="h-10 w-full bg-white/5 rounded"></div>
+<div class="h-10 w-full bg-transparent border border-white/5 rounded"></div>
+<div class="h-10 w-full bg-transparent border border-white/5 rounded"></div>
+<div class="h-10 w-full bg-transparent border border-white/5 rounded"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="w-full px-6 py-24 bg-surface-dark border-t border-white/5">
+<div class="max-w-7xl mx-auto text-center">
+<h2 class="text-2xl font-bold text-white mb-12">Coming to NexUs</h2>
+<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+<div class="p-6 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/30 transition-colors">
+<span class="material-symbols-outlined text-3xl text-gray-500 mb-3">spatial_audio_off</span>
+<h3 class="text-white font-semibold">Audio Rooms</h3>
+</div>
+<div class="p-6 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/30 transition-colors">
+<span class="material-symbols-outlined text-3xl text-gray-500 mb-3">shopping_bag</span>
+<h3 class="text-white font-semibold">Marketplace</h3>
+</div>
+<div class="p-6 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/30 transition-colors">
+<span class="material-symbols-outlined text-3xl text-gray-500 mb-3">api</span>
+<h3 class="text-white font-semibold">Public API</h3>
+</div>
+<div class="p-6 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/30 transition-colors">
+<span class="material-symbols-outlined text-3xl text-gray-500 mb-3">diversity_3</span>
+<h3 class="text-white font-semibold">Groups v2</h3>
+</div>
+</div>
+</div>
+</section>
+<section class="w-full px-6 py-32 flex justify-center relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-b from-background-dark to-primary/10"></div>
+<div class="max-w-4xl w-full relative z-10 text-center flex flex-col items-center gap-8">
+<h2 class="text-5xl lg:text-7xl font-bold text-white tracking-tight">Ready to <br/>join the future?</h2>
+<p class="text-xl text-gray-400 max-w-2xl">Create your account today and experience social networking reimagined. No credit card required to start. It is free to use.</p>
+<div class="flex flex-col sm:flex-row gap-4 mt-8 w-full justify-center">
+<button class="h-14 px-10 rounded-xl bg-primary hover:bg-primary-dark text-white font-bold text-lg shadow-[0_0_40px_rgba(33,91,237,0.4)] transition-all transform hover:-translate-y-1">
+                            Get Started Now
+                        </button>
+</div>
+</div>
+</section>
+</main>
+<footer class="w-full border-t border-white/5 bg-black px-6 py-16">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-10">
+<div class="flex flex-col gap-4 max-w-xs">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-2xl">hub</span>
+<span class="text-xl font-bold text-white">NexUs</span>
+</div>
+<p class="text-sm text-gray-500">
+                        The next-generation social platform built for performance, security, and real human connection.
+                    </p>
+<div class="flex gap-4 mt-2">
+<a class="text-gray-500 hover:text-white transition-colors" href="#"><i class="fa-brands fa-twitter"></i></a>
+<a class="text-gray-500 hover:text-white transition-colors" href="#"><i class="fa-brands fa-github"></i></a>
+<a class="text-gray-500 hover:text-white transition-colors" href="#"><i class="fa-brands fa-discord"></i></a>
+</div>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-10 text-sm">
+<div class="flex flex-col gap-4">
+<h4 class="font-bold text-white">Platform</h4>
+<a class="text-gray-500 hover:text-primary transition-colors" href="#">Features</a>
+<a class="text-gray-500 hover:text-primary transition-colors" href="#">Mobile App</a>
+<a class="text-gray-500 hover:text-primary transition-colors" href="#">Desktop App</a>
+<a class="text-gray-500 hover:text-primary transition-colors" href="#">API</a>
+</div>
+<div class="flex flex-col gap-4">
+<h4 class="font-bold text-white">Company</h4>
+<a class="text-gray-500 hover:text-primary transition-colors" href="#">About</a>
+<a class="text-gray-500 hover:text-primary transition-colors" href="#">Careers</a>
+<a class="text-gray-500 hover:text-primary transition-colors" href="#">Blog</a>
+<a class="text-gray-500 hover:text-primary transition-colors" href="#">Contact</a>
+</div>
+<div class="flex flex-col gap-4">
+<h4 class="font-bold text-white">Legal</h4>
+<a class="text-gray-500 hover:text-primary transition-colors" href="privacy.html">Privacy Policy</a>
+<a class="text-gray-500 hover:text-primary transition-colors" href="terms.html">Terms of Service</a>
+<a class="text-gray-500 hover:text-primary transition-colors" href="terms.html">Cookie Policy</a>
+</div>
+</div>
+</div>
+<div class="max-w-7xl mx-auto border-t border-white/5 mt-12 pt-8 flex justify-between items-center text-xs text-gray-600">
+<p>© 2025 NexUs. All rights reserved.</p>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-green-500"></span>
+<a href ="https://visionedge.tech/" target="_blank"><span>Vision Edge</span></a>
+</div>
+</div>
+</footer>
+</div>
+
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu" class="fixed inset-0 z-50 bg-background-dark/95 backdrop-blur-xl transform translate-x-full transition-transform duration-300 lg:hidden flex flex-col items-center justify-center gap-8">
+        <button onclick="toggleMobileMenu()" class="absolute top-6 right-6 p-2 text-gray-400 hover:text-white">
+            <span class="material-symbols-outlined text-4xl">close</span>
+        </button>
+        <nav class="flex flex-col items-center gap-8 text-xl font-bold">
+            <a onclick="toggleMobileMenu()" class="text-gray-300 hover:text-primary transition-colors" href="#features">Platform</a>
+            <a onclick="toggleMobileMenu()" class="text-gray-300 hover:text-primary transition-colors" href="#content">Content</a>
+            <a onclick="toggleMobileMenu()" class="text-gray-300 hover:text-primary transition-colors" href="#community">Community</a>
+            <a onclick="toggleMobileMenu()" class="text-gray-300 hover:text-primary transition-colors" href="#admin">Admin</a>
+        </nav>
+        <div class="flex flex-col gap-4 mt-8 w-64">
+            <button onclick="window.location.href='login.html'" class="h-12 rounded-xl border border-white/10 text-white font-bold hover:bg-white/5 transition-all">Login</button>
+            <button onclick="window.location.href='register.html'" class="h-12 rounded-xl bg-primary text-white font-bold shadow-lg hover:bg-primary-dark transition-all">Register</button>
+        </div>
+    </div>
+
+    <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            if (menu.classList.contains('translate-x-full')) {
+                menu.classList.remove('translate-x-full');
+            } else {
+                menu.classList.add('translate-x-full');
+            }
+        }
+    </script>
+    <script src="js/config.js"></script>
+    <script src="js/site_branding.js"></script>
+    <script>
+        // Check if user is already logged in via HttpOnly cookie
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/me`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        // User is authenticated, redirect to dashboard
+                        window.location.href = 'homefeed-dashboard.html';
+                    }
+                }
+            } catch (e) {
+                // Ignore errors, stay on landing page
+            }
+        });
+    </script>
+</body>
+</html>

@@ -11,8 +11,10 @@ use App\Models\Attachments;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\Post;
+use Carbon\Carbon;
 use App\Services\ContentModerationService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 
 class PostController extends BaseController
 {
@@ -20,7 +22,7 @@ class PostController extends BaseController
     {
         $this->validateRequest($request, [
             'original_post_id' => 'nullable|exists:post,id', // For retweet Function 
-            'title' => 'required|string|max:255', 
+            'title' => 'required|string|max:255',
             'body' => 'nullable|string|required_without:original_post_id',
             'attachments' => 'nullable|array',
             'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,gif,mp4,avi,mov,pdf,doc,docx|max:51200',
@@ -37,7 +39,7 @@ class PostController extends BaseController
                 if ($request->hasFile('attachments')) {
                     foreach ($request->file('attachments') as $file) {
                         $filename = time() . "_" . $file->getClientOriginalName();
-                        $file->move(public_path('posts'), $filename);
+                        $file->move(public_path('storage/posts'), $filename);
                         $attachments[] = $filename;
                     }
                 }
@@ -45,6 +47,14 @@ class PostController extends BaseController
             $is_approved = false;
             if ($user->hasRole(['admin', 'super admin', 'moderator'])) {
                 $is_approved = true;
+            }
+            if(!$user->hasRole(['super admin'])){
+            $key = 'create-post'.$user->id;
+            if(RateLimiter::tooManyAttempts($key,5)){
+                $seconds=RateLimiter::availableIn($key);
+                return $this->response(false,'You have exceeded the limit. Please try again in '.$seconds.' seconds',null,429);
+            }
+            RateLimiter::hit($key,600);
             }
 
             AddPost::dispatch(
@@ -68,10 +78,7 @@ class PostController extends BaseController
                 ]
             ], 202);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->response(false, $e->getMessage(), null, 500);
         }
     }
     public function update(Request $request)
@@ -92,13 +99,10 @@ class PostController extends BaseController
             }
             $post = Post::find($request->id);
             if (!$post) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Post not found',
-                ], 404);
+                return $this->response(false, 'Post not found', null, 404);
             }
             if ($post->user_id != $user->id) {
-                return $this->unauthorized();
+                return $this->NotAllowed();
             }
 
             $newfilescount = $request->hasFile('attachments') ? count($request->file('attachments')) : 0;
@@ -109,7 +113,7 @@ class PostController extends BaseController
             if ($newfilescount > 0) {
                 foreach ($request->file('attachments') as $file) {
                     $filename = time() . "_" . $file->getClientOriginalName();
-                    $file->move(public_path('posts'), $filename);
+                    $file->move(public_path('storage/posts'), $filename);
                     $newuploadfiles[] = $filename;
                 }
             }
@@ -127,16 +131,9 @@ class PostController extends BaseController
                 $newuploadfiles,
                 $is_approved
             );
-            return response()->json([
-                'success' => true,
-                'message' => 'Post update in progress',
-                'data' => $newuploadfiles,
-            ], 202);
+            return $this->response(true, 'Post update in progress', $newuploadfiles, 202);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->response(false, $e->getMessage(), null, 500);
         }
     }
     public function destroy(Request $request)
@@ -160,24 +157,62 @@ class PostController extends BaseController
             // }
             $post = Post::find($request->id);
             if (!$post) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Post not found',
-                ], 404);
+                return $this->response(false, 'Post not found', null, 404);
             }
-            if ($post->user_id != $user->id) {
-                return $this->unauthorized();
+
+            // 1. Owner can always delete their own post
+            if ($post->user_id == $user->id) {
+                DeletePost::dispatch($user->id, $request->id);
+                return $this->response(true, 'Post deleted successfully', null, 200);
             }
+
+            // 2. Permission Check for Non-Owners
+            $owner = $post->user; 
+            if (!$owner) {
+                 // Fallback if creator not found, allow Admin/SA to clean up
+                 if ($user->hasRole(['Admin', 'super admin'])) {
+                     DeletePost::dispatch($user->id, $request->id);
+                     return $this->response(true, 'Post deleted successfully', null, 200);
+                 }
+                 return $this->NotAllowed();
+            }
+
+            $authorized = false;
+
+            if ($owner->hasRole('super admin')) {
+                // Only Super Admin can delete Super Admin's post
+                if ($user->hasRole('super admin')) {
+                    $authorized = true;
+                }
+            } elseif ($owner->hasRole('Admin')) {
+                // Super Admin or Admin can delete Admin's post
+                if ($user->hasRole(['super admin', 'Admin'])) {
+                    $authorized = true;
+                }
+            } elseif ($owner->hasRole('Moderator')) {
+                // Super Admin, Admin, or Moderator can delete Moderator's post
+                if ($user->hasRole(['super admin', 'Admin', 'Moderator'])) {
+                    $authorized = true;
+                }
+            } else {
+                // Standard User Post
+                // Only Super Admin or Admin can delete (Moderator explicitly excluded by request)
+                if ($user->hasRole(['super admin', 'Admin'])) {
+                    $authorized = true;
+                }
+            }
+
+            if (!$authorized) {
+                return $this->NotAllowed();
+            }
+
             DeletePost::dispatch(
                 $user->id,
                 $request->id
             );
             return $this->response(true, 'Post deleted successfully', null, 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->response(false, $e->getMessage(), null, 500);
         }
     }
     public function get_post(Request $request)
@@ -190,24 +225,16 @@ class PostController extends BaseController
             if (!$user) {
                 return $this->unauthorized();
             }
+            $limit = (int) $request->input('limit', 10);
             $post = Post::approved()->find($request->id);
             if (is_null($post)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Post not found',
-                ], 404);
+                return $this->response(false, 'Post not found', null, 404);
             } else {
                 $post->load('attachments', 'creator', 'updator', 'user.profile.avatar');
-                return response()->json([
-                    'success' => true,
-                    'data' => $post,
-                ], 200);
+                return $this->response(true, 'Post found', $post, 200);
             }
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->response(false, $e->getMessage(), null, 500);
         }
     }
     public function get_all_posts(Request $request)
@@ -218,9 +245,15 @@ class PostController extends BaseController
             if (!$user) {
                 return $this->unauthorized();
             }
-            $posts = Post::with(['attachments', 'creator', 'updator', 'user.profile.avatar', 'originalPost.creator', 'originalPost.attachments', 
+            $posts = Post::with([
+                'attachments',
+                'creator.profile',
+                'updator',
+                'user.profile',
+                'originalPost.creator',
+                'originalPost.attachments',
                 'user.followers' => function ($q) use ($user) {
-                    $q->where('follower_id', $user->id)->where('status', 'accepted');
+                    $q->where('users.id', $user->id)->wherePivot('status', 'accepted');
                 }
             ])
                 ->withExists(['reactions as is_liked' => function ($q) use ($user) {
@@ -235,34 +268,62 @@ class PostController extends BaseController
                 ->paginate($limit);
 
             $data = $this->paginateData($posts, $posts->items());
-            return response()->json([
-                'success' => true,
-                'data' => $data,
-            ], 200);
+            return $this->response(true, 'Posts found', $data, 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->response(false, $e->getMessage(), null, 500);
         }
     }
-    public function PendingPosts()
+    public function PendingPosts(Request $request)
     {
         try {
             $user = auth('api')->user();
             if (!$user) {
                 return $this->unauthorized();
             }
-            $posts = Post::pending()->with('attachments', 'creator', 'updator', 'user.profile.avatar')->get();
-            return response()->json([
-                'success' => true,
-                'data' => $posts,
-            ], 200);
+            if (!$user->hasRole(['Admin', 'super admin','Moderator'])) {
+                return $this->NotAllowed();
+            }
+            // Use paginate(25) as requested
+            $posts = Post::pending()->with('attachments', 'creator', 'updator', 'user.profile.avatar')->paginate(25);
+            
+            // Use the base controller helper for standardized pagination response
+            $data = $this->paginateData($posts, $posts->items());
+            
+            return $this->response(true, 'Posts found', $data, 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->response(false, $e->getMessage(), null, 500);
+        }
+    }
+    public function Approve_all()
+    {
+        try {
+            $user = auth('api')->user();
+            if (!$user) {
+                return $this->unauthorized();
+            }
+            if (!$user->hasRole(['Admin', 'super admin'])) {
+                return $this->NotAllowed();
+            }
+            $posts = Post::withoutGlobalScopes()->where('status', 0)->update(['status' => 1]);
+            return $this->response(true, 'All posts approved successfully', null, 200);
+        } catch (\Exception $e) {
+            return $this->response(false, $e->getMessage(), null, 500);
+        }
+    }
+    public function Reject_all()
+    {
+        try {
+            $user = auth('api')->user();
+            if (!$user) {
+                return $this->unauthorized();
+            }
+            if (!$user->hasRole(['Admin', 'super admin'])) {
+                return $this->NotAllowed();
+            }
+            $posts = Post::withoutGlobalScopes()->where('status', '0')->update(['status' => 2]);
+            return $this->response(true, 'All posts rejected successfully', null, 200);
+        } catch (\Exception $e) {
+            return $this->response(false, $e->getMessage(), null, 500);
         }
     }
     public function Approved(Request $request)
@@ -279,17 +340,17 @@ class PostController extends BaseController
             // dd($post);
             // die;
             // // Use withoutGlobalScopes to find pending posts hidden by strict moderation
+            if (!$user->hasRole(['Admin', 'super admin','Moderator'])) {
+                return $this->NotAllowed();
+            }
             $post = Post::withoutGlobalScopes()->find($request->id);
 
             if (!$post) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Post not found',
-                ], 404);
+                return $this->response(false, 'Post not found', null, 404);
             }
 
             $post->markApproved();
-            
+
             // Notify the Post Creator
             SendNotification::dispatch(
                 $post->user_id, // Recipient: Post Creator
@@ -300,15 +361,9 @@ class PostController extends BaseController
                 'N'
             );
 
-            return response()->json([
-                'success' => true,
-                'data' => $post,
-            ], 200);
+            return $this->response(true, 'Post approved', $post, 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->response(false, $e->getMessage(), null, 500);
         }
     }
     public function Rejected(Request $request)
@@ -321,23 +376,17 @@ class PostController extends BaseController
             if (!$user) {
                 return $this->unauthorized();
             }
-            if($user->hasRole(['admin','moderator','super admin']) == false){
-                return response()->json([
-                    'success' => false,
-                    'message' => 'You are not authorized to perform this action',
-                ], 403);
+            if (!$user->hasRole(['Admin', 'Moderator', 'super admin'])) {
+                return $this->NotAllowed();
             }
             $post = Post::withoutGlobalScopes()->find($request->id);
 
             if (!$post) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Post not found',
-                ], 404);
+                return $this->response(false, 'Post not found', null, 404);
             }
 
             $post->markRejected();
-            
+
             // Notify the Post Creator
             SendNotification::dispatch(
                 $post->user_id, // Creator: Admin who rejected
@@ -348,15 +397,9 @@ class PostController extends BaseController
                 'N'             // For Admin: No
             );
 
-            return response()->json([
-                'success' => true,
-                'data' => $post,
-            ], 200);
+            return $this->response(true, 'Post rejected', $post, 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->response(false, $e->getMessage(), null, 500);
         }
     }
     public function get_posts_by_user(Request $request)
@@ -386,7 +429,7 @@ class PostController extends BaseController
                     }])
                     ->withCount('comments')
                     ->withCount('shares')
-                    ->orderby('created_at', 'desc')
+                    ->orderBy('updated_at', 'desc')
                     ->paginate($limit);
             }
             if ($user->id != $request->user_id) {
@@ -399,21 +442,16 @@ class PostController extends BaseController
                         $q->where('created_by', $user->id)->where('type', 1);
                     }])
                     ->withCount('comments')
+                    ->withCount('replies')
                     ->withCount('shares')
-                    ->orderby('created_at', 'desc')
+                    ->orderBy('updated_at', 'desc')
                     ->paginate($limit);
             }
 
             $data = $this->paginateData($posts, $posts->items());
-            return response()->json([
-                'success' => true,
-                'data' => $data,
-            ], 200);
+            return $this->response(true, 'Posts found', $data, 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->response(false, $e->getMessage(), null, 500);
         }
     }
 
@@ -447,15 +485,9 @@ class PostController extends BaseController
                 ->paginate($limit);
 
             $data = $this->paginateData($posts, $posts->items());
-            return response()->json([
-                'success' => true,
-                'data' => $data,
-            ], 200);
+            return $this->response(true, 'Posts found', $data, 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->response(false, $e->getMessage(), null, 500);
         }
     }
 }

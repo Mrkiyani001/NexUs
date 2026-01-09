@@ -14,7 +14,7 @@ class NotificationController extends BaseController
     public function getNotification(Request $request)
     {
         try {
-            $limit = (int) $request->input('limit', 10);
+            $limit = (int) $request->input('limit', 50);
             $user = auth('api')->user();
             if (!$user) {
                 return $this->unauthorized();

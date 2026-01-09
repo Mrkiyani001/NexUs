@@ -49,7 +49,7 @@
             },
         }
     </script>
-<style>
+<style type="text/tailwindcss">
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -100,11 +100,13 @@
         }.text-gradient {
             background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         .text-gradient-primary {
             background: linear-gradient(135deg, #60a5fa 0%, #a855f7 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }.btn-icon-hover {
             position: relative;
@@ -182,7 +184,7 @@
 </div>
 <span class="hidden lg:block font-medium">Notifications</span>
 </a>
-<a class="flex items-center gap-2 px-3 lg:px-4 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group" href="#">
+<a class="flex items-center gap-2 px-3 lg:px-4 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group" href="message.html">
 <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">mail</span>
 <span class="hidden lg:block font-medium">Messages</span>
 </a>
@@ -230,6 +232,12 @@
                     <a href="profile.html" class="block px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2">
                         <span class="material-symbols-outlined text-[18px]">person</span>
                         View Profile
+                    </a>
+                    <div class="h-px bg-white/5 my-1"></div>
+                    <a href="setting-user.html"
+                        class="block px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">settings</span>
+                        Settings
                     </a>
                     <div class="h-px bg-white/5 my-1"></div>
                     <button onclick="localStorage.removeItem('auth_token'); localStorage.removeItem('user_data'); window.location.href='login.html'" 
@@ -297,12 +305,13 @@
 </main>
 
     <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
     <script>
-    const token = localStorage.getItem('auth_token');
+    // const token = localStorage.getItem('auth_token');
     const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
     window.currentUserData = userData;
 
-    if (!token) window.location.href = 'login.html';
+    // if (!token) window.location.href = 'login.html';
 </script>
 <script src="js/post_utils.js"></script>
 <script src="js/notifications.js"></script>
@@ -367,7 +376,8 @@
         try {
             const response = await fetch(`${API_BASE_URL}/fetch_requests`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' }
             });
             const data = await response.json();
 
@@ -421,7 +431,8 @@
         try {
             const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user_id: userId })
             });
             const data = await response.json();
@@ -454,9 +465,10 @@
         btn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>';
         
         try {
-            const response = await fetch(`${API_BASE_URL}/unfollow_user`, {
+            const response = await fetch(`${API_BASE_URL}/unfollow`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user_id: userId }) // Ensure API accepts 'user_id' or 'id'
             });
             const data = await response.json();
@@ -547,7 +559,8 @@
         try {
             const response = await fetch(`${API_BASE_URL}/fetch_suggestions?page=${page}`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ limit: 10 }) 
             });
             const data = await response.json();
@@ -561,7 +574,8 @@
         try {
             const response = await fetch(`${API_BASE_URL}/fetch_following?page=${page}`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ limit: 10 }) 
             });
             const data = await response.json();
@@ -575,7 +589,8 @@
         try {
             const response = await fetch(`${API_BASE_URL}/fetch_requests?page=${page}`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ limit: 10 }) 
             });
             const data = await response.json();
@@ -589,7 +604,8 @@
         try {
             const response = await fetch(`${API_BASE_URL}/fetch_who_to_follow?page=${page}`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ limit: 10 }) 
             });
             const data = await response.json();
@@ -720,7 +736,8 @@
         try {
             const response = await fetch(`${API_BASE_URL}/follow`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user_id: userId })
             });
             const data = await response.json();
@@ -762,15 +779,14 @@
     <a href="homefeed-dashboard.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors group">
         <span class="material-symbols-outlined text-[28px] group-hover:scale-110 transition-transform">home</span>
     </a>
-    <a href="#" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors group">
-        <span class="material-symbols-outlined text-[28px] group-hover:scale-110 transition-transform">explore</span>
+    <a href="reels.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors group">
+        <span class="material-symbols-outlined text-[28px] group-hover:scale-110 transition-transform">movie</span>
     </a>
     <a href="friendreq.html" class="flex flex-col items-center gap-1 text-primary group relative">
             <span class="material-symbols-outlined text-[28px] group-hover:scale-110 transition-transform filled-icon" style="font-variation-settings: 'FILL' 1;">group</span>
     </a>
-    <a href="notification.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors group relative">
-            <span class="material-symbols-outlined text-[28px] group-hover:scale-110 transition-transform">notifications</span>
-            <span id="notif-badge-mobile" class="hidden absolute top-0 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#0f111a] animate-pulse"></span>
+    <a href="message.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors group">
+        <span class="material-symbols-outlined text-[28px] group-hover:scale-110 transition-transform">mail</span>
     </a>
     <a href="profile.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors group">
         <img id="mobile-nav-avatar" src="" class="w-7 h-7 rounded-full object-cover border border-white/10 group-hover:border-primary/50 transition-colors">

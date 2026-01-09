@@ -40,6 +40,8 @@
         // admin_utils.js lines 6-7 define ADMIN_TOKEN.
     </script>
     <script src="../js/config.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/post_utils.js"></script>
     <script src="../js/site_branding.js"></script>
     <script src="../js/admin_utils.js"></script>
 
@@ -161,12 +163,11 @@
         let rolesData = [];
         let allPermissions = [];
         let selectedRoleId = null;
-        // ADMIN_TOKEN is already defined in admin_utils.js
-
+        
         // Initial Load
         document.addEventListener('DOMContentLoaded', async () => {
              renderAdminSidebar('roles'); // Render sidebar with active state
-             if(!ADMIN_TOKEN) window.location.href = '../login.html';
+             // if(!localStorage.getItem('auth_token')) window.location.href = '../login.html'; // Auth handled by global interceptor
              await Promise.all([fetchRoles(), fetchPermissions()]);
              renderRolesList();
              startRolesPolling();
@@ -174,7 +175,11 @@
 
         async function fetchRoles(isAutoRefresh = false) {
             try {
-                const res = await fetch(`${API_BASE_URL}/get_all_roles`, { headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` } });
+                const res = await fetch(`${API_BASE_URL}/get_all_roles`, { 
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include' 
+                });
                 
                 if(handleAdminApiError(res)) return;
 
@@ -200,7 +205,11 @@
 
         async function fetchPermissions() {
             try {
-                const res = await fetch(`${API_BASE_URL}/get_all_permissions`, { headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` } });
+                const res = await fetch(`${API_BASE_URL}/get_all_permissions`, { 
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include'
+                });
 
                 if(handleAdminApiError(res)) return;
 
@@ -272,15 +281,17 @@
             try {
                 const res = await fetch(`${API_BASE_URL}/role/assign_role_permissions`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}`, 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({ role_id: selectedRoleId, permissions: selectedPerms })
                 });
 
                 if(handleAdminApiError(res)) return;
 
                 const data = await res.json();
+
                 if(data.success) {
-                    alert('Permissions Saved!');
+                    showToast('Permissions Saved!', 'success');
                     // Update local data
                     const roleIdx = rolesData.findIndex(r => r.id === selectedRoleId);
                     if(roleIdx > -1) {
@@ -289,7 +300,7 @@
                          renderRolesList();
                     }
                 } else {
-                    alert('Error: ' + data.message);
+                    showToast('Error: ' + data.message, 'error');
                 }
             } catch(e) { console.error(e); }
         }
@@ -304,50 +315,53 @@
             try {
                 const res = await fetch(`${API_BASE_URL}/role/create_role`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}`, 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({ name: name, permissions: [] }) // Start empty
                 });
 
                 if(handleAdminApiError(res)) return;
 
                 const data = await res.json();
+
                 if(data.success) {
                     closeCreateRoleModal();
                     await fetchRoles(); // Refresh list
                     renderRolesList();
                     document.getElementById('new-role-name').value = '';
                 } else {
-                    alert(data.message);
+                    showToast(data.message, 'error');
                 }
             } catch(e) { console.error(e); }
         }
 
         async function deleteRole(e, id) {
             e.stopPropagation();
-            if(!confirm('Are you sure? This cannot be undone.')) return;
-            try {
-                const res = await fetch(`${API_BASE_URL}/role/delete_role`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: id })
-                });
-
-                if(handleAdminApiError(res)) return;
-
-                const data = await res.json();
-                if(data.success) {
-                     if(selectedRoleId === id) {
-                        selectedRoleId = null;
-                        document.getElementById('empty-state').classList.remove('hidden');
-                        document.getElementById('permissions-header').classList.add('hidden');
-                        document.getElementById('permissions-grid').classList.add('hidden');
-                     }
-                     await fetchRoles();
-                     renderRolesList();
-                } else {
-                    alert(data.message);
-                }
-            } catch(e) { console.error(e); }
+            
+            showConfirmModal('Are you sure? This cannot be undone.', async () => {
+                try {
+                    const res = await fetch(`${API_BASE_URL}/role/delete_role`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ id: id })
+                    });
+                    if(handleAdminApiError(res)) return;
+                    const data = await res.json();
+                    if(data.success) {
+                        if(selectedRoleId === id) {
+                            selectedRoleId = null;
+                            document.getElementById('empty-state').classList.remove('hidden');
+                            document.getElementById('permissions-header').classList.add('hidden');
+                            document.getElementById('permissions-grid').classList.add('hidden');
+                        }
+                        await fetchRoles();
+                        renderRolesList();
+                    } else {
+                        showToast(data.message, 'error');
+                    }
+                } catch(e) { console.error(e); }
+            });
         }
 
         function openCreatePermissionModal() { document.getElementById('create-permission-modal').classList.remove('hidden'); }
@@ -360,7 +374,8 @@
             try {
                 const res = await fetch(`${API_BASE_URL}/role/create_permission`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}`, 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({ name: name })
                 });
 
@@ -376,18 +391,19 @@
                     }
                     document.getElementById('new-permission-name').value = '';
                 } else {
-                    alert(data.message); 
+                    showToast(data.message, 'error'); 
                 }
             } catch(e) { console.error(e); }
         }
 
         async function deletePermission(e, name) {
             e.preventDefault(); e.stopPropagation();
-            if(!confirm(`Delete permission "${name}"? This will remove it from ALL roles.`)) return;
-            try {
+            showConfirmModal(`Delete permission "${name}"? This will remove it from ALL roles.`, async () => {
+                try {
                 const res = await fetch(`${API_BASE_URL}/role/delete_permission`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}`, 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({ name: name })
                 });
 
@@ -395,15 +411,16 @@
 
                 const data = await res.json();
                 if(data.success) {
-                     await fetchPermissions();
-                     if(selectedRoleId) {
-                         const role = rolesData.find(r => r.id === selectedRoleId);
-                         if(role) renderPermissionsGrid(role);
-                     }
+                        await fetchPermissions();
+                        if(selectedRoleId) {
+                            const role = rolesData.find(r => r.id === selectedRoleId);
+                            if(role) renderPermissionsGrid(role);
+                        }
                 } else {
-                    alert(data.message);
+                    showToast(data.message, 'error');
                 }
-            } catch(e) { console.error(e); }
+                } catch(e) { console.error(e); }
+            });
         }
     </script>
 </body>

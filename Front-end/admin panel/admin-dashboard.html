@@ -43,6 +43,10 @@
             },
         }
     </script>
+    <script src="../js/config.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/post_utils.js"></script>
+    <script src="../js/admin_utils.js"></script>
     <style>
         /* Custom scrollbar for webkit */
         ::-webkit-scrollbar {
@@ -103,7 +107,10 @@
         async function fetchAllRoles() {
             try {
                 const response = await fetch(`${API_BASE_URL}/get_all_roles`, {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
+                    credentials: 'include',
+                    headers: { 
+                        // 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` 
+                    }
                 });
                 
                 if(handleAdminApiError(response)) return;
@@ -133,8 +140,8 @@
                 return `
                 <label class="flex items-center justify-between p-3 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/5 cursor-pointer transition-colors group">
                     <span class="text-sm font-medium text-slate-300 group-hover:text-white">${role.name}</span>
-                    <input type="checkbox" name="roles" value="${role.name}" ${isChecked ? 'checked' : ''} 
-                        class="w-5 h-5 rounded border-slate-600 bg-slate-700 text-primary focus:ring-offset-0 focus:ring-0">
+                    <input type="radio" name="roles" value="${role.name}" ${isChecked ? 'checked' : ''} 
+                        class="w-5 h-5 rounded-full border-slate-600 bg-slate-700 text-primary focus:ring-offset-0 focus:ring-0">
                 </label>
                 `;
             }).join('');
@@ -171,29 +178,14 @@
             }
         });
 
-        // Toast Notification Helper
-        function showToast(message, type = 'success') {
-            const toast = document.createElement('div');
-            toast.className = `fixed bottom-6 right-6 px-6 py-4 rounded-xl backdrop-blur-md shadow-2xl transform transition-all duration-500 translate-y-20 opacity-0 z-50 flex items-center gap-3 border ${type === 'success' ? 'bg-black/80 border-green-500/30' : 'bg-black/80 border-red-500/30'}`;
-            toast.innerHTML = `
-                <span class="material-symbols-outlined ${type === 'success' ? 'text-green-400' : 'text-red-400'}">
-                    ${type === 'success' ? 'check_circle' : 'error'}
-                </span>
-                <span class="text-white font-medium text-sm">${message}</span>
-            `;
-            document.body.appendChild(toast);
-            requestAnimationFrame(() => toast.classList.remove('translate-y-20', 'opacity-0'));
-            setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
-                setTimeout(() => toast.remove(), 500);
-            }, 3000);
-        }
+
 
         async function submitRoles(e) {
             e.preventDefault();
             const userId = document.getElementById('role-user-id').value;
-            const checkboxes = document.querySelectorAll('input[name="roles"]:checked');
-            const selectedRoles = Array.from(checkboxes).map(cb => cb.value);
+            // Changed to Radio Button: Select single checked input
+            const selectedRadio = document.querySelector('input[name="roles"]:checked');
+            const selectedRoles = selectedRadio ? [selectedRadio.value] : []; // Wrap in array for backend compatibility
 
             // If empty, maybe warn? or allow clearing roles (assigning empty array)
             // But usually 'User' role is default. Let's just submit specific roles.
@@ -201,8 +193,9 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/role/assign_role`, {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+                        // 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
@@ -218,13 +211,13 @@
                 if(data.success) {
                     closeRoleModal();
                     loadUsers(); // Refresh table
-                    alert('Roles updated successfully');
+                    showToast('Roles updated successfully', 'success');
                 } else {
-                    alert('Failed: ' + data.message);
+                    showToast('Failed: ' + data.message, 'error');
                 }
             } catch(e) {
                 console.error(e);
-                alert('Error updating roles');
+                showToast('Error updating roles', 'error');
             }
         }
 
@@ -247,7 +240,10 @@
             try {
                 console.log('Fetching Stats from:', `${API_BASE_URL}/admin/stats`);
                 const response = await fetch(`${API_BASE_URL}/admin/stats`, {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
+                    credentials: 'include',
+                    headers: { 
+                        // 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` 
+                    }
                 });
 
                 console.log('Stats Response Status:', response.status);
@@ -350,8 +346,9 @@
             try {
                 let url;
                 let options = {
+                    credentials: 'include',
                     headers: { 
-                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        // 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
                     }
                 };
 
@@ -401,29 +398,66 @@
 
         async function banUser(userId, currentStatus) {
             const action = currentStatus === 1 ? 'unban' : 'ban';
-            if(!confirm(`Are you sure you want to ${action} this user?`)) return;
+            
+            showConfirmModal(`Are you sure you want to ${action} this user?`, async () => {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/admin/ban_user`, {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: {
+                            // 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ user_id: userId, action: action })
+                    });
 
-            try {
-                const response = await fetch(`${API_BASE_URL}/admin/ban_user`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ user_id: userId, action: action })
-                });
+                    // if(handleAdminApiError(response)) return; // Assuming this function exists in admin_utils.js
 
-                if(handleAdminApiError(response)) return;
+                    const data = await response.json();
+                    if(data.success) {
+                        showToast(`User ${action}ned successfully`, 'success');
+                        loadUsers(); // Refresh table
+                        loadStats(); // Refresh stats
+                    } else {
+                        showToast('Action failed: ' + data.message, 'error');
+                    }
+                } catch(e) { console.error(e); }
+            });
+        }
 
-                const data = await response.json();
-                if(data.success) {
-                    // alert(`User ${action}ned successfully`);
-                    loadUsers(); // Refresh table
-                    loadStats(); // Refresh stats
-                } else {
-                    alert('Action failed: ' + data.message);
+        async function deleteUser(userId, userName) {
+            showConfirmModal(`Are you sure you want to PERMANENTLY delete user "${userName}"? This action cannot be undone and will delete all their data.`, async () => {
+                try {
+                    // Using DELETE method with body if supported, or query param, or creating a POST wrapper. 
+                    // Laravel delete route usually expects query or body. api.php says: Route::delete('delete_user', [AuthController::class, 'delete_user']);
+                    // DELETE requests with body are sometimes problematic in some environments/CORS.
+                    // Let's try standard fetch DELETE with body.
+                    const response = await fetch(`${API_BASE_URL}/delete_user`, {
+                        method: 'DELETE',
+                        credentials: 'include',
+                        headers: {
+                            // 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ id: userId })
+                    });
+                    
+                    if(handleAdminApiError(response)) return;
+
+                    const data = await response.json();
+                    if(data.success) {
+                        showToast('User deleted successfully', 'success');
+                        loadUsers();
+                        loadStats();
+                    } else {
+                        showToast(data.message || 'Failed to delete user', 'error');
+                    }
+
+                } catch(e) {
+                    console.error(e);
+                    showToast('An error occurred', 'error');
                 }
-            } catch(e) { console.error(e); }
+            });
         }
 
         function renderUserTable(users) {
@@ -490,6 +524,9 @@
                                 </button>
                                 <button onclick="banUser(${user.id}, ${user.is_banned || 0})" class="p-2 rounded-lg ${banBtnClass} text-slate-400 transition-colors" title="${banBtnTitle}">
                                     <span class="material-symbols-outlined text-[20px]">${banBtnIcon}</span>
+                                </button>
+                                <button onclick="deleteUser(${user.id}, '${user.name.replace(/'/g, "\\'")}')" class="p-2 rounded-lg hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors" title="Delete User">
+                                    <span class="material-symbols-outlined text-[20px]">delete</span>
                                 </button>
                             </div>
                         </td>
@@ -587,7 +624,7 @@
                     <span class="text-sm font-medium">Reports</span>
                 </a>
                 <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
-                    href="#">
+                    href="analytics.html">
                     <span class="material-symbols-outlined group-hover:scale-110 transition-transform">analytics</span>
                     <span class="text-sm font-medium">Analytics</span>
                 </a>

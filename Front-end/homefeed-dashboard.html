@@ -5,8 +5,7 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Home Feed</title>
-    <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔥</text></svg>">
+
     <link href="https://fonts.googleapis.com" rel="preconnect" />
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap"
@@ -63,7 +62,7 @@
             },
         }
     </script>
-    <style>
+    <style type="text/tailwindcss">
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -242,13 +241,18 @@
                 <span class="hidden lg:block font-medium">Notifications</span>
             </a>
             <a class="flex items-center gap-2 px-3 lg:px-4 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
-                href="#">
+                href="message.html">
                 <span
-                    class="material-symbols-outlined text-[24px] group-hover/btn:scale-110 transition-transform">mail</span>
+                    class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">mail</span>
                 <span class="hidden lg:block font-medium">Messages</span>
             </a>
+            <!-- Admin Panel Button (Hidden by default) -->
+            <!-- Removed from Nav -->
         </nav>
         <div class="flex items-center gap-2 md:gap-4 justify-end flex-1 md:flex-initial min-w-0">
+            <!-- Admin Badge (Visible on all screens if admin) -->
+            <!-- Admin Badge moved -->
+
             <!-- Search Bar -->
             <div
                 class="relative group hidden sm:block w-32 md:w-36 lg:w-48 transition-all focus-within:w-48 md:focus-within:w-52 lg:focus-within:w-64 shrink">
@@ -265,13 +269,21 @@
                 class="sm:hidden w-9 h-9 rounded-full hover:bg-white/5 flex items-center justify-center text-slate-300">
                 <span class="material-symbols-outlined text-[20px]">search</span>
             </button>
-            <div class="w-px h-8 bg-white/10 mx-1 hidden md:block"></div>
+            <!-- <div class="w-px h-8 bg-white/10 mx-1 hidden md:block"></div> -->
 
             <a href="notification.html" class="md:hidden relative group p-2 text-slate-400">
                 <span class="material-symbols-outlined text-[24px]">notifications</span>
                 <span id="notif-badge-mobile-header"
                     class="hidden absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-background-dark animate-pulse"></span>
             </a>
+
+            
+            <!-- Admin Badge (Visible on all screens if admin) -->
+            <!-- <a id="admin-panel-badge" href="admin panel/admin-dashboard.html" 
+               class="hidden items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white text-[11px] font-bold uppercase tracking-wider rounded-full shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 hover:scale-105 hover:animate-like-bounce transition-all mx-2">
+                <span class="material-symbols-outlined text-[16px]">shield_person</span>
+                <span>Admin</span>
+            </a> -->
 
             <div class="w-px h-8 bg-white/10 mx-1 hidden md:block"></div>
 
@@ -299,14 +311,20 @@
 
                 <!-- Dropdown Menu -->
                 <div id="profile-dropdown"
-                    class="hidden absolute top-full right-0 mt-3 w-48 bg-card-dark border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 animate-fade-in">
+                    class="hidden absolute top-full right-0 mt-3 w-48 bg-[#161b27] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-[100] animate-fade-in ring-1 ring-white/5">
                     <a href="profile.html"
                         class="block px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2">
                         <span class="material-symbols-outlined text-[18px]">person</span>
                         View Profile
                     </a>
                     <div class="h-px bg-white/5 my-1"></div>
-                    <button
+                    <a href="setting-user.html" id="settings-link-dropdown"
+                        class="block px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">settings</span>
+                        Settings
+                    </a>
+                    <div class="h-px bg-white/5 my-1"></div>
+                    <button id="logout-btn-dropdown"
                         onclick="localStorage.removeItem('auth_token'); localStorage.removeItem('user_data'); window.location.href='login.html'"
                         class="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors flex items-center gap-2">
                         <span class="material-symbols-outlined text-[18px]">logout</span>
@@ -498,13 +516,21 @@
         </div>
     </main>
     <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
     <script>
         // API_BASE_URL and PUBLIC_URL are loaded from config.js
 
-        const token = localStorage.getItem('auth_token');
+        // Token is managed via HttpOnly Cookie
         const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
         window.currentUserData = userData;
-        if (!token) window.location.href = 'login.html';
+        
+        // Initial Auth Check
+        // We do NOT redirect immediately if localStorage is empty, because we might have a valid HttpOnly cookie.
+        // refreshUserProfile() will handle the check.
+        if (!userData.id) {
+             // console.log("Local user data missing, attempting to fetch via cookie...");
+             // No log needed, just proceed to refreshUserProfile
+        }
 
         function toggleProfileDropdown() {
             const dropdown = document.getElementById('profile-dropdown');
@@ -512,7 +538,6 @@
         }
     </script>
 
-    <script src="js/post_utils.js"></script>
     <script src="js/notifications.js"></script>
     <script src="js/site_branding.js"></script>
     <!-- Combined Dashboard Logic -->
@@ -533,49 +558,60 @@
         let postsCacheKey = 'home_posts_cache';
         let selectedFiles = [];
 
-        // --- 1. GLOBAL FETCH INTERCEPTOR ---
-        const originalFetch = window.fetch;
-        window.fetch = async function (...args) {
-            try {
-                const response = await originalFetch(...args);
-                if (response.status === 401) {
-                    localStorage.removeItem('auth_token');
-                    localStorage.removeItem('user_data');
-                    window.location.href = 'login.html';
-                }
-                return response;
-            } catch (error) {
-                if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
-                    if (typeof showToast === 'function') {
-                        showToast('Cannot connect to server.', 'error');
-                    }
-                }
-                throw error;
+        // Helper to update UI immediately from local data or fresh fetch
+        function updateDashboardUI(user) {
+            if (!user) return;
+            window.currentUserData = user; // Ensure global sync
+
+            const avatarUrl = getAvatarUrl(user);
+            const headerAvatar = document.getElementById('header-user-avatar');
+            if (headerAvatar) headerAvatar.src = avatarUrl;
+            
+            const headerName = document.getElementById('header-user-name');
+            if(headerName) headerName.innerText = user.name;
+            
+            const headerHandle = document.getElementById('header-user-handle');
+            if (headerHandle) headerHandle.innerText = '@' + user.name.toLowerCase().replace(/\s+/g, '');
+
+            // Admin Access Check
+            if (typeof checkAdminButtonVisibility === 'function') {
+                checkAdminButtonVisibility(user);
             }
-        };
+        }
 
         // --- 2. HEADER & UI INITIALIZATION ---
         async function refreshUserProfile() {
-            if (!window.currentUserData || !window.currentUserData.id) return;
-            
+            // OPTIMIZATION: Render immediately from localStorage if available
+            if (window.currentUserData && window.currentUserData.id) {
+                updateDashboardUI(window.currentUserData);
+            }
+
             try {
-                // Fetch fresh data
+                // Using /getUser (without ID) as a safe read-only alternative to /refresh or /me
+                // This fetches current user data without rotating the token (preventing logout loop)
                 const response = await fetch(`${API_BASE_URL}/getUser`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: window.currentUserData.id })
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' }
                 });
-                const data = await response.json();
-                
-                if (data.success && data.data) {
-                    // Update Local Storage & Global State
-                    localStorage.setItem('user_data', JSON.stringify(data.data));
-                    window.currentUserData = data.data;
-                    log('User profile refreshed', data.data);
-                    
-                    // Re-init Header with fresh data
-                    initHeader(true);
+
+                if (response.status === 401) {
+                     console.warn("Dashboard Auth Check Failed: 401 Unauthorized. Redirecting to login...");
+                     window.location.href = 'login.html'; 
+                     return;
                 }
+
+                const data = await response.json();
+                if (data.success && data.data) {
+                    const user = data.data;
+                    localStorage.setItem('user_data', JSON.stringify(user));
+                    
+                    // Update UI with fresh data
+                    updateDashboardUI(user);
+                    
+
+                    
+                } 
             } catch (e) {
                 console.error("Failed to refresh user profile", e);
             }
@@ -584,7 +620,7 @@
         function initHeader(isRefresh = false) {
             if (window.currentUserData && window.currentUserData.name) {
                 const userData = window.currentUserData;
-                const initialsUrl = window.DEFAULT_AVATAR(userData.name); 
+                const initialsUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}&background=random`; 
                 const avatarUrl = getAvatarUrl(userData) || initialsUrl;
                 
                 if(isRefresh) log("Header Avatar URL (Fresh):", avatarUrl);
@@ -627,35 +663,7 @@
                 const headerHandle = document.getElementById('header-user-handle');
                 if (headerName) headerName.innerText = userData.name;
                 if (headerHandle) headerHandle.innerText = '@' + userData.name.toLowerCase().replace(/\s+/g, '');
-
-                // --- Admin Panel Link Logic ---
-                const dropdown = document.getElementById('profile-dropdown');
-                // Check if user has admin role (checking roles array from backend)
-                // Backend returns roles as array of objects: [{id:1, name:'super admin', ...}]
-                const isAdmin = userData.roles && userData.roles.some(r => 
-                    r.name === 'super admin' || r.name === 'admin' || r.name === 'Admin' || r.name === 'Super Admin' || r.name === 'moderator' || r.name === 'Moderator'
-                );
-
-                if (isAdmin && dropdown) {
-                    // Check if link already exists to prevent duplicates
-                    if (!document.getElementById('admin-panel-link')) {
-                        const adminLink = document.createElement('a');
-                        adminLink.id = 'admin-panel-link';
-                        adminLink.href = 'admin%20panel/admin-dashboard.html'; 
-                        adminLink.className = 'block px-4 py-3 text-sm text-yellow-500 hover:bg-white/5 hover:text-yellow-400 transition-colors flex items-center gap-2 font-bold';
-                        adminLink.innerHTML = '<span class="material-symbols-outlined text-[18px]">admin_panel_settings</span>Admin Panel';
-
-                        // Insert before the divider (which is before Logout)
-                        // Structure: [Profile Link] [Divider] [Logout Button]
-                        const divider = dropdown.querySelector('.h-px');
-                        if (divider) {
-                            dropdown.insertBefore(adminLink, divider);
-                        } else {
-                            // Fallback
-                            dropdown.insertBefore(adminLink, dropdown.lastElementChild);
-                        }
-                    }
-                }
+                
             }
         }
 
@@ -670,8 +678,8 @@
             const contentInput = document.getElementById('create-post-content');
 
             // File Inputs
-            if (postImageInput) postImageInput.addEventListener('change', handleFileSelect);
-            if (postFileInput) postFileInput.addEventListener('change', handleFileSelect);
+            if (postImageInput) postImageInput.addEventListener('change', handlePostFileSelect);
+            if (postFileInput) postFileInput.addEventListener('change', handlePostFileSelect);
 
             // Create Button
             if (createBtn) {
@@ -710,7 +718,10 @@
                         const endpoint = isEditingPost ? `${API_BASE_URL}/update_post` : `${API_BASE_URL}/create_post`;
                         const response = await fetch(endpoint, {
                             method: 'POST',
-                            headers: { 'Authorization': `Bearer ${token}` },
+                            credentials: 'include',
+                            headers: {
+                                // 'Content-Type': 'multipart/form-data' // Fetch sets this automatically for FormData
+                            },
                             body: formData
                         });
                         const data = await response.json();
@@ -770,28 +781,33 @@
             contentInput.value = post.body || '';
             contentInput.focus();
             
-            // Handle Attachments & Locking
-            const hasInteractions = (post.like_count > 0 || post.comments_count > 0);
+            // LOCK ATTACHMENTS FOR EDITING
+            // User Request: Attachments cannot be removed or increased, only caption changes.
             const imageInput = document.getElementById('post-image-input');
             const fileInput = document.getElementById('post-file-input');
             
-            if (hasInteractions) {
-                showToast('Attachments cannot be edited because this post has interactions.', 'warning');
-                if(imageInput) imageInput.disabled = true;
-                if(fileInput) fileInput.disabled = true;
+            // Disable inputs
+            if(imageInput) imageInput.disabled = true;
+            if(fileInput) fileInput.disabled = true;
+            
+            // Visual Indicator
+            const preview = document.getElementById('image-preview-container');
+            if(preview) {
+                // Show message instead of preview
+                let existingMedia = '';
+                if(post.attachments && post.attachments.length > 0) {
+                     if(typeof renderAttachmentsHTML === 'function') {
+                         existingMedia = renderAttachmentsHTML(post.attachments);
+                     }
+                }
                 
-                // Show existing attachments as locked preview?
-                // For simplified UX, we just don't load them into "selectedFiles" for editing if locked.
-                // Or we can warn user. 
-                // The user said: "agr reaction ya comments ho jya to atachment change ni ho gi just us ka caption change ho ga"
-                // So we basically ignore attachments in the Update call if locked, or just don't let them add new ones.
-            } else {
-                if(imageInput) imageInput.disabled = false;
-                if(fileInput) fileInput.disabled = false;
-                // Ideally we would fetch existing attachments and add to selectedFiles if we supported removing them.
-                // But for now, we just allow adding NEW ones if no interactions.
-                // To support "keeping existing", the backend update_post needs to handle "keep_attachments".
-                // Assuming standard override or append behavior.
+                preview.innerHTML = `
+                <div class="col-span-2 text-xs text-yellow-500 bg-yellow-500/10 p-2 rounded border border-yellow-500/20 flex items-center gap-2 mb-2">
+                    <span class="material-symbols-outlined text-[16px]">lock</span> Attachments cannot be modified during edit.
+                </div>
+                ${existingMedia}
+                `;
+                preview.classList.remove('hidden');
             }
             
             // Update UI Button
@@ -801,9 +817,10 @@
                 createBtn.classList.remove('bg-gradient-to-r', 'from-primary', 'to-blue-600');
                 createBtn.classList.add('bg-green-600', 'hover:bg-green-700');
             }
-        };
+        }
 
-        function handleFileSelect(e) {
+
+        function handlePostFileSelect(e) {
             const imagePreviewContainer = document.getElementById('image-preview-container');
             const files = Array.from(e.target.files);
             selectedFiles = [...selectedFiles, ...files];
@@ -958,7 +975,8 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/get_all_posts?limit=100`, {
                     method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+                    credentials: 'include',
+                    headers: { 'Accept': 'application/json' }
                 });
 
                 console.log("Fetch response status:", response.status);
@@ -1054,7 +1072,10 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/fetch_requests`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    credentials: 'include',
+                    headers: {
+                       'Accept': 'application/json'
+                    }
                 });
                 const data = await response.json();
 
@@ -1106,7 +1127,8 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    headers: {  'Content-Type': 'application/json' },
                     body: JSON.stringify({ user_id: userId })
                 });
                 const data = await response.json();
@@ -1154,7 +1176,10 @@
                 console.log("Fetching pending requests...");
                 const response = await fetch(`${API_BASE_URL}/fetch_requests`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
                 });
                 const data = await response.json();
                 console.log("Pending Requests Data:", data);
@@ -1189,7 +1214,8 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/fetch_who_to_follow`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ limit: 5 })
                 });
                 const data = await response.json();
@@ -1199,11 +1225,11 @@
 
                 if (data.success && items.length > 0) {
                     const html = items.map(user => {
-                        const avatar = getAvatarUrl(user) || window.DEFAULT_AVATAR(user.name);
+                        const avatar = getAvatarUrl(user) || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`;
                         return `
                     <div class="flex items-center justify-between group">
                         <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='profile.html?id=${user.id}'">
-                            <img src="${avatar}" onerror="this.onerror=null;this.src=window.DEFAULT_AVATAR('${user.name}')" class="w-10 h-10 rounded-full object-cover border border-white/10 group-hover:border-primary/50 transition-colors">
+                            <img src="${avatar}" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random'" class="w-10 h-10 rounded-full object-cover border border-white/10 group-hover:border-primary/50 transition-colors">
                             <div class="flex flex-col">
                                 <span class="text-sm font-bold text-white group-hover:text-primary transition-colors">${user.name}</span>
                                 <span class="text-[11px] text-slate-400">@${user.name.toLowerCase().replace(/\s+/g, '')}</span>
@@ -1239,7 +1265,8 @@
                 console.log("Fetching suggestions...");
                 const response = await fetch(`${API_BASE_URL}/fetch_suggestions`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ limit: 5 })
                 });
                 const data = await response.json();
@@ -1312,7 +1339,8 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/${action}`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ user_id: userId })
                 });
                 const data = await response.json();
@@ -1382,6 +1410,8 @@
 
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
+            // Force clear cache to fix recent updates
+            localStorage.removeItem('home_posts_cache');
             initHeader();
             refreshUserProfile(); // Fetch fresh data to ensure avatar is sync
             initPostCreation();
@@ -1419,13 +1449,19 @@
             <span class="text-[10px] font-medium">Reels</span>
         </a>
 
-        <!-- 4. Notifications -->
-        <a href="notification.html" class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400 relative">
+        <!-- 3. Friends -->
+        <a href="friendreq.html" class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400 relative">
             <div class="relative">
-                <span class="material-symbols-outlined text-[26px]">notifications</span>
-                <span id="notif-badge-mobile" class="hidden absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#0f111a]"></span>
+                <span class="material-symbols-outlined text-[26px]">group</span>
+                <span id="mobile-nav-requests-badge" class="hidden absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#0f111a]"></span>
             </div>
-            <span class="text-[10px] font-medium">Activity</span>
+            <span class="text-[10px] font-medium">Friends</span>
+        </a>
+
+        <!-- 4. Messages -->
+        <a href="message.html" class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400 relative">
+             <span class="material-symbols-outlined text-[26px]">mail</span>
+             <span class="text-[10px] font-medium">Messages</span>
         </a>
 
         <!-- 5. Profile -->
@@ -1434,6 +1470,20 @@
             <span class="text-[10px] font-medium">Profile</span>
         </a>
     </nav>
+    <!-- Utilities -->
+    <script src="js/config.js"></script>
+    <script src="js/post_utils.js"></script>
+    <script src="js/reels.js"></script> <!-- Ensure reels.js or other dependent scripts are loaded if needed, but post_utils is critical -->
+    <script src="js/site_branding.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+             const urlParams = new URLSearchParams(window.location.search);
+             const editId = urlParams.get('editPost');
+             if(editId && typeof editPost === 'function') {
+                 // Add a small delay to ensure everything is initialized
+                 setTimeout(() => editPost(editId), 500);
+             }
+        });
+    </script>
 </body>
-
 </html>

@@ -70,12 +70,10 @@ function switchTab(mode) {
 
 async function fetchReels(mode = 'foryou') {
     const container = document.getElementById('reels-container');
-    const token = localStorage.getItem('auth_token');
+    if (!container) return; // Exit if container doesn't exist (e.g. on profile page)
 
-    if (!token) {
-        window.location.href = 'login.html';
-        return;
-    }
+    // const token = localStorage.getItem('auth_token'); // Removed for Cookie Auth
+    // if (!token) { window.location.href = 'login.html'; return; } // Handled by 401 check
 
     try {
         // Show loading state
@@ -97,8 +95,8 @@ async function fetchReels(mode = 'foryou') {
 
         const response = await fetch(endpoint, {
             method: 'GET',
+            credentials: 'include',
             headers: {
-                'Authorization': `Bearer ${token}`,
                 'Accept': 'application/json'
             }
         });
@@ -192,69 +190,15 @@ function renderReels(reels) {
     });
 }
 
-// Helper to construct URL (Centralized Logic)
-const getProfilePicture = (user) => {
-    if (!user) return `https://ui-avatars.com/api/?name=User&background=random`;
 
-    // 1. Try new user_avatar relationship (Object)
-    if (user.profile && user.profile.user_avatar && user.profile.user_avatar.file_path) {
-        return getStorageUrl(user.profile.user_avatar.file_path);
-    }
-
-    // 2. Try old avatar (String or Object)
-    if (user.profile && user.profile.avatar) {
-        if (typeof user.profile.avatar === 'string') {
-            if (user.profile.avatar.startsWith('http')) return user.profile.avatar;
-            return getStorageUrl(user.profile.avatar);
-        }
-        else if (user.profile.avatar.file_path) {
-            return getStorageUrl(user.profile.avatar.file_path);
-        }
-    }
-
-    // 3. Fallback
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=random`;
-};
-
-const getStorageUrl = (path) => {
-    if (!path) return '';
-    if (path.startsWith('http')) return path;
-    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
-
-    // If path is in known public folders (profiles, posts) dont prepend storage
-    if (cleanPath.startsWith('profiles/') || cleanPath.startsWith('posts/')) {
-        return `${window.PUBLIC_URL}/${cleanPath}`;
-    }
-    return `${window.PUBLIC_URL}/storage/${cleanPath}`;
-};
 
 function createReelElement(reel) {
     const div = document.createElement('div');
     div.className = 'snap-center relative shrink-0 w-full h-[calc(100vh-80px)] md:h-[calc(100vh-40px)] rounded-xl overflow-hidden shadow-2xl bg-black border border-white/5 mb-4 group';
 
-    // Construct URLs
-    // Ensure video path is correct. If it's a full URL, use it. If it's a relative path, prepend storage URL.
-    // Also remove any double slashes if present
-    let videoUrl = '';
-    if (reel.video_path) {
-        if (reel.video_path.startsWith('http')) {
-            videoUrl = reel.video_path;
-        } else {
-            // Clean path: remove leading slash if present
-            const cleanPath = reel.video_path.startsWith('/') ? reel.video_path.substring(1) : reel.video_path;
-            videoUrl = `${window.PUBLIC_URL}/storage/${cleanPath}`;
-        }
-    }
-
-    let thumbUrl = '';
-    if (reel.thumbnail_path) {
-        if (reel.thumbnail_path.startsWith('http')) {
-            thumbUrl = reel.thumbnail_path;
-        } else {
-            const cleanThumb = reel.thumbnail_path.startsWith('/') ? reel.thumbnail_path.substring(1) : reel.thumbnail_path;
-            thumbUrl = `${window.PUBLIC_URL}/storage/${cleanThumb}`;
-        }
-    }
+    // Construct URLs using the centralized helper
+    const videoUrl = getStorageUrl(reel.video_path);
+    const thumbUrl = getStorageUrl(reel.thumbnail_path);
 
     // Unified Avatar Logic
     const userAvatar = getProfilePicture(reel.user);
@@ -281,7 +225,7 @@ function createReelElement(reel) {
             <div class="p-2.5 rounded-full bg-white/10 backdrop-blur-md group-hover/btn:bg-red-500/20 transition-all border border-white/10 group-active/btn:scale-90">
                 <span class="material-symbols-outlined text-white text-[28px] group-hover/btn:text-red-500 transition-colors ${reel.is_liked ? 'text-red-500 fill-current' : ''}" style="${reel.is_liked ? "font-variation-settings: 'FILL' 1;" : ''}">favorite</span>
             </div>
-            <span class="text-white font-medium text-xs drop-shadow-md">${formatNumber(reel.likes_count || 0)}</span>
+            <span class="text-white font-medium text-xs drop-shadow-md hidden md:block">${formatNumber(reel.likes_count || 0)}</span>
         </button>
 
         <!-- Save Button -->
@@ -289,7 +233,7 @@ function createReelElement(reel) {
             <div class="p-2.5 rounded-full bg-white/10 backdrop-blur-md group-hover/btn:bg-yellow-500/20 transition-all border border-white/10 group-active/btn:scale-90">
                 <span class="material-symbols-outlined text-white text-[28px] group-hover/btn:text-yellow-500 transition-colors ${reel.is_saved ? 'text-yellow-500 fill-current' : ''}" style="${reel.is_saved ? "font-variation-settings: 'FILL' 1;" : ''}">bookmark</span>
             </div>
-             <span class="text-white font-medium text-xs drop-shadow-md">Save</span>
+             <span class="text-white font-medium text-xs drop-shadow-md hidden md:block">Save</span>
         </button>
 
         <!-- Comment Button -->
@@ -297,13 +241,13 @@ function createReelElement(reel) {
                 <div class="flex items-center justify-center w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/10 transition-all group-hover/btn:bg-white/20 group-hover/btn:scale-110 active:scale-95">
                     <span class="material-symbols-outlined text-white text-[28px]">chat_bubble</span>
                 </div>
-                <span class="text-xs font-bold text-white drop-shadow-md">${reel.comments_count || 0}</span>
+                <span class="text-xs font-bold text-white drop-shadow-md hidden md:block">${reel.comments_count || 0}</span>
             </button>
             <button onclick="shareReel(${reel.id})" class="group/btn flex flex-col items-center gap-1">
                 <div class="flex items-center justify-center w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/10 transition-all group-hover/btn:bg-white/20 group-hover/btn:scale-110 active:scale-95">
                     <span class="material-symbols-outlined text-white text-[28px]">send</span>
                 </div>
-                <span class="text-xs font-bold text-white drop-shadow-md">Share</span>
+                <span class="text-xs font-bold text-white drop-shadow-md hidden md:block">Share</span>
             </button>
 
             <!-- More Actions (3 Dots) -->
@@ -318,17 +262,22 @@ function createReelElement(reel) {
                     ${(() => {
                         const currentUser = JSON.parse(localStorage.getItem('user_data') || '{}');
                         const isOwner = currentUser.id === reel.user.id;
-                        const roles = currentUser.roles ? currentUser.roles.map(r => (typeof r === 'object' ? r.name : r).toLowerCase()) : [];
-                        const isAdmin = roles.some(r => ['admin', 'super admin', 'superadmin', 'moderator'].includes(r));
                         
                         let items = '';
                         if (isOwner) {
+                            // Edit (Redirect to create-reel with edit param, similar to profile)
                             items += `
-                            <button onclick="editReel(${reel.id})" class="min-w-full text-left px-4 py-3 text-sm text-slate-200 hover:bg-white/10 flex items-center gap-3 transition-colors">
+                            <button onclick="window.location.href='create-reel.html?edit=${reel.id}'" class="min-w-full text-left px-4 py-3 text-sm text-slate-200 hover:bg-white/10 flex items-center gap-3 transition-colors">
                                 <span class="material-symbols-outlined text-[20px]">edit</span> Edit
                             </button>`;
                         }
-                        if (isOwner || isAdmin) {
+                        
+                        // Use global helper if available
+                        const canDelete = (typeof window.canDeleteContent === 'function') 
+                                        ? window.canDeleteContent(currentUser, reel.user)
+                                        : (isOwner); // Fallback
+
+                        if (canDelete) {
                             items += `
                             <button onclick="deleteReel(${reel.id})" class="min-w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-white/10 flex items-center gap-3 transition-colors border-t border-white/5">
                                 <span class="material-symbols-outlined text-[20px]">delete</span> Delete
@@ -468,12 +417,13 @@ const toggleLike = async (btn, reelId) => {
     countSpan.textContent = formatNumber(currentCount);
 
     try {
-        const token = localStorage.getItem('auth_token');
+        // const token = localStorage.getItem('auth_token');
         const response = await fetch(`${window.API_BASE_URL}/add_reaction_to_reel`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
+                // 'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({ reel_id: reelId, type: 1 })
         });
@@ -492,10 +442,11 @@ const toggleLike = async (btn, reelId) => {
             }
             countSpan.textContent = formatNumber(currentCount);
             console.error('Like failed:', data.message);
+            showToast('Like failed', 'error');
         }
     } catch (error) {
         console.error('Error liking reel:', error);
-        // Revert?
+        showToast('Like error', 'error');
     }
 };
 
@@ -517,12 +468,13 @@ const toggleSave = async (btn, reelId) => {
     }
 
     try {
-        const token = localStorage.getItem('auth_token');
+        // const token = localStorage.getItem('auth_token');
         const response = await fetch(`${window.API_BASE_URL}/save_reel`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
+                // 'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({ reel_id: reelId })
         });
@@ -540,9 +492,11 @@ const toggleSave = async (btn, reelId) => {
                 icon.style.fontVariationSettings = "'FILL' 0";
             }
             console.error('Save failed:', data.message);
+            showToast('Save failed', 'error');
         }
     } catch (error) {
         console.error('Error saving reel:', error);
+        showToast('Save error', 'error');
     }
 };
 
@@ -597,13 +551,14 @@ const toggleFollowReel = async (userId, btn) => {
     }
 
     try {
-        const token = localStorage.getItem('auth_token');
+        // const token = localStorage.getItem('auth_token');
         const endpoint = isFollowing ? `${API_BASE_URL}/unfollow` : `${API_BASE_URL}/follow`;
 
         const response = await fetch(endpoint, {
             method: 'POST',
+            credentials: 'include',
             headers: {
-                'Authorization': `Bearer ${token}`,
+                // 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ user_id: userId })
@@ -635,28 +590,7 @@ const toggleFollowReel = async (userId, btn) => {
 };
 
 // Share Reel
-const shareReel = async (reelId) => {
-    try {
-        const token = localStorage.getItem('auth_token');
-        const response = await fetch(`${window.API_BASE_URL}/share_reel`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ reel_id: reelId })
-        });
-        const data = await response.json();
-        if (data.success) {
-            alert('Reel shared successfully!');
-        } else {
-            alert('Failed to share reel');
-        }
-    } catch (e) {
-        console.error(e);
-        alert('Error sharing reel');
-    }
-}
+// function shareReel moved to window.shareReel logic below
 
 
 // --- Comments Logic ---
@@ -705,11 +639,12 @@ async function fetchComments(reelId) {
     list.innerHTML = '<div class="text-center text-slate-500 py-10">Loading...</div>';
 
     try {
-        const token = localStorage.getItem('auth_token');
+        // const token = localStorage.getItem('auth_token');
         const response = await fetch(`${API_BASE_URL}/get_reel_comments`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
-                'Authorization': `Bearer ${token}`,
+                // 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ reel_id: reelId, limit: 50 })
@@ -777,10 +712,26 @@ function renderComments(comments) {
                                      </div>
                                  </div>
                                  ` : ''}
-                             </div>
-                             <p class="text-sm text-slate-300 leading-snug comment-text break-words">${reply.reply}</p>
-                             
-                             <!-- Reply Action on Reply -->
+                     </div>
+                                 ${(() => {
+                                     if(reply.attachments && reply.attachments.length > 0) {
+                                         return reply.attachments.map(att => {
+                                             const url = `${window.PUBLIC_URL}/storage/comment_replies/${att.file_path}`;
+                                             if(['jpg','jpeg','png','gif'].includes(att.file_type?.toLowerCase())) {
+                                                return `<img onclick="openMediaModal('${url}', 'image')" src="${url}" class="mt-2 h-20 w-auto rounded-lg border border-white/10 object-cover cursor-pointer hover:opacity-90">`;
+                                             } else if (['mp4','mov','avi'].includes(att.file_type?.toLowerCase())) {
+                                                 return `<div onclick="openMediaModal('${url}', 'video')" class="mt-2 h-20 w-32 bg-black rounded-lg border border-white/10 flex items-center justify-center cursor-pointer hover:bg-white/5 relative group/vid">
+                                                            <span class="material-symbols-outlined text-white/50 group-hover/vid:text-white text-3xl">play_circle</span>
+                                                         </div>`;
+                                             }
+                                             return '';
+                                         }).join('');
+                                     } 
+                                     return '';
+                                 })()}
+                                 <p class="text-sm text-slate-300 leading-snug comment-text break-words">${reply.reply}</p>
+                                 
+                                 <!-- Reply Action on Reply -->
                              <div class="flex items-center gap-4 mt-0.5">
                                 <button onclick="initiateReply(${comment.id}, '${rUser.name.replace(/'/g, "\\\'")}')" class="text-[10px] font-bold text-slate-500 hover:text-white transition-colors">Reply</button>
                              </div>
@@ -821,6 +772,34 @@ function renderComments(comments) {
                          ` : ''}
                      </div>
                      
+                     ${(() => {
+                         if(comment.attachments && comment.attachments.length > 0) {
+                             return `<div class="mt-2 flex flex-wrap gap-2">
+                                 ${comment.attachments.map(att => {
+                                     let path = att.file_path;
+                                     if (!path.startsWith('http')) {
+                                         const baseUrl = window.PUBLIC_URL || '';
+                                         if (path.startsWith('storage/')) {
+                                             path = `${baseUrl}/${path}`;
+                                         } else {
+                                             path = `${baseUrl}/storage/comments/${path}`;
+                                         }
+                                     }
+
+                                     if(['image', 'jpg', 'jpeg', 'png', 'gif'].includes(att.file_type?.toLowerCase()) || /\.(jpg|jpeg|png|gif)$/i.test(path)) {
+                                        return `<img onclick="openMediaModal('${path}', 'image')" src="${path}" class="h-24 w-auto rounded-lg border border-white/10 object-cover cursor-pointer hover:opacity-90">`;
+                                     } else if (['video', 'mp4', 'mov', 'avi'].includes(att.file_type?.toLowerCase()) || /\.(mp4|mov|avi)$/i.test(path)) {
+                                         return `<div onclick="openMediaModal('${path}', 'video')" class="h-24 w-40 bg-black rounded-lg border border-white/10 flex items-center justify-center cursor-pointer hover:bg-white/5 relative group/vid">
+                                                    <span class="material-symbols-outlined text-white/50 group-hover/vid:text-white text-3xl">play_circle</span>
+                                                 </div>`;
+                                     }
+                                     return '';
+                                 }).join('')}
+                             </div>`;
+                         } 
+                         return '';
+                     })()}
+
                      <p class="text-sm text-slate-300 leading-snug comment-text break-words">${comment.comment}</p>
                      
                      <div class="flex items-center gap-4 mt-1">
@@ -877,10 +856,14 @@ async function toggleReplies(commentId) {
         container.innerHTML = '<div class="text-xs text-slate-500 pl-4">Loading replies...</div>';
         
         try {
-            const token = localStorage.getItem('auth_token');
+            // const token = localStorage.getItem('auth_token');
             const response = await fetch(`${API_BASE_URL}/get_comment_replies`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                credentials: 'include',
+                headers: { 
+                    // 'Authorization': `Bearer ${token}`, 
+                    'Content-Type': 'application/json' 
+                },
                 body: JSON.stringify({ comment_id: commentId })
             });
             const data = await response.json();
@@ -925,6 +908,33 @@ async function toggleReplies(commentId) {
                                         </div>
                                         ` : ''}
                                     </div>
+                                    ${(() => {
+                                         if(reply.attachments && reply.attachments.length > 0) {
+                                             return `<div class="mt-2 flex flex-wrap gap-2">
+                                                 ${reply.attachments.map(att => {
+                                                     let path = att.file_path;
+                                                     if (!path.startsWith('http')) {
+                                                         const baseUrl = window.PUBLIC_URL || '';
+                                                         if (path.startsWith('storage/')) {
+                                                             path = `${baseUrl}/${path}`;
+                                                         } else {
+                                                             path = `${baseUrl}/storage/comment_replies/${path}`;
+                                                         }
+                                                     }
+                                                     
+                                                     if(['image', 'jpg', 'jpeg', 'png', 'gif'].includes(att.file_type?.toLowerCase()) || /\.(jpg|jpeg|png|gif)$/i.test(path)) {
+                                                        return `<img onclick="openMediaModal('${path}', 'image')" src="${path}" class="h-20 w-auto rounded-lg border border-white/10 object-cover cursor-pointer hover:opacity-90">`;
+                                                     } else if (['video', 'mp4', 'mov', 'avi'].includes(att.file_type?.toLowerCase()) || /\.(mp4|mov|avi)$/i.test(path)) {
+                                                         return `<div onclick="openMediaModal('${path}', 'video')" class="h-20 w-32 bg-black rounded-lg border border-white/10 flex items-center justify-center cursor-pointer hover:bg-white/5 relative group/vid">
+                                                                    <span class="material-symbols-outlined text-white/50 group-hover/vid:text-white text-3xl">play_circle</span>
+                                                                 </div>`;
+                                                     }
+                                                     return '';
+                                                 }).join('')}
+                                             </div>`;
+                                         } 
+                                         return '';
+                                     })()}
                                     <p class="text-sm text-slate-300 leading-snug comment-text break-words">${reply.reply}</p>
                                 </div>
                                 <button onclick="toggleReplyLike(this, ${reply.id})" class="text-slate-500 hover:text-red-500 transition-colors p-1 group/like shrink-0">
@@ -958,6 +968,33 @@ function renderReplies(commentId, replies) {
                          <span class="text-xs font-bold text-white">${user.name}</span>
                          <span class="text-[10px] text-slate-500">${timeAgo(reply.reply_created_at || reply.created_at)}</span>
                      </div>
+                     ${(() => {
+                          if(reply.attachments && reply.attachments.length > 0) {
+                              return `<div class="mt-2 flex flex-wrap gap-2">
+                                  ${reply.attachments.map(att => {
+                                      let path = att.file_path;
+                                      if (!path.startsWith('http')) {
+                                          const baseUrl = window.PUBLIC_URL || '';
+                                          if (path.startsWith('storage/')) {
+                                              path = `${baseUrl}/${path}`;
+                                          } else {
+                                              path = `${baseUrl}/storage/comment_replies/${path}`;
+                                          }
+                                      }
+
+                                      if(['image', 'jpg', 'jpeg', 'png', 'gif'].includes(att.file_type?.toLowerCase()) || /\.(jpg|jpeg|png|gif)$/i.test(path)) {
+                                         return `<img onclick="openMediaModal('${path}', 'image')" src="${path}" class="h-20 w-auto rounded-lg border border-white/10 object-cover cursor-pointer hover:opacity-90">`;
+                                      } else if (['video', 'mp4', 'mov', 'avi'].includes(att.file_type?.toLowerCase()) || /\.(mp4|mov|avi)$/i.test(path)) {
+                                          return `<div onclick="openMediaModal('${path}', 'video')" class="h-20 w-32 bg-black rounded-lg border border-white/10 flex items-center justify-center cursor-pointer hover:bg-white/5 relative group/vid">
+                                                     <span class="material-symbols-outlined text-white/50 group-hover/vid:text-white text-3xl">play_circle</span>
+                                                  </div>`;
+                                      }
+                                      return '';
+                                  }).join('')}
+                              </div>`;
+                          } 
+                          return '';
+                      })()}
                      <p class="text-sm text-slate-300 leading-snug">${reply.reply}</p>
                  </div>
                  <button onclick="toggleReplyLike(this, ${reply.id})" class="text-slate-500 hover:text-red-500 transition-colors p-1 group/like">
@@ -983,10 +1020,14 @@ async function toggleCommentLike(btn, id) {
     }
 
     try {
-        const token = localStorage.getItem('auth_token');
+        // const token = localStorage.getItem('auth_token');
         await fetch(`${API_BASE_URL}/add_reaction_to_comment`, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            credentials: 'include',
+            headers: { 
+                // 'Authorization': `Bearer ${token}`, 
+                'Content-Type': 'application/json' 
+            },
             body: JSON.stringify({ comment_id: id, type: 1 })
         });
     } catch (e) { console.error(e); }
@@ -1006,10 +1047,14 @@ async function toggleReplyLike(btn, id) {
     }
 
     try {
-        const token = localStorage.getItem('auth_token');
+        // const token = localStorage.getItem('auth_token');
         await fetch(`${API_BASE_URL}/add_reaction_to_comment_reply`, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            credentials: 'include',
+            headers: { 
+                // 'Authorization': `Bearer ${token}`, 
+                'Content-Type': 'application/json' 
+            },
             body: JSON.stringify({ comment_reply_id: id, type: 1 })
         });
     } catch (e) { console.error(e); }
@@ -1017,11 +1062,8 @@ async function toggleReplyLike(btn, id) {
 
 
 // Send Comment
-const sendBtn = document.getElementById('send-comment-btn');
-const commentInput = document.getElementById('comment-input');
 
-if (sendBtn && commentInput) {
-    const sendHandler = async () => {
+    /* const sendHandler = async () => {
         const text = commentInput.value.trim();
         if (!text || !currentReelIdForComments) return;
 
@@ -1184,7 +1226,7 @@ if (sendBtn && commentInput) {
              commentInput.placeholder = "Add a comment...";
         });
     }
-}
+} */
 
 // Simple timeAgo helper if not existing or can use existing if standardized
 function timeAgo(dateString) {
@@ -1240,12 +1282,12 @@ const fetchSuggestions = async () => {
     if (!list) return;
 
     try {
-        const token = localStorage.getItem('auth_token');
+        // const token = localStorage.getItem('auth_token');
         const response = await fetch(`${API_BASE_URL}/fetch_suggestions?limit=5`, {
-            method: 'POST', // or GET depending on API (Controller shows POST for fetchSuggestions usually if using body, but here it uses query param? Let's check Controller)
-            // Controller: fetchSuggestions(Request $request). Route?
+            method: 'POST', 
+            credentials: 'include',
             headers: {
-                'Authorization': `Bearer ${token}`,
+                // 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             }
         });
@@ -1305,12 +1347,13 @@ window.followUser = async (userId, btn) => {
     btn.disabled = true;
 
     try {
-        const token = localStorage.getItem('auth_token');
+        // const token = localStorage.getItem('auth_token');
         const response = await fetch(`${API_BASE_URL}/follow`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
+                // 'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({ user_id: userId })
         });
@@ -1358,11 +1401,12 @@ window.followUserReel = async (userId, btn) => {
         btn.outerHTML = `<button onclick="followUserReel(${userId}, this)" class="text-[10px] font-bold text-blue-400 bg-blue-400/10 px-1.5 py-0.5 rounded-md border border-blue-400/20 backdrop-blur-sm hover:bg-blue-400/20 transition-colors" id="temp-follow-${userId}">Follow</button>`;
 
         try {
-            const token = localStorage.getItem('auth_token');
+            // const token = localStorage.getItem('auth_token');
             const response = await fetch(`${API_BASE_URL}/unfollow`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
+                    // 'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ user_id: userId })
@@ -1384,11 +1428,12 @@ window.followUserReel = async (userId, btn) => {
         btn.outerHTML = `<span class="text-[10px] font-bold text-slate-300 bg-white/10 px-1.5 py-0.5 rounded-md border border-white/10 backdrop-blur-sm" id="temp-following-${userId}">Following</span>`;
 
         try {
-            const token = localStorage.getItem('auth_token');
+            // const token = localStorage.getItem('auth_token');
             const response = await fetch(`${API_BASE_URL}/follow`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
+                    // 'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ user_id: userId })
@@ -1414,17 +1459,325 @@ window.followUserReel = async (userId, btn) => {
     }
 };
 
+// --- Comment Submission Logic ---
+
+const sendCommentBtn = document.getElementById('send-comment-btn');
+const commentInput = document.getElementById('comment-input');
+const cancelReplyBtn = document.getElementById('cancel-reply-btn');
+
+if (sendCommentBtn && commentInput) {
+    sendCommentBtn.addEventListener('click', async () => {
+        const text = commentInput.value.trim();
+        const fileInput = document.getElementById('reel-comment-file');
+        const hasFile = fileInput && fileInput.files.length > 0;
+
+        if (!text && !hasFile) return;
+
+        // Visual Feedback
+        sendCommentBtn.disabled = true;
+        const originalIcon = sendCommentBtn.innerHTML;
+        sendCommentBtn.innerHTML = '<div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>';
+
+        try {
+            // const token = localStorage.getItem('auth_token');
+            const formData = new FormData();
+            
+            // Check if Replying
+            if (replyingTo) {
+                // Reply
+                formData.append('comment_id', replyingTo.id);
+                // Schema requires 'reply' text. Send space if empty but file exists.
+                const contentToSend = text || (hasFile ? ' ' : '');
+                formData.append('reply', contentToSend);
+                if (hasFile) formData.append('attachments[]', fileInput.files[0]);
+
+                const response = await fetch(`${API_BASE_URL}/create_comment_reply`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 
+                        // 'Authorization': `Bearer ${token}` 
+                    },
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast('Reply sent', 'success');
+                    
+                    // Optimistic Reply
+                    const currentUser = JSON.parse(localStorage.getItem('user_data') || '{}');
+                    const displayAvatar = getProfilePicture(currentUser);
+                    const newId = data.data ? data.data.id : Date.now();
+                    const commentId = replyingTo.id;
+                    const repliesContainer = document.getElementById(`replies-${commentId}`);
+                    
+                    if (repliesContainer) {
+                        repliesContainer.classList.remove('hidden');
+                        if (repliesContainer.innerHTML.includes('No replies yet')) repliesContainer.innerHTML = '';
+                        
+                        const newReplyHTML = `
+                            <div class="flex gap-3 items-start group/reply relative" id="comment-row-r-${newId}">
+                                 <img src="${displayAvatar}" class="w-6 h-6 rounded-full border border-white/10 object-cover mt-1 shrink-0">
+                                 <div class="flex-1 space-y-1 min-w-0">
+                                     <div class="flex justify-between items-start">
+                                         <div class="flex items-baseline gap-2">
+                                             <span class="text-xs font-bold text-white truncate">${currentUser.name || 'You'}</span>
+                                             <span class="text-[10px] text-slate-500 whitespace-nowrap">Just now</span>
+                                         </div>
+                                         <div class="relative group">
+                                             <button onclick="toggleCommentMenu(event, this)" class="text-slate-500 hover:text-white p-0.5 opacity-0 group-hover/reply:opacity-100 transition-opacity">
+                                                 <span class="material-symbols-outlined text-[14px]">more_horiz</span>
+                                             </button>
+                                             <div class="comment-menu absolute right-0 top-5 w-24 bg-[#1e2330] border border-white/10 rounded-lg shadow-xl py-1 z-20 opacity-0 scale-95 pointer-events-none transition-all duration-200 origin-top-right">
+                                                 <button onclick="editReelComment(${newId}, 'reply')" class="w-full text-left px-3 py-1.5 text-[10px] text-slate-300 hover:bg-white/10 hover:text-white flex items-center gap-1.5">
+                                                     <span class="material-symbols-outlined text-[12px]">edit</span> Edit
+                                                 </button>
+                                                 <button onclick="deleteReelComment(${newId}, this, 'reply')" class="w-full text-left px-3 py-1.5 text-[10px] text-red-400 hover:bg-white/10 flex items-center gap-1.5">
+                                                     <span class="material-symbols-outlined text-[12px]">delete</span> Delete
+                                                 </button>
+                                             </div>
+                                         </div>
+                                     </div>
+                                     
+                                     ${(() => {
+                                         // 1. Try server data
+                                         if(data.data && data.data.attachments && data.data.attachments.length > 0) {
+                                              return data.data.attachments.map(att => {
+                                                 const url = `${window.PUBLIC_URL}/storage/comment_replies/${att.file_path}`;
+                                                 if(['jpg','jpeg','png','gif'].includes(att.file_type?.toLowerCase())) {
+                                                    return `<img onclick="openMediaModal('${url}', 'image')" src="${url}" class="mt-2 h-20 w-auto rounded-lg border border-white/10 object-cover cursor-pointer hover:opacity-90">`;
+                                                 } else if (['mp4','mov','avi'].includes(att.file_type?.toLowerCase())) {
+                                                     return `<div onclick="openMediaModal('${url}', 'video')" class="mt-2 h-20 w-32 bg-black rounded-lg border border-white/10 flex items-center justify-center cursor-pointer hover:bg-white/5 relative group/vid">
+                                                                <span class="material-symbols-outlined text-white/50 group-hover/vid:text-white text-3xl">play_circle</span>
+                                                             </div>`;
+                                                 }
+                                                 return '';
+                                              }).join('');
+                                         }
+                                         // 2. Fallback to local file (Optimistic)
+                                         else if (hasFile && fileInput.files[0]) {
+                                             const file = fileInput.files[0];
+                                             const url = URL.createObjectURL(file);
+                                             if(file.type.startsWith('image/')) {
+                                                 return `<img onclick="openMediaModal('${url}', 'image')" src="${url}" class="mt-2 h-20 w-auto rounded-lg border border-white/10 object-cover cursor-pointer hover:opacity-90">`;
+                                             } else if (file.type.startsWith('video/')) {
+                                                  return `<div onclick="openMediaModal('${url}', 'video')" class="mt-2 h-20 w-32 bg-black rounded-lg border border-white/10 flex items-center justify-center cursor-pointer hover:bg-white/5 relative group/vid">
+                                                             <span class="material-symbols-outlined text-white/50 group-hover/vid:text-white text-3xl">play_circle</span>
+                                                          </div>`;
+                                             }
+                                         }
+                                         return '';
+                                     })()}
+
+                                     <p class="text-sm text-slate-300 leading-snug comment-text break-words">${text}</p>
+                                     
+                                     <!-- Reply Action on Reply (Optimistic) -->
+                                     <div class="flex items-center gap-4 mt-0.5">
+                                        <button onclick="initiateReply(${commentId}, '${(currentUser.name || 'You').replace(/'/g, "\\'")}')" class="text-[10px] font-bold text-slate-500 hover:text-white transition-colors">Reply</button>
+                                     </div>
+                                 </div>
+                                 <button class="text-slate-500 hover:text-red-500 transition-colors p-1 group/like shrink-0">
+                                     <span class="material-symbols-outlined text-[12px]">favorite</span>
+                                 </button>
+                            </div>
+                         `;
+                        repliesContainer.insertAdjacentHTML('beforeend', newReplyHTML);
+                    }
+
+                    // Reset
+                    commentInput.value = '';
+                    clearReelCommentFile();
+                    cancelReplyMode();
+                } else {
+                    showToast(data.message || 'Failed to reply', 'error');
+                }
+            } else {
+                // Top-level Comment
+                if (!currentReelIdForComments) return;
+                formData.append('reel_id', currentReelIdForComments);
+                // Schema requires 'comment' text. Send space if empty but file exists.
+                const contentToSend = text || (hasFile ? ' ' : '');
+                formData.append('comment', contentToSend);
+                if (hasFile) formData.append('attachments[]', fileInput.files[0]);
+
+                const response = await fetch(`${API_BASE_URL}/create_comment`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 
+                        // 'Authorization': `Bearer ${token}` 
+                    },
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast('Comment posted', 'success');
+                    // Increment Count UI
+                    const commentBtn = document.querySelector(`button[onclick="openComments('${currentReelIdForComments}')"] span:last-child, button[onclick="openComments(${currentReelIdForComments})"] span:last-child`);
+
+                    if(commentBtn) {
+                        let c = parseInt(commentBtn.textContent.replace(/,/g, '')) || 0;
+                        commentBtn.textContent = formatNumber(c + 1);
+                    }
+                    
+                    // Optimistic UI Update
+                    const currentUser = JSON.parse(localStorage.getItem('user_data') || '{}');
+                    const displayAvatar = getProfilePicture(currentUser); // Use helper
+                    // Backend created object is expected in data.data
+                    const createdComment = data.data || {
+                        id: Date.now(),
+                        user: currentUser,
+                        comment: text,
+                        created_at: new Date().toISOString(),
+                        attachments: hasFile ? [{ file_path: fileInput.files[0].name, file_type: fileInput.files[0].name.split('.').pop() }] : [] // Rough mock if data missing
+                    };
+                    // Ideally use the returned full object from backend if available
+                    
+                    const list = document.getElementById('comments-list');
+                    if(list) {
+                         if(list.innerText.includes('No comments yet')) list.innerHTML = '';
+                         
+                         const newCommentHTML = `
+                            <div class="flex gap-3 items-start group/comment" id="comment-row-c-${createdComment.id}">
+                                 <img src="${displayAvatar}" class="w-8 h-8 rounded-full border border-white/10 object-cover mt-1 shrink-0">
+                                 <div class="flex-1 space-y-1 min-w-0">
+                                     <div class="flex justify-between items-start">
+                                         <div class="flex items-baseline gap-2">
+                                             <span class="text-sm font-bold text-white truncate">${currentUser.name || 'You'}</span>
+                                             <span class="text-xs text-slate-500 whitespace-nowrap">Just now</span>
+                                         </div>
+                                         <div class="relative group">
+                                            <button onclick="toggleCommentMenu(event, this)" class="text-slate-500 hover:text-white p-1 opacity-0 group-hover/comment:opacity-100 transition-opacity">
+                                                <span class="material-symbols-outlined text-[16px]">more_horiz</span>
+                                            </button>
+                                            <div class="comment-menu absolute right-0 top-6 w-32 bg-[#1e2330] border border-white/10 rounded-lg shadow-xl py-1 z-20 opacity-0 scale-95 pointer-events-none transition-all duration-200 origin-top-right">
+                                                <button onclick="editReelComment(${createdComment.id}, 'comment')" class="w-full text-left px-3 py-2 text-xs text-slate-300 hover:bg-white/10 hover:text-white flex items-center gap-2">
+                                                    <span class="material-symbols-outlined text-[14px]">edit</span> Edit
+                                                </button>
+                                                <button onclick="deleteReelComment(${createdComment.id}, this, 'comment')" class="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-white/10 flex items-center gap-2">
+                                                    <span class="material-symbols-outlined text-[14px]">delete</span> Delete
+                                                </button>
+                                            </div>
+                                         </div>
+                                     </div>
+                                     
+                                     ${(() => {
+                                         // 1. Try server data
+                                         if(data.data && data.data.attachments && data.data.attachments.length > 0) {
+                                              return data.data.attachments.map(att => {
+                                                 const url = `${window.PUBLIC_URL}/storage/comments/${att.file_path}`;
+                                                 if(['jpg','jpeg','png','gif'].includes(att.file_type?.toLowerCase())) {
+                                                    return `<img onclick="openMediaModal('${url}', 'image')" src="${url}" class="mt-2 h-24 w-auto rounded-lg border border-white/10 object-cover cursor-pointer hover:opacity-90">`;
+                                                 } else if (['mp4','mov','avi'].includes(att.file_type?.toLowerCase())) {
+                                                     return `<div onclick="openMediaModal('${url}', 'video')" class="mt-2 h-24 w-40 bg-black rounded-lg border border-white/10 flex items-center justify-center cursor-pointer hover:bg-white/5 relative group/vid">
+                                                                <span class="material-symbols-outlined text-white/50 group-hover/vid:text-white text-3xl">play_circle</span>
+                                                             </div>`;
+                                                 }
+                                                 return '';
+                                              }).join('');
+                                         }
+                                         // 2. Fallback to local file (Optimistic)
+                                         else if (hasFile && fileInput.files[0]) {
+                                              const file = fileInput.files[0];
+                                              const url = URL.createObjectURL(file);
+                                              if(file.type.startsWith('image/')) {
+                                                  return `<img onclick="openMediaModal('${url}', 'image')" src="${url}" class="mt-2 h-24 w-auto rounded-lg border border-white/10 object-cover cursor-pointer hover:opacity-90">`;
+                                              } else if (file.type.startsWith('video/')) {
+                                                   return `<div onclick="openMediaModal('${url}', 'video')" class="mt-2 h-24 w-40 bg-black rounded-lg border border-white/10 flex items-center justify-center cursor-pointer hover:bg-white/5 relative group/vid">
+                                                              <span class="material-symbols-outlined text-white/50 group-hover/vid:text-white text-3xl">play_circle</span>
+                                                           </div>`;
+                                              }
+                                         }
+                                         return '';
+                                     })()}
+
+                                     <p class="text-sm text-slate-300 leading-snug comment-text break-words">${text}</p>
+                                     
+                                     <div class="flex items-center gap-4 mt-1">
+                                         <button onclick="initiateReply(${createdComment.id}, '${(currentUser.name || 'You').replace(/'/g, "\\'")}')" class="text-xs font-bold text-slate-500 hover:text-white transition-colors">Reply</button>
+                                     </div>
+                                     <div id="replies-${createdComment.id}" class="hidden pl-8 pt-2 space-y-3"></div>
+                                 </div>
+                                 <button class="text-slate-500 hover:text-red-500 transition-colors p-1 group/like shrink-0">
+                                     <span class="material-symbols-outlined text-[14px]">favorite</span>
+                                 </button>
+                            </div>
+                        `;
+                        list.insertAdjacentHTML('beforeend', newCommentHTML);
+                        list.scrollTop = list.scrollHeight;
+                    }
+                    
+                    // Reset Inputs AFTER rendering optimistic UI so we can access files[0]
+                    commentInput.value = '';
+                    clearReelCommentFile();
+                } else {
+                    showToast(data.message || 'Failed to post', 'error');
+                }
+            }
+        } catch (e) {
+            console.error(e);
+            showToast('Network error', 'error');
+        } finally {
+            sendCommentBtn.disabled = false;
+            sendCommentBtn.innerHTML = originalIcon;
+        }
+    });
+}
+
+// Enter key support
+if (commentInput) {
+    commentInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendCommentBtn.click();
+        }
+    });
+}
+
+// Reply Mode Helpers
+window.initiateReply = function(commentId, username) {
+    replyingTo = { id: commentId, username: username };
+    
+    const indicator = document.getElementById('reply-indicator');
+    const text = document.getElementById('replying-to-text');
+    const input = document.getElementById('comment-input');
+    
+    if(indicator && text) {
+        text.textContent = `Replying to ${username}`;
+        indicator.classList.remove('hidden');
+    }
+    
+    if(input) {
+        input.focus();
+        input.placeholder = `Reply to ${username}...`;
+    }
+}
+
+const cancelReplyMode = () => {
+    replyingTo = null;
+    const indicator = document.getElementById('reply-indicator');
+    const input = document.getElementById('comment-input');
+    
+    if(indicator) indicator.classList.add('hidden');
+    if(input) input.placeholder = "Add a comment...";
+}
+
+if(cancelReplyBtn) {
+    cancelReplyBtn.addEventListener('click', cancelReplyMode);
+}
+
 const viewedReelsSession = new Set();
 async function incrementReelView(reelId) {
     if (viewedReelsSession.has(reelId)) return;
     viewedReelsSession.add(reelId);
 
     try {
-        const token = localStorage.getItem('auth_token');
+        // const token = localStorage.getItem('auth_token');
         await fetch(`${API_BASE_URL}/add_view_to_reel`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
-                'Authorization': `Bearer ${token}`,
+                // 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ reel_id: reelId })
@@ -1437,58 +1790,59 @@ window.incrementReelView = incrementReelView;
 
 // Reel Actions: Edit & Delete
 
-window.deleteReel = async function deleteReel(reelId) {
-    if(!confirm("Are you sure you want to delete this reel?")) return;
-    
-    // Optimistic UI: Remove Reel Slide immediately
-    const reelContainer = document.querySelector(`.snap-center[data-id="${reelId}"]`) || 
-                          // try to find by button context if id not set on container
-                          Array.from(document.querySelectorAll('button')).find(b => b.onclick && b.onclick.toString().includes(`deleteReel(${reelId})`))?.closest('.snap-center');
-    
-    let removed = false;
-    if (reelContainer) {
-        // Animation
-        reelContainer.style.transition = "opacity 0.3s, transform 0.3s";
-        reelContainer.style.opacity = "0";
-        reelContainer.style.transform = "scale(0.9)";
-        setTimeout(() => reelContainer.remove(), 300);
-        removed = true;
-    }
-
-    try {
-        const token = localStorage.getItem('auth_token');
-        const response = await fetch(`${API_BASE_URL}/delete_reel`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ id: reelId })
-        });
+window.deleteReel = function(reelId) {
+    showConfirmModal("Are you sure you want to delete this reel?", async () => {
+        // Optimistic UI: Remove Reel Slide immediately
+        const reelContainer = document.querySelector(`.snap-center[data-id="${reelId}"]`) || 
+                              // try to find by button context if id not set on container
+                              Array.from(document.querySelectorAll('button')).find(b => b.onclick && b.onclick.toString().includes(`deleteReel(${reelId})`))?.closest('.snap-center');
         
-        const data = await response.json();
-        if(data.success) {
-            showToast('Reel deleted', 'success');
-             // Update local cache
-            try {
-                const cached = localStorage.getItem('reels_cache');
-                if(cached) {
-                    let parsed = JSON.parse(cached);
-                    if(Array.isArray(parsed)) parsed = parsed.filter(r => r.id !== reelId);
-                    else if (parsed.data) parsed.data = parsed.data.filter(r => r.id !== reelId);
-                    localStorage.setItem('reels_cache', JSON.stringify(parsed));
-                }
-            } catch(e) {}
-            
-            if(!removed) setTimeout(() => window.location.reload(), 1000);
-        } else {
-             showToast(data.message || 'Error', 'error');
-             if(removed) window.location.reload();
+        let removed = false;
+        if (reelContainer) {
+            // Animation
+            reelContainer.style.transition = "opacity 0.3s, transform 0.3s";
+            reelContainer.style.opacity = "0";
+            reelContainer.style.transform = "scale(0.9)";
+            setTimeout(() => reelContainer.remove(), 300);
+            removed = true;
         }
-    } catch(e) {
-        console.error(e);
-        if(removed) window.location.reload();
-    }
+
+            try {
+            // const token = localStorage.getItem('auth_token');
+            const response = await fetch(`${API_BASE_URL}/delete_reel`, {
+                method: 'DELETE',
+                credentials: 'include',
+                headers: {
+                    // 'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ reel_id: reelId })
+            });
+            
+            const data = await response.json();
+            if(data.success) {
+                showToast('Reel deleted', 'success');
+                 // Update local cache
+                try {
+                    const cached = localStorage.getItem('reels_cache');
+                    if(cached) {
+                        let parsed = JSON.parse(cached);
+                        if(Array.isArray(parsed)) parsed = parsed.filter(r => r.id !== reelId);
+                        else if (parsed.data) parsed.data = parsed.data.filter(r => r.id !== reelId);
+                        localStorage.setItem('reels_cache', JSON.stringify(parsed));
+                    }
+                } catch(e) {}
+                
+                if(!removed) setTimeout(() => window.location.reload(), 1000);
+            } else {
+                 showToast(data.message || 'Error', 'error');
+                 if(removed) window.location.reload();
+            }
+        } catch(e) {
+            console.error(e);
+            if(removed) window.location.reload();
+        }
+    });
 };
 
 window.editReel = async (reelId) => {
@@ -1521,33 +1875,7 @@ window.editReel = async (reelId) => {
 
 // --- Utils: Toast & Report (Copied here for Reels context) ---
 
-window.showToast = function(message, type = 'success') {
-    const container = document.getElementById('toast-container');
-    if (!container) return; // Should be in HTML
-
-    const toast = document.createElement('div');
-    toast.className = `flex items-center gap-2 px-4 py-3 rounded-xl shadow-xl backdrop-blur-md border border-white/10 transform transition-all duration-300 translate-y-10 opacity-0 z-[100] ${
-        type === 'success' ? 'bg-[#1c1f27]/90 text-green-400' : 'bg-[#1c1f27]/90 text-red-400'
-    }`;
-    
-    toast.innerHTML = `
-        <span class="material-symbols-outlined text-[20px]">${type === 'success' ? 'check_circle' : 'error'}</span>
-        <span class="text-sm font-medium text-white">${message}</span>
-    `;
-
-    container.appendChild(toast);
-
-    // Animate In
-    requestAnimationFrame(() => {
-        toast.classList.remove('translate-y-10', 'opacity-0');
-    });
-
-    // Remove after 3s
-    setTimeout(() => {
-        toast.classList.add('translate-y-10', 'opacity-0');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
+// --- Utils: Toast & Report (Uses global showToast) ---
 
 // --- Report Functions ---
 
@@ -1581,11 +1909,12 @@ window.submitReport = async function() {
     closeReportModal();
 
     try {
-        const token = localStorage.getItem('auth_token');
+        // const token = localStorage.getItem('auth_token');
         const response = await fetch(`${API_BASE_URL}/report_content`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
-                'Authorization': `Bearer ${token}`,
+                // 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
@@ -1640,49 +1969,53 @@ document.addEventListener('click', (e) => {
     }
 });
 
-window.deleteReelComment = async function(commentId, btn, type) {
-    if(!confirm("Delete this?")) return;
-    
-    // Check local element by ID prefix
-    const prefix = type === 'reply' ? 'comment-row-r-' : 'comment-row-c-';
-    const commentRow = document.getElementById(`${prefix}${commentId}`);
-    
-    // Optimistic Remove
-    if(commentRow) {
-        commentRow.style.transition = 'all 0.3s ease';
-        commentRow.style.opacity = '0';
-        commentRow.style.transform = 'translateX(20px)';
-        setTimeout(() => commentRow.remove(), 300);
-    }
-    
-    try {
-        const token = localStorage.getItem('auth_token');
-        // Define endpoint and body based on type
-        const endpoint = type === 'reply' ? `${API_BASE_URL}/delete_comment_reply` : `${API_BASE_URL}/delete_comment`;
+window.deleteReelComment = function(commentId, btn, type) {
+    showConfirmModal("Delete this?", async () => {
+        // Check local element by ID prefix
+        const prefix = type === 'reply' ? 'comment-row-r-' : 'comment-row-c-';
+        const commentRow = document.getElementById(`${prefix}${commentId}`);
         
-        const response = await fetch(endpoint, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: commentId })
-        });
-        const data = await response.json();
-        if(!data.success) {
-            alert(data.message || 'Delete failed');
-            // TODO: Restore UI if failed?
-        } else {
-             // Decrement Count (Only for Top Level Comments)
-             if (type !== 'reply' && currentReelIdForComments) {
-                 const commentBtn = document.querySelector(`button[onclick="openComments('${currentReelIdForComments}')"] span:last-child, button[onclick="openComments(${currentReelIdForComments})"] span:last-child`);
-                 if(commentBtn) {
-                     let c = parseInt(commentBtn.textContent.replace(/,/g, '')) || 0;
-                     if(c > 0) commentBtn.textContent = formatNumber(c - 1);
-                 }
-             }
+        // Optimistic Remove
+        if(commentRow) {
+            commentRow.style.transition = 'all 0.3s ease';
+            commentRow.style.opacity = '0';
+            commentRow.style.transform = 'translateX(20px)';
+            setTimeout(() => commentRow.remove(), 300);
         }
-    } catch(e) {
-        console.error(e);
-        alert('Error deleting');
-    }
+        
+        try {
+            // const token = localStorage.getItem('auth_token');
+            // Define endpoint and body based on type
+            const endpoint = type === 'reply' ? `${API_BASE_URL}/delete_comment_reply` : `${API_BASE_URL}/delete_comment`;
+            
+            const response = await fetch(endpoint, {
+                method: 'DELETE',
+                credentials: 'include',
+                headers: { 
+                    // 'Authorization': `Bearer ${token}`, 
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify({ id: commentId })
+            });
+            const data = await response.json();
+            if(!data.success) {
+                showToast(data.message || 'Delete failed', 'error');
+                // TODO: Restore UI if failed?
+            } else {
+                 // Decrement Count (Only for Top Level Comments)
+                 if (type !== 'reply' && currentReelIdForComments) {
+                     const commentBtn = document.querySelector(`button[onclick="openComments('${currentReelIdForComments}')"] span:last-child, button[onclick="openComments(${currentReelIdForComments})"] span:last-child`);
+                     if(commentBtn) {
+                         let c = parseInt(commentBtn.textContent.replace(/,/g, '')) || 0;
+                         if(c > 0) commentBtn.textContent = formatNumber(c - 1);
+                     }
+                 }
+            }
+        } catch(e) {
+            console.error(e);
+            showToast('Error deleting', 'error');
+        }
+    });
 };
 
 window.editReelComment = function(commentId, type) {
@@ -1748,7 +2081,7 @@ window.saveEditComment = async function(commentId, type) {
     editContainer.remove();
     
     try {
-        const token = localStorage.getItem('auth_token');
+        // const token = localStorage.getItem('auth_token');
         let endpoint = `${API_BASE_URL}/update_comment`;
         let body = { id: commentId, comment: newText };
 
@@ -1759,17 +2092,21 @@ window.saveEditComment = async function(commentId, type) {
 
         const response = await fetch(endpoint, {
             method: 'POST', 
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            credentials: 'include',
+            headers: { 
+                // 'Authorization': `Bearer ${token}`, 
+                'Content-Type': 'application/json' 
+            },
             body: JSON.stringify(body)
         });
         const data = await response.json();
         
         if(!data.success) {
-            alert('Update failed: ' + data.message);
+            showToast('Update failed: ' + data.message, 'error');
         }
     } catch(e) {
         console.error(e);
-        alert('Update error');
+        showToast('Update error', 'error');
     }
 };
 
@@ -1782,4 +2119,196 @@ document.addEventListener('click', (e) => {
             el.classList.remove('active-reel-menu', 'opacity-100', 'visible');
         });
     }
+});
+
+// --- File Attachment Logic for Reels ---
+
+const handleReelCommentFileSelect = (event) => {
+    const file = event.target.files[0];
+    const previewContainer = document.getElementById('reel-comment-attachment-preview');
+    if (!previewContainer) return;
+
+    previewContainer.innerHTML = '';
+    previewContainer.classList.add('hidden');
+
+    if (file) {
+        previewContainer.classList.remove('hidden');
+        const reader = new FileReader();
+
+        const removeBtnHTML = `
+            <button onclick="clearReelCommentFile()" class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg transition-colors z-10 flex cursor-pointer">
+                <span class="material-symbols-outlined text-[14px]">close</span>
+            </button>
+        `;
+
+        if (file.type.startsWith('image/')) {
+            reader.onload = function (e) {
+                previewContainer.innerHTML = `
+                    <div class="relative inline-block group">
+                        <img src="${e.target.result}" class="h-16 w-auto rounded-md border border-white/10 object-cover bg-black/50">
+                        ${removeBtnHTML}
+                    </div>`;
+            };
+            reader.readAsDataURL(file);
+        } else if (file.type.startsWith('video/')) {
+            previewContainer.innerHTML = `
+                <div class="relative inline-block group">
+                     <div class="h-16 w-24 bg-black rounded-md border border-white/10 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white/50 text-2xl">videocam</span>
+                    </div>
+                    ${removeBtnHTML}
+                    <span class="text-[10px] text-slate-400 block mt-1 truncate max-w-[100px]">${file.name}</span>
+                </div>`;
+        }
+    }
+};
+// Attach listener globally or ensuring call
+document.addEventListener('DOMContentLoaded', () => {
+    const fileInput = document.getElementById('reel-comment-file');
+    if(fileInput) {
+        fileInput.addEventListener('change', handleReelCommentFileSelect);
+    }
+});
+
+window.clearReelCommentFile = function() {
+    const fileInput = document.getElementById('reel-comment-file');
+    const previewContainer = document.getElementById('reel-comment-attachment-preview');
+    
+    if(fileInput) fileInput.value = '';
+    if(previewContainer) {
+        previewContainer.innerHTML = '';
+        previewContainer.classList.add('hidden');
+    }
+};
+
+window.handleReelCommentFileSelect = handleReelCommentFileSelect;
+
+// Share Functionality
+window.shareReel = async (reelId) => {
+    const shareUrl = `${window.location.origin}/reels.html?id=${reelId}`;
+    
+    // 1. Track Share in Backend (Optimistic, don't wait for UI)
+    try {
+        fetch(`${window.API_BASE_URL}/share_reel`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reel_id: reelId })
+        }).then(res => res.json()).then(data => {
+            if(data.success) console.log('Share tracked');
+        }).catch(err => console.error('Share track error', err));
+    } catch(e) {}
+
+    const shareData = {
+        title: 'Check out this Reel!',
+        text: 'Watch this amazing reel on NexUs',
+        url: shareUrl
+    };
+
+    // Use Native Share if available (Mobile)
+    if (navigator.share) {
+        try {
+            await navigator.share(shareData);
+            return;
+        } catch (err) {
+            console.log('Share canceled or failed', err);
+        }
+    }
+
+    // Fallback: Custom Modal for Desktop/Unsupported
+    const existingModal = document.getElementById('share-modal');
+    if (existingModal) existingModal.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'share-modal';
+    modal.className = 'fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in';
+    modal.innerHTML = `
+        <div class="w-full max-w-sm bg-[#1e2330] border border-white/10 rounded-2xl p-6 shadow-2xl relative transform transition-all scale-100">
+            <button onclick="document.getElementById('share-modal').remove()" class="absolute right-4 top-4 text-slate-400 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            
+            <h3 class="text-lg font-bold text-white mb-2">Share Reel</h3>
+            <p class="text-sm text-slate-400 mb-6">Share this reel with your friends.</p>
+            
+            <div class="space-y-3">
+                 <button onclick="copyToClipboard('${shareUrl}', this)" class="w-full flex items-center gap-4 p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all group">
+                    <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                        <span class="material-symbols-outlined">link</span>
+                    </div>
+                    <div class="flex-1 text-left">
+                        <p class="font-bold text-white text-sm">Copy Link</p>
+                        <p class="text-xs text-slate-500 truncate max-w-[200px]">${shareUrl}</p>
+                    </div>
+                </button>
+                
+                <a href="https://wa.me/?text=${encodeURIComponent(shareUrl)}" target="_blank" class="w-full flex items-center gap-4 p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all group">
+                    <div class="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 group-hover:bg-green-500 group-hover:text-white transition-colors">
+                         <span class="material-symbols-outlined">chat</span>
+                    </div>
+                     <div class="flex-1 text-left">
+                        <p class="font-bold text-white text-sm">Share on WhatsApp</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Close on backdrop click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+    });
+};
+
+window.copyToClipboard = (text, btn) => {
+    navigator.clipboard.writeText(text).then(() => {
+        const originalHtml = btn.innerHTML;
+        const iconDiv = btn.querySelector('.w-10');
+        
+        iconDiv.className = "w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white transition-colors";
+        iconDiv.innerHTML = '<span class="material-symbols-outlined">check</span>';
+        
+        const textP = btn.querySelector('div.flex-1 p:first-child');
+        textP.textContent = "Copied!";
+
+        setTimeout(() => {
+             btn.innerHTML = originalHtml;
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+    });
+};
+
+function toggleReelMenu(event, button) {
+    event.stopPropagation();
+    const menu = button.nextElementSibling;
+    
+    // Close other menus
+    document.querySelectorAll('.click-dropdown').forEach(el => {
+        if(el !== menu) {
+             el.classList.add('invisible', 'opacity-0', 'scale-95');
+             el.classList.remove('visible', 'opacity-100', 'scale-100');
+        }
+    });
+
+    // Toggle current
+    if (menu.classList.contains('invisible')) {
+        menu.classList.remove('invisible', 'opacity-0', 'scale-95');
+        menu.classList.add('visible', 'opacity-100', 'scale-100');
+    } else {
+        menu.classList.add('invisible', 'opacity-0', 'scale-95');
+        menu.classList.remove('visible', 'opacity-100', 'scale-100');
+    }
+}
+
+// Close menus on click outside
+document.addEventListener('click', (e) => {
+    if(e.target.closest('.click-dropdown')) return;
+    
+    document.querySelectorAll('.click-dropdown').forEach(el => {
+       el.classList.add('invisible', 'opacity-0', 'scale-95');
+       el.classList.remove('visible', 'opacity-100', 'scale-100');
+   });
 });

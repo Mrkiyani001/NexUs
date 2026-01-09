@@ -103,7 +103,7 @@ public $is_approved;
             $post->attachments()->create([
                 'file_name'=>$file,
                 'file_type'=>$type,
-                'file_path'=>'posts/'.$file,
+                'file_path'=>'storage/posts/'.$file,
             ]);
         }
     }catch(\Exception $e){

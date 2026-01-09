@@ -111,7 +111,7 @@
                 <span class="hidden lg:block font-medium">Notifications</span>
             </a>
             <a class="flex items-center gap-2 px-3 lg:px-4 py-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
-                href="#">
+                href="message.html">
                 <span
                     class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">mail</span>
                 <span class="hidden lg:block font-medium">Messages</span>
@@ -171,6 +171,12 @@
                         View Profile
                     </a>
                     <div class="h-px bg-white/5 my-1"></div>
+                    <a href="setting-user.html"
+                        class="block px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">settings</span>
+                        Settings
+                    </a>
+                    <div class="h-px bg-white/5 my-1"></div>
                     <button
                         onclick="localStorage.removeItem('auth_token'); localStorage.removeItem('user_data'); window.location.href='login.html'"
                         class="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors flex items-center gap-2">
@@ -221,15 +227,19 @@
             <span class="text-[10px] font-medium">Reels</span>
         </a>
 
-        <!-- 4. Notifications (Active) -->
-        <a href="notification.html" class="flex flex-1 flex-col items-center justify-end gap-1 text-primary relative">
+        <!-- Friends -->
+        <a href="friendreq.html" class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400 relative">
             <div class="relative">
-                <span class="material-symbols-outlined text-[26px]"
-                    style="font-variation-settings: 'FILL' 1;">notifications</span>
-                <span id="notif-badge-mobile"
-                    class="hidden absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#0f111a]"></span>
+                <span class="material-symbols-outlined text-[26px]">group</span>
+                <span id="mobile-nav-requests-badge" class="hidden absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#0f111a]"></span>
             </div>
-            <span class="text-[10px] font-medium">Activity</span>
+            <span class="text-[10px] font-medium">Friends</span>
+        </a>
+
+        <!-- 4. Messages -->
+        <a href="message.html" class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400 relative">
+             <span class="material-symbols-outlined text-[26px]">mail</span>
+             <span class="text-[10px] font-medium">Messages</span>
         </a>
 
         <!-- 5. Profile -->
@@ -241,11 +251,16 @@
     </nav>
 
     <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
     <script>
         const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
         const token = localStorage.getItem('auth_token');
+        console.log(token);
 
-        if (!token) window.location.href = 'login.html';
+        // if (!token) {
+        //      console.warn("Notification Page: No Local Token found. Redirecting to login...");
+        //      window.location.href = 'login.html';
+        // }
     </script>
     <script src="js/post_utils.js"></script>
     <script src="js/notifications.js"></script>
@@ -310,10 +325,14 @@
 
             // 2. Fetch Fresh
             try {
+                // const token = localStorage.getItem('auth_token');
                 const response = await fetch(`${API_BASE_URL}/get_user_notifications`, {
-                    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+                    credentials: 'include',
+                    headers: { 
+                        // 'Authorization': `Bearer ${token}`, 
+                        'Accept': 'application/json' 
+                    }
                 });
-
                 if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
 
                 const data = await response.json();
@@ -446,6 +465,7 @@
             `;
         }
     </script>
+    <script src="js/config.js"></script>
     <script src="js/site_branding.js"></script>
 </body>
 

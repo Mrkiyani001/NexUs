@@ -42,7 +42,7 @@ class AddPost implements ShouldQueue
     public function handle(ModerationService $moderationService): void
     {
         Log::info("AddPost Job Started for User ID: {$this->user_id}");
-        
+
         $postData = [
             'user_id' => $this->user_id,
             'title' => $this->title,
@@ -70,14 +70,14 @@ class AddPost implements ShouldQueue
             try {
                 Log::info("Running Moderation for Post ID: {$post->id}");
                 $moderationService->moderate($post, $this->body);
-                
+
                 $post->refresh();
                 Log::info("Moderation Complete. Flagged Status: " . ($post->is_flagged ? 'Yes' : 'No'));
 
                 if ($post->is_flagged == 0) {
                     $post->update(['status' => 1]);
                     Log::info("Post ID {$post->id} marked as Active (Status 1).");
-                    
+
                     SendNotification::dispatch(
                         $this->user_id,
                         'Post Created',
@@ -89,9 +89,9 @@ class AddPost implements ShouldQueue
                 } else {
                     // Post is Flagged -> Notify Admins AND User
                     Log::info("Post ID {$post->id} is Flagged. Notifying Admins.");
-                    
+
                     // Notify User
-                     SendNotification::dispatch(
+                    SendNotification::dispatch(
                         $this->user_id,
                         'Post Under Moderation',
                         'Your post contains sensitive content and is under moderation.',
@@ -104,7 +104,7 @@ class AddPost implements ShouldQueue
                     try {
                         $creator = User::find($this->user_id);
                         $creatorName = $creator ? $creator->name : 'Unknown User';
-                        
+
                         $admins = User::role(['admin', 'super admin', 'moderator'])->get();
                         foreach ($admins as $admin) {
                             if ($admin->id !== $this->user_id) {
@@ -115,7 +115,7 @@ class AddPost implements ShouldQueue
                                     $admin->id,
                                     $post,
                                     'Y'
-                                );    
+                                );
                             }
                         }
                     } catch (\Exception $e) {
@@ -126,9 +126,9 @@ class AddPost implements ShouldQueue
                 Log::error("Moderation Logic Failed for Post ID {$post->id}: " . $e->getMessage());
             }
         } else {
-             // If manually approved (e.g. by admin posting), just notify user/followers if needed
-             // For now, just log
-             Log::info("Post ID {$post->id} auto-approved (Admin/Moderator).");
+            // If manually approved (e.g. by admin posting), just notify user/followers if needed
+            // For now, just log
+            Log::info("Post ID {$post->id} auto-approved (Admin/Moderator).");
         }
 
         if (!empty($this->attachments)) {
@@ -146,7 +146,7 @@ class AddPost implements ShouldQueue
                     $post->attachments()->create([
                         'file_name' => $filename,
                         'file_type' => $type,
-                        'file_path' => 'posts/' . $filename,
+                        'file_path' => 'storage/posts/' . $filename,
                     ]);
                 }
                 Log::info("Attachments uploaded for Post ID {$post->id}");
@@ -154,7 +154,7 @@ class AddPost implements ShouldQueue
                 Log::error("Failed to upload attachments for post ID " . $post->id . ": " . $e->getMessage());
             }
         }
-        
+
         Log::info("AddPost Job Finished for Post ID: {$post->id}");
     }
 }

@@ -164,62 +164,103 @@
     </main>
 
     <script src="../js/config.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/post_utils.js"></script>
     <script src="../js/site_branding.js"></script>
     <script src="../js/admin_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             renderAdminSidebar('moderation');
             loadPendingPosts();
         });
 
+        let currentPage = 1;
+        let lastPage = 1;
         let isFetchingQueue = false;
-        async function loadPendingPosts(isAutoRefresh = false) {
+
+        async function loadPendingPosts(page = 1) {
             if(isFetchingQueue) return;
             isFetchingQueue = true;
+            currentPage = page;
 
             const grid = document.getElementById('moderation-grid');
+            const container = document.querySelector('main'); // For scrolling to top
             if(!grid) { isFetchingQueue = false; return; }
 
             const cacheKey = 'moderation_queue_cache';
             
-            // 1. Initial Cache Load
+            // 1. Initial Cache Load (Optimization for Instant Load)
             const cached = localStorage.getItem(cacheKey);
-            if (!isAutoRefresh && cached && grid.innerHTML.trim() === '') {
+            // Only use cache on initial load (page 1) to avoid confusing pagination mixed states
+            if (page === 1 && cached && grid.innerHTML.trim() === '') {
                 try {
                     const parsed = JSON.parse(cached);
-                    if (Array.isArray(parsed) && parsed.length > 0) {
-                        renderPendingPosts(parsed);
-                        document.getElementById('pending-count').textContent = parsed.length;
+                    let posts = [];
+                    // Handle both new paginated object and old array formats
+                    if (parsed.items && Array.isArray(parsed.items)) {
+                        posts = parsed.items;
+                    } else if (Array.isArray(parsed)) {
+                        posts = parsed;
                     }
-                } catch(e) { console.error(e); }
+
+                    if (posts.length > 0) {
+                        renderPendingPosts(posts);
+                        const total = parsed.pagination ? parsed.pagination.total : posts.length;
+                        document.getElementById('pending-count').textContent = total;
+                        if(parsed.pagination) renderPaginationControls(parsed.pagination);
+                    }
+                } catch(e) { console.error("Cache parse error", e); }
             }
 
             try {
-                const response = await fetch(`${API_BASE_URL}/pending_posts`, {
-                    headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
+                const response = await fetch(`${API_BASE_URL}/pending_posts?page=${page}`, {
+                    credentials: 'include'
                 });
 
                 if(handleAdminApiError(response)) return;
 
                 const data = await response.json();
-                if (data.success) {
-                    const newDataStr = JSON.stringify(data.data);
-                    const oldDataStr = localStorage.getItem(cacheKey);
+                
+                // Update UI based on new standardized response structure (wrapped in 'items')
+                // data.data is now possibly { items: [...], pagination: {...} } OR direct array depending on how backend sends it. 
+                // Since user used paginateData helper, response structure is usually data.data.items and data.data.pagination
+                
+                let posts = [];
+                let pagination = null;
 
-                    // SMART REFRESH: Only update if data changed
-                    if (newDataStr !== oldDataStr) {
-                         localStorage.setItem(cacheKey, newDataStr);
-                         
-                         if (data.data.length > 0) {
-                            renderPendingPosts(data.data);
-                            document.getElementById('pending-count').textContent = data.data.length;
-                         } else {
-                            grid.innerHTML = `<div class="col-span-full py-20 text-center text-slate-500">
-                                <span class="material-symbols-outlined text-4xl mb-2">check_circle</span>
-                                <p>No pending posts to review. Excellent work!</p>
-                            </div>`;
-                            document.getElementById('pending-count').textContent = '0';
-                         }
+                if (data.success) {
+                    if (data.data.items) {
+                         posts = data.data.items;
+                         pagination = data.data.pagination;
+                    } else if (Array.isArray(data.data)) {
+                        posts = data.data; // Fallback if regular get() was used
+                    }
+
+                    if (pagination) {
+                        lastPage = pagination.last_page;
+                    }
+                    
+                    // SAVE TO CACHE (Only page 1)
+                    if (page === 1) {
+                         // Save the whole data object (items + pagination) or just items depending on what we want.
+                         // For simplicity, save data.data which contains both in the new structure
+                         localStorage.setItem(cacheKey, JSON.stringify(data.data));
+                    }
+
+                    renderBulkActions(posts.length > 0);
+                    
+                    if (posts.length > 0) {
+                        renderPendingPosts(posts);
+                        document.getElementById('pending-count').textContent = pagination ? pagination.total : posts.length;
+                        renderPaginationControls(pagination);
+                    } else {
+                        grid.innerHTML = `<div class="col-span-full py-20 text-center text-slate-500">
+                            <span class="material-symbols-outlined text-4xl mb-2">check_circle</span>
+                            <p>No pending posts to review. Excellent work!</p>
+                        </div>`;
+                        document.getElementById('pending-count').textContent = '0';
+                        renderPaginationControls(null);
                     }
                 } else {
                      grid.innerHTML = `<div class="col-span-full py-20 text-center text-slate-500">
@@ -227,22 +268,126 @@
                         <p>No pending posts to review. Excellent work!</p>
                     </div>`;
                     document.getElementById('pending-count').textContent = '0';
-                    localStorage.removeItem(cacheKey);
                 }
             } catch (e) {
                 console.error(e);
-                 if(!cached && !isAutoRefresh) grid.innerHTML = `<div class="col-span-full py-20 text-center text-red-500">Error loading moderation queue.</div>`;
+                 grid.innerHTML = `<div class="col-span-full py-20 text-center text-red-500">Error loading moderation queue.</div>`;
             } finally {
                 isFetchingQueue = false;
             }
         }
 
-        // Recursive Polling
-        async function startQueuePolling() {
-            await loadPendingPosts(true);
-            setTimeout(startQueuePolling, 3000);
+        function renderBulkActions(hasPosts) {
+            const headerActions = document.querySelector('header .flex.items-center.gap-3:last-child');
+            // Remove existing bulk buttons if any
+            const existingBulk = document.getElementById('bulk-actions');
+            if(existingBulk) existingBulk.remove();
+
+            if(!hasPosts) return;
+
+            // Only add if user is Admin/SuperAdmin (Frontend check visual only)
+            // Ideally check roles here, but assuming access is handled by page access
+            
+            const btnContainer = document.createElement('div');
+            btnContainer.id = 'bulk-actions';
+            btnContainer.className = 'flex gap-2 mr-2';
+            btnContainer.innerHTML = `
+                <button onclick="confirmBulkAction('reject')" class="h-10 px-4 rounded-lg bg-danger/10 hover:bg-danger text-danger hover:text-white border border-danger/20 transition-all flex items-center gap-2 font-medium text-sm">
+                    <span class="material-symbols-outlined text-[18px]">delete_sweep</span> Reject All
+                </button>
+                <button onclick="confirmBulkAction('approve')" class="h-10 px-4 rounded-lg bg-success/10 hover:bg-success text-success hover:text-white border border-success/20 transition-all flex items-center gap-2 font-medium text-sm">
+                    <span class="material-symbols-outlined text-[18px]">done_all</span> Approve All
+                </button>
+            `;
+            
+            // Insert before the Refresh button container
+            headerActions.insertBefore(btnContainer, headerActions.firstChild);
         }
-        startQueuePolling();
+
+        async function confirmBulkAction(type) {
+             const result = await Swal.fire({
+                title: `Are you sure?`,
+                text: `This will ${type} ALL pending posts in the system. This cannot be undone!`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: type === 'approve' ? '#0bda62' : '#ef4444',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: `Yes, ${type} them!`,
+                background: '#1e2332',
+                color: '#fff'
+            });
+
+            if (result.isConfirmed) {
+                performBulkAction(type);
+            }
+        }
+
+        async function performBulkAction(type) {
+            const endpoint = type === 'approve' ? 'approve_all_post' : 'reject_all_post';
+            try {
+                Swal.fire({ title: 'Processing...', didOpen: () => Swal.showLoading(), background: '#1e2332', color: '#fff' });
+                
+                const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: data.message,
+                        icon: 'success',
+                        background: '#1e2332',
+                        color: '#fff'
+                    });
+                    loadPendingPosts(1); // Reload from page 1
+                } else {
+                    Swal.fire({ title: 'Error', text: data.message, icon: 'error', background: '#1e2332', color: '#fff' });
+                }
+            } catch (error) {
+                console.error(error);
+                Swal.fire({ title: 'Error', text: 'Server connection failed', icon: 'error', background: '#1e2332', color: '#fff' });
+            }
+        }
+
+        function renderPaginationControls(pagination) {
+            const gridContainer = document.querySelector('.custom-scrollbar'); // The scrollable dev
+            const existingPagination = document.getElementById('pagination-controls');
+            if(existingPagination) existingPagination.remove();
+
+            if(!pagination || pagination.total_pages <= 1) return;
+
+            const footer = document.createElement('div');
+            footer.id = 'pagination-controls';
+            footer.className = 'py-6 px-10 flex items-center justify-between border-t border-glass-border mt-4 mb-20'; // mb-20 for bottom space
+            
+            const prevDisabled = pagination.current_page === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/5 cursor-pointer';
+            const nextDisabled = pagination.current_page === pagination.last_page ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/5 cursor-pointer';
+
+            footer.innerHTML = `
+                <div class="text-sm text-gray-400">
+                    Showing <span class="text-white font-medium">${pagination.from}</span> to <span class="text-white font-medium">${pagination.to}</span> of <span class="text-white font-medium">${pagination.total}</span> results
+                </div>
+                <div class="flex items-center gap-2">
+                    <button ${pagination.current_page === 1 ? 'disabled' : ''} onclick="loadPendingPosts(${pagination.current_page - 1})" class="glass-card px-4 py-2 rounded-lg text-sm text-gray-300 transition-colors ${prevDisabled}">
+                        Previous
+                    </button>
+                    <span class="glass-card px-4 py-2 rounded-lg text-sm text-white bg-white/5">
+                        Page ${pagination.current_page} of ${pagination.last_page}
+                    </span>
+                    <button ${pagination.current_page === pagination.last_page ? 'disabled' : ''} onclick="loadPendingPosts(${pagination.current_page + 1})" class="glass-card px-4 py-2 rounded-lg text-sm text-gray-300 transition-colors ${nextDisabled}">
+                        Next
+                    </button>
+                </div>
+            `;
+            
+            // Append after the grid inside the scroll container, or just after the main content div
+             // Since the direct parent of moderation-grid is the scrollable div
+             const gridParent = document.getElementById('moderation-grid').parentElement;
+             gridParent.appendChild(footer);
+        }
 
         function renderPendingPosts(posts) {
             const grid = document.getElementById('moderation-grid');
@@ -298,9 +443,9 @@
                 const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${ADMIN_TOKEN}`,
                         'Content-Type': 'application/json'
                     },
+                    credentials: 'include',
                     body: JSON.stringify({ id: postId })
                 });
                 const data = await response.json();
@@ -314,13 +459,20 @@
                         const countEl = document.getElementById('pending-count');
                         const count = parseInt(countEl.textContent);
                         if (!isNaN(count)) countEl.textContent = count - 1;
+                        
+                        // Check if grid is empty, if so, reload current page to fetch logic again
+                        const grid = document.getElementById('moderation-grid');
+                        if(grid.children.length === 0 && lastPage > 1) {
+                            loadPendingPosts(currentPage);
+                        }
                     }, 300);
+                    showToast(`Post ${action}d successfully`,'success');
                 } else {
-                    alert('Action failed: ' + data.message);
+                    showToast('Action failed: ' + data.message, 'error');
                 }
             } catch (e) {
                 console.error(e);
-                alert('Server error.');
+                showToast('Server error.', 'error');
             }
         }
 

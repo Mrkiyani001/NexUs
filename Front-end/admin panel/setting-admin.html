@@ -258,6 +258,8 @@
     </main>
 
     <script src="../js/config.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/post_utils.js"></script>
     <script src="../js/site_branding.js"></script>
     <script src="../js/admin_utils.js"></script>
     <script>
@@ -274,8 +276,8 @@
         async function loadSettings() {
             try {
                 const response = await fetch(`${API_BASE_URL}/settings`, {
+                    credentials: 'include',
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
                         'Accept': 'application/json'
                     }
                 });
@@ -304,13 +306,15 @@
 
                     if (s.logo) {
                         const img = document.getElementById('logo-preview');
-                        img.src = `http://127.0.0.1:8000/storage/${s.logo}`;
-                        img.classList.remove('opacity-50'); // Show full opacity if loaded
+                        const path = s.logo.startsWith('/') ? s.logo.substring(1) : s.logo;
+                        img.src = path.startsWith('http') ? path : (path.startsWith('storage/') ? `${PUBLIC_URL}/${path}` : `${PUBLIC_URL}/storage/${path}`);
+                        img.classList.remove('opacity-50');
                         img.classList.add('opacity-100');
                     }
                     if (s.favicon) {
                         const img = document.getElementById('favicon-preview');
-                        img.src = `http://127.0.0.1:8000/storage/${s.favicon}`;
+                        const path = s.favicon.startsWith('/') ? s.favicon.substring(1) : s.favicon;
+                        img.src = path.startsWith('http') ? path : (path.startsWith('storage/') ? `${PUBLIC_URL}/${path}` : `${PUBLIC_URL}/storage/${path}`);
                         img.classList.remove('opacity-50');
                         img.classList.add('opacity-100');
                     }
@@ -362,23 +366,24 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/admin/settings`, {
                     method: 'POST',
+                    credentials: 'include', // Important for cookies
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
                         'Accept': 'application/json'
+                        // No Content-Type for FormData, browser sets it with boundary
                     },
                     body: formData
                 });
                 const data = await response.json();
 
                 if (data.success) {
-                    alert('Settings updated successfully!');
+                    showToast('Settings updated successfully!', 'success');
                     loadSettings(); // Reload to see new images
                 } else {
-                    alert('Failed: ' + JSON.stringify(data.message));
+                    showToast('Failed: ' + (typeof data.message === 'string' ? data.message : JSON.stringify(data.message)), 'error');
                 }
             } catch (e) {
                 console.error(e);
-                alert('An error occurred.');
+                showToast('An error occurred.', 'error');
             } finally {
                 btn.textContent = 'Save Changes';
                 btn.disabled = false;

@@ -3,23 +3,27 @@
  * Handles permissions, shared UI components, and common admin actions.
  */
 
-const ADMIN_TOKEN = localStorage.getItem('auth_token');
-const ADMIN_USER_DATA = JSON.parse(localStorage.getItem('user_data') || '{}');
+// Helper function to get user data
+function getAdminUserData() {
+    return JSON.parse(localStorage.getItem('user_data') || '{}');
+}
 
 // 1. Protection Logic: Ensure user has admin/moderator roles
-function checkAdminAccess() {
-    if (!ADMIN_TOKEN) {
-        window.location.href = '../login.html';
-        return;
-    }
+ function checkAdminAccess() {
+    // Rely on global 401 handler or subsequent API calls.
+    // if (!localStorage.getItem('auth_token')) {
+    //     window.location.href = '../login.html';
+    //     return;
+    // }
 
-    const roles = (ADMIN_USER_DATA.roles || []).map(r => (typeof r === 'object' ? r.name : r).toLowerCase());
+    const userData = getAdminUserData();
+    const roles = (userData.roles || []).map(r => (typeof r === 'object' ? r.name : r).toLowerCase());
     const isAdmin = roles.includes('admin') || roles.includes('super admin') || roles.includes('superadmin');
     const isModerator = roles.includes('moderator');
 
     if (!isAdmin && !isModerator) {
-        alert('Access Denied: You do not have permission to view this page.');
-        window.location.href = '../homefeed-dashboard.html';
+        showToast('Access Denied: You do not have permission to view this page.', 'error');
+        setTimeout(() => window.location.href = '../homefeed-dashboard.html', 2000);
     }
 }
 
@@ -28,26 +32,32 @@ function renderAdminSidebar(activePageId) {
     const sidebar = document.querySelector('aside');
     if (!sidebar) return;
 
-    const initials = (ADMIN_USER_DATA.name || 'A')[0].toUpperCase();
+    const userData = getAdminUserData();
+    const initials = (userData.name || 'A')[0].toUpperCase();
     let avatarPath = null;
-    if (ADMIN_USER_DATA.profile && ADMIN_USER_DATA.profile.avatar) {
-        if (typeof ADMIN_USER_DATA.profile.avatar === 'object') {
-            avatarPath = ADMIN_USER_DATA.profile.avatar.file_path; // Handle object format
+    if (userData.profile && userData.profile.avatar) {
+        if (typeof userData.profile.avatar === 'object') {
+            avatarPath = userData.profile.avatar.file_path; // Handle object format
         } else {
-            avatarPath = ADMIN_USER_DATA.profile.avatar; // Handle string format
+            avatarPath = userData.profile.avatar; // Handle string format
         }
     }
 
-    const avatarUrl = avatarPath 
-        ? (avatarPath.startsWith('http') ? avatarPath : `${window.PUBLIC_URL}/${avatarPath}`)
-        : `https://ui-avatars.com/api/?name=${encodeURIComponent(ADMIN_USER_DATA.name)}&background=215bed&color=fff`;
+    const getAdminAvatarUrl = (path) => {
+        if (!path) return '';
+        if (path.startsWith('http')) return path;
+        const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+        return cleanPath.startsWith('storage/') ? `${window.PUBLIC_URL}/${cleanPath}` : `${window.PUBLIC_URL}/storage/${cleanPath}`;
+    };
+
+    const avatarUrl = avatarPath ? getAdminAvatarUrl(avatarPath) : `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}&background=215bed&color=fff`;
 
     const menuItems = [
         { id: 'dashboard', label: 'Dashboard', icon: 'grid_view', link: 'admin-dashboard.html' },
         { id: 'roles', label: 'Roles & Permissions', icon: 'manage_accounts', link: 'admin-roles.html' },
         { id: 'moderation', label: 'Moderation Queue', icon: 'list_alt', link: 'moderation-queue.html', badge: '0' },
         { id: 'reports', label: 'Reports', icon: 'flag', link: 'reports.html' },
-        { id: 'analytics', label: 'Analytics', icon: 'analytics', link: '#' },
+        { id: 'analytics', label: 'Analytics', icon: 'analytics', link: 'analytics.html' },
         { id: 'settings', label: 'Settings', icon: 'settings', link: 'setting-admin.html' }
     ];
 
@@ -88,8 +98,8 @@ function renderAdminSidebar(activePageId) {
                     <div class="absolute bottom-0 right-0 size-3 bg-green-500 border-2 border-[#1e2330] rounded-full"></div>
                 </div>
                 <div class="flex flex-col">
-                    <h1 class="text-white text-base font-bold leading-tight tracking-tight">${ADMIN_USER_DATA.name}</h1>
-                    <p class="text-slate-400 text-xs font-medium capitalize">${typeof ADMIN_USER_DATA.roles?.[0] === 'object' ? ADMIN_USER_DATA.roles[0].name : (ADMIN_USER_DATA.roles?.[0] || 'Admin')}</p>
+                    <h1 class="text-white text-base font-bold leading-tight tracking-tight">${userData.name}</h1>
+                    <p class="text-slate-400 text-xs font-medium capitalize">${typeof userData.roles?.[0] === 'object' ? userData.roles[0].name : (userData.roles?.[0] || 'Admin')}</p>
                 </div>
             </div>
             <!-- Mobile Close Button -->
@@ -125,27 +135,29 @@ function handleAdminLogout() {
 
 // 3. User Manipulation Helpers
 async function banUser(userId) {
-    if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
-    try {
-        const response = await fetch(`${API_BASE_URL}/delete_user`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${ADMIN_TOKEN}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ user_id: userId })
-        });
-        const data = await response.json();
-        if (data.success) {
-            alert('User deleted successfully.');
-            if (typeof loadUsers === 'function') loadUsers();
-        } else {
-            alert(data.message || 'Failed to delete user.');
+    showConfirmModal('Are you sure you want to delete this user? This action cannot be undone.', async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/delete_user`, {
+                method: 'DELETE',
+                credentials: 'include',
+                headers: {
+                    // 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ user_id: userId })
+            });
+            const data = await response.json();
+            if (data.success) {
+                showToast('User deleted successfully.', 'success');
+                if (typeof loadUsers === 'function') loadUsers();
+            } else {
+                showToast(data.message || 'Failed to delete user.', 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            showToast('Error communicating with server.', 'error');
         }
-    } catch (e) {
-        console.error(e);
-        alert('Error communicating with server.');
-    }
+    });
 }
 
 // 4. Mobile Sidebar Toggle Helper
@@ -165,14 +177,21 @@ function toggleSidebar() {
 checkAdminAccess();
 
 // 5. Centralized API Error Handler
-function handleAdminApiError(response, defaultMsg = 'An error occurred') {
+// 5. Centralized API Error Handler
+function handleAdminApiError(response, defaultMsg = 'An error occurred', skipLogout = false) {
+    if (response.customErrorHandled) return true; // Already handled by global interceptor
+
     if (response.status === 403) {
-        alert('Access Denied: You do not have permission to perform this action.');
+        showToast('Access Denied: You do not have permission to perform this action.', 'error');
         return true; // handled
     }
     if (response.status === 401) {
-        alert('Session expired. Please login again.');
-        handleAdminLogout();
+        if (skipLogout) {
+            showToast('Authorization failed.', 'error');
+            return true;
+        }
+        showToast('Session expired. Please login again.', 'error');
+        setTimeout(() => handleAdminLogout(), 2000);
         return true; 
     }
     return false; // not handled, caller should show defaultMsg or parse error

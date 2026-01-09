@@ -27,10 +27,6 @@ class Post extends Model
         'moderated_at' => 'datetime',
     ];
 
-    protected function serializeDate(\DateTimeInterface $date)
-    {
-        return $date->format('Y-m-d H:i:s');
-    }
 
     public function user()
     {
@@ -55,6 +51,10 @@ class Post extends Model
     public function reactions()
     {
         return $this->morphMany(Reaction::class, 'reactionable');
+    }
+    public function replies()
+    {
+        return $this->hasManyThrough(CommentReply::class, Comments::class, 'post_id', 'comment_id');
     }
     public function flaggable()
     {

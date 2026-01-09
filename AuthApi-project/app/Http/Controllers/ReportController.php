@@ -22,6 +22,9 @@ class ReportController extends BaseController
 
         try {
             $user = auth('api')->user();
+            if (!$user) {
+                return $this->unauthorized();
+            }
             $modelcase = null;
 
             switch ($request->reportable_type) {
@@ -40,7 +43,7 @@ class ReportController extends BaseController
             }
 
             $reportable = $modelcase::find($request->reportable_id);
-            
+
             if (!$reportable) {
                 return $this->Response(false, 'Reportable content not found', null, 404);
             }
@@ -53,7 +56,6 @@ class ReportController extends BaseController
             ]);
 
             return $this->Response(true, 'Report submitted successfully', $report, 201);
-
         } catch (Exception $e) {
             return $this->Response(false, $e->getMessage(), null, 500);
         }
@@ -63,13 +65,16 @@ class ReportController extends BaseController
         try {
             $limit = (int) $request->input('limit', 10);
             $user = auth('api')->user();
-            if(!$user){
+            if (!$user) {
                 return $this->unauthorized();
+            }
+            if (!$user->hasRole(['super admin', 'Admin', 'Moderator'])) {
+                return $this->NotAllowed();
             }
             // Eager load reporter and reportable (post/comment/reply)
             $reports = Report::with([
-                'user.profile', 
-                'reportable' => function($query) {
+                'user.profile',
+                'reportable' => function ($query) {
                     $query->morphWith([
                         Post::class => ['user.profile'],
                         Comments::class => ['user.profile'],
@@ -77,10 +82,10 @@ class ReportController extends BaseController
                     ]);
                 }
             ])
-            ->where('status', 'pending') // Only show pending reports by default
-            ->latest()
-            ->paginate($limit);
-            
+                ->where('status', 'pending') // Only show pending reports by default
+                ->latest()
+                ->paginate($limit);
+
             $data = $this->paginateData($reports, $reports->items());
             return $this->Response(true, 'Reports retrieved successfully', $data, 200);
         } catch (Exception $e) {
@@ -98,6 +103,9 @@ class ReportController extends BaseController
             if (!$user) {
                 return $this->unauthorized();
             }
+            if (!$user->hasRole(['super admin', 'Admin', 'Moderator'])) {
+                return $this->NotAllowed();
+            }
             $report = Report::find($request->report_id);
 
             if ($request->action === 'ignore') {
@@ -105,11 +113,11 @@ class ReportController extends BaseController
                 $report->save();
                 return $this->Response(true, 'Report ignored successfully', null, 200);
             }
-            if($report->status == 'resolved'){
+            if ($report->status == 'resolved') {
                 return $this->Response(true, 'Report already resolved', null, 200);
             }
             if ($request->action === 'delete') {
-                if($report->reportable){
+                if ($report->reportable) {
                     $report->reportable->delete();
                 }
                 $report->status = 'resolved';

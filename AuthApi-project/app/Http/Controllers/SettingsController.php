@@ -37,13 +37,13 @@ class SettingsController extends BaseController
         try{
         $user = auth('api')->user();
         if (!$user) {
-            return $this->Response(false, 'Unauthorized', null, 401);
+            return $this->unauthorized();
         }
-        if (!$user->hasRole('super admin') && !$user->hasPermissionTo('manage access')) {
-            return $this->Response(false, 'Unauthorized', null, 401);
+        if (!$user->hasRole(['super admin'])) {
+            return $this->NotAllowed();
         }
         
-        if($user->hasRole('super admin') || $user->hasPermissionTo('manage access')){
+        if($user->hasRole(['super admin'])){
             $settings = Settings::retrieve();
             $data = $request->except(['logo', 'favicon']);
 

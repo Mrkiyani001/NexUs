@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\AddReel;
+use App\Jobs\DeleteReel;
 use App\Models\Reaction;
 use App\Models\Reel;
 use App\Models\Share;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 
 class ReelsController extends BaseController
@@ -31,15 +33,12 @@ class ReelsController extends BaseController
                 if ($request->hasFile('thumbnail')) {
                     $file = $request->file('thumbnail');
                     $filename = time() . '_thumb_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                    $file->move(public_path('thumbnails'), $filename);
-                    $thumbnailPath = 'thumbnails/' . $filename;
+                    $file->move(public_path('storage/thumbnails'), $filename);
+                    $thumbnailPath = 'storage/thumbnails/' . $filename;
                 }
             } catch (\Exception $e) {
                 Log::error('Thumbnail Upload Error: ' . $e->getMessage());
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Thumbnail upload failed.',
-                ], 500);
+                return $this->Response(false, 'Thumbnail upload failed.', null, 500);
             }
 
             $reel = null;
@@ -53,25 +52,23 @@ class ReelsController extends BaseController
                     'user_id' => $user->id,
                     'thumbnail_path' => $thumbnailPath,
                 ]);
+                $key='create-reel'.$user->id;
+                if(!$user->hasRole(['super admin'])){
+                if(RateLimiter::tooManyAttempts($key,5)){
+                    $seconds=RateLimiter::availableIn($key);
+                    return $this->response(false,'You have exceeded the limit. Please try again in '.$seconds.' seconds',null,429);
+                }
+                RateLimiter::hit($key,600);
+                }
                 AddReel::dispatch($user->id, $request->caption, $reel, $thumbnailPath, $request->privacy);
             } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Video file is required.',
-                ], 422);
+                return $this->Response(false, 'Video file is required.', null, 422);
             }
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Reel uploaded successfully',
-                'data' => $reel,
-            ], 201);
+            return $this->Response(true, 'Reel uploaded successfully', $reel, 201);
         } catch (\Exception $e) {
             Log::error('Reel Creation Error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
     public function update_reel(Request $request)
@@ -89,33 +86,20 @@ class ReelsController extends BaseController
             }
             $reel = Reel::find($request->reel_id);
             if (!$reel) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Reel not found.',
-                ], 404);
+                return $this->Response(false, 'Reel not found.', null, 404);
             }
             if ($reel->user_id != $user->id) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'You are not authorized to update this reel.',
-                ], 403);
+                return $this->NotAllowed();
             }
             $reel->update([
                 'caption' => $request->caption ?? $reel->caption,
                 'privacy' => $request->privacy ?? $reel->privacy,
                 'updated_by' => $user->id,
             ]);
-            return response()->json([
-                'success' => true,
-                'message' => 'Reel updated successfully',
-                'data' => $reel,
-            ], 200);
+            return $this->Response(true, 'Reel updated successfully', $reel, 200);
         } catch (\Exception $e) {
             Log::error('Reel Update Error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
     public function destroy_reel(Request $request)
@@ -130,47 +114,46 @@ class ReelsController extends BaseController
             }
             $reel = Reel::find($request->reel_id);
             if (!$reel) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Reel not found.',
-                ], 404);
+                return $this->Response(false, 'Reel not found.', null, 404);
             }
-            if ($reel->user_id != $user->id) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized.',
-                ], 401);
+            if($reel->user_id == $user->id){
+                DeleteReel::dispatch($user->id,$reel->id);
+                return $this->Response(true, 'Reel deleted successfully', null, 200);
             }
-            $reel->delete();
-            // if ($reel->video_path) {
-            //     $videoPath = str_replace('storage/', '', $reel->video_path);
-            //     if (Storage::disk('public')->exists($videoPath)) {
-            //         Storage::disk('public')->delete($videoPath);
-            //     }
-            // }
-            // if ($reel->thumbnail_path) {
-            //     $thumbPath = str_replace('storage/', '', $reel->thumbnail_path);
-            //     if (Storage::disk('public')->exists($thumbPath)) {
-            //         Storage::disk('public')->delete($thumbPath);
-            //     }
-            // }
-            // Share::where('reel_id', $reel->id)->delete();
-            // $reel->savedByUsers()->detach();        
-            // $reel->comments()->each(function($comment) {
-            //     $comment->delete();
-            // });
-            // $reel->reactions()->delete();
-            // $reel->delete();
-            return response()->json([
-                'success' => true,
-                'message' => 'Reel deleted successfully',
-            ], 200);
-        } catch (\Exception $e) {
+            $owner = $reel->user;
+            if(!$owner){
+                if($user->hasRole(['Admin', 'super admin'])) {
+                    DeleteReel::dispatch($user->id,$reel->id);
+                    return $this->Response(true, 'Reel deleted successfully', null, 200);
+                }
+                return $this->NotAllowed();
+            }
+            $authorized = false;
+            if($owner->hasRole('super admin')){
+                if($user->hasRole(['super admin'])){
+                    $authorized = true;
+                }
+            }elseif($owner->hasRole('Admin')){
+                if($user->hasRole(['Admin', 'super admin'])){
+                    $authorized = true;
+                }
+            }elseif($owner->hasRole('Moderator')){
+                if($user->hasRole(['Moderator', 'Admin', 'super admin'])){
+                    $authorized = true;
+                }
+            }else{
+                if($user->hasRole(['Admin', 'super admin'])){
+                    $authorized = true;
+                }
+            }
+            if(!$authorized){
+                return $this->NotAllowed();
+            }
+            DeleteReel::dispatch($user->id,$reel->id);
+            return $this->Response(true, 'Reel deleted successfully', null, 200);
+        }catch(\Exception $e){
             Log::error('Reel Delete Error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
     public function getreelofuser(Request $request)
@@ -186,21 +169,14 @@ class ReelsController extends BaseController
             $reels = Reel::with('user.profile.avatar')
                 ->withCount(['comments', 'reactions'])
                 ->where('user_id', $request->user_id)
-                ->latest()
+                ->orderBy('updated_at', 'desc')
                 ->get();
-            
+
             $reels = $this->enrichReels($reels, $user->id);
-            return response()->json([
-                'success' => true,
-                'message' => 'Reels fetched successfully',
-                'data' => $reels,
-            ], 200);
+            return $this->Response(true, 'Reels fetched successfully', $reels, 200);
         } catch (\Exception $e) {
             Log::error('Reel Fetch Error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
     public function getreelofall(Request $request)
@@ -216,17 +192,10 @@ class ReelsController extends BaseController
                 ->inRandomOrder()
                 ->get();
             $reels = $this->enrichReels($reels, $user->id);
-            return response()->json([
-                'success' => true,
-                'message' => 'Reels fetched successfully',
-                'data' => $reels,
-            ], 200);
+            return $this->Response(true, 'Reels fetched successfully', $reels, 200);
         } catch (\Exception $e) {
             Log::error('Reel Fetch Error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
 
@@ -250,17 +219,10 @@ class ReelsController extends BaseController
 
             $reels = $this->enrichReels($reels, $user->id);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Following reels fetched successfully',
-                'data' => $reels,
-            ], 200);
+            return $this->Response(true, 'Following reels fetched successfully', $reels, 200);
         } catch (\Exception $e) {
             Log::error('Following Reel Fetch Error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->Response(false, $e->getMessage(), null, 500);
         }
     }
     public function saveReel(Request $request)
@@ -290,22 +252,19 @@ class ReelsController extends BaseController
     {
         try {
             $user = auth('api')->user();
-            if (!$user){
+            if (!$user) {
                 return $this->unauthorized();
             }
             $savedReels = $user->savedReels()
                 ->with('user.profile.user_avatar') // Eager load relationships
                 ->withCount(['comments', 'reactions'])
                 ->orderBy('pivot_created_at', 'desc')
-                ->get(); 
+                ->get();
 
             $savedReels = $this->enrichReels($savedReels, $user->id);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Saved reels fetched successfully',
-                'data' => $savedReels,
-            ], 200);
+            return $this->Response(true, 'Saved reels fetched successfully', $savedReels, 200);
+
         } catch (\Exception $e) {
             return $this->Response(false, $e->getMessage(), null, 500);
         }
@@ -314,7 +273,7 @@ class ReelsController extends BaseController
     private function enrichReels($reels, $userId)
     {
         if ($reels->isEmpty()) return $reels;
-        
+
         $reelIds = $reels->pluck('id');
         $userIds = $reels->pluck('user_id')->unique();
 
@@ -337,10 +296,10 @@ class ReelsController extends BaseController
 
         // 3. Follow Status
         $follows = DB::table('followers')
-             ->where('follower_id', $userId)
-             ->whereIn('following_id', $userIds)
-             ->pluck('status', 'following_id')
-             ->all();
+            ->where('follower_id', $userId)
+            ->whereIn('following_id', $userIds)
+            ->pluck('status', 'following_id')
+            ->all();
 
         foreach ($reels as $reel) {
             $reel->is_liked = isset($likes[$reel->id]);

@@ -222,6 +222,7 @@
     </div>
 
     <script src="js/config.js"></script>
+    <script src="js/utils.js"></script> <!-- Added utils.js for showToast -->
     <script>
 
         // Toggle Password Visibility
@@ -345,7 +346,7 @@
             const email = urlParams.get('email');
 
             if (!token || !email) {
-                alert('Invalid reset link. Please request a new password reset.');
+                showToast('Invalid reset link. Please request a new password reset.');
                 return;
             }
 
@@ -355,17 +356,17 @@
             const btnText = btn.querySelector('span:first-child');
 
             if (!password || !confirmPassword) {
-                alert('Please fill in all fields.');
+                showToast('Please fill in all fields.');
                 return;
             }
 
             if (password !== confirmPassword) {
-                alert('Passwords do not match.');
+                showToast('Passwords do not match.');
                 return;
             }
 
             if (password.length < 6) {
-                alert('Password must be at least 6 characters.');
+                showToast('Password must be at least 6 characters.');
                 return;
             }
 
@@ -379,6 +380,7 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/reset_password`, {
                     method: 'POST',
+                    credentials: 'include', //  <-- Important for HttpOnly Cookie support
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
@@ -395,16 +397,16 @@
 
                 if (response.ok && data.success) {
                     isSuccess = true;
-                    alert('Password reset successful! Redirecting to login...');
+                    showToast('Password reset successful! Redirecting to login...', 'success');
                     setTimeout(() => {
                         window.location.href = 'login.html';
                     }, 1500);
                 } else {
-                    alert(data.message || 'Failed to reset password.');
+                    showToast(data.message || 'Failed to reset password.', 'error');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('An error occurred. Please try again.');
+                showToast('An error occurred. Please try again.', 'error');
             } finally {
                 if (!isSuccess) {
                     btnText.textContent = originalText;
