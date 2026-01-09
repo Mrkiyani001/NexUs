@@ -139,12 +139,19 @@ async function openChat(user) {
     document.getElementById('chat-header-avatar').style.backgroundImage = `url('${avatarUrl}')`;
 
     // Load Messages
-    // If it's a conversation object, use friend_id. If it's a user object (search), use id.
-    const targetId = user.friend_id || user.id;
+    // Determine if 'user' is a Conversation object or a Search Result User object
+    let targetId;
+    // Check if distinct property 'friend_id' exists (it comes from ConversationResource)
+    if ('friend_id' in user) {
+        targetId = user.friend_id; // Can be null for deleted users
+    } else {
+        targetId = user.id; // Search result User object
+    }
+    
     console.log("Target Receiver ID:", targetId); // DEBUG
 
     // Handle Deleted/Blocked User
-    if (!targetId || !user.friend_id) {
+    if (!targetId) {
         document.getElementById('messages-container').innerHTML = `
             <div class="flex flex-col items-center justify-center h-full text-slate-500">
                 <span class="material-symbols-outlined text-4xl mb-2">person_off</span>
