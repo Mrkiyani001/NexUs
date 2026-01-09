@@ -11,6 +11,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ReelsController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\ShareController;
@@ -142,15 +143,15 @@ Route::group(['middleware' => ['api', 'auth:api']], function () {
     Route::post('get_liked_posts', [PostController::class, 'get_liked_posts'])->middleware('permission:view posts');
 
     // Reel Routes
-    Route::post('create_reel', [ReelsController::class, 'create_reel'])->middleware('permission:create posts');
-    Route::post('update_reel', [ReelsController::class, 'update_reel'])->middleware('permission:update posts');
-    Route::delete('delete_reel', [ReelsController::class, 'destroy_reel'])->middleware('permission:delete posts');
-    Route::post('get_reels_by_user', [ReelsController::class, 'getreelofuser'])->middleware('permission:view posts');
-    Route::get('get_all_reels', [ReelsController::class, 'getreelofall'])->middleware('permission:view posts');
-    Route::get('get_following_reels', [ReelsController::class, 'get_following_reels'])->middleware('permission:view posts');
-    Route::post('get_liked_reels', [ReelsController::class, 'get_liked_reels'])->middleware('permission:view posts');
-    Route::post('save_reel', [ReelsController::class, 'saveReel'])->middleware('permission:create posts');
-    Route::get('get_saved_reels', [ReelsController::class, 'getSavedReels'])->middleware('permission:view posts');
+    Route::post('create_reel', [ReelsController::class, 'create_reel'])->middleware('permission:create reel');
+    Route::post('update_reel', [ReelsController::class, 'update_reel'])->middleware('permission:update reel');
+    Route::delete('delete_reel', [ReelsController::class, 'destroy_reel'])->middleware('permission:delete reel');
+    Route::post('get_reels_by_user', [ReelsController::class, 'getreelofuser'])->middleware('permission:get reel');
+    Route::get('get_all_reels', [ReelsController::class, 'getreelofall'])->middleware('permission:get reel');
+    Route::get('get_following_reels', [ReelsController::class, 'get_following_reels'])->middleware('permission:get reel');
+    Route::post('get_liked_reels', [ReelsController::class, 'get_liked_reels'])->middleware('permission:get posts');
+    Route::post('save_reel', [ReelsController::class, 'saveReel'])->middleware('permission:get reel');
+    Route::get('get_saved_reels', [ReelsController::class, 'getSavedReels'])->middleware('permission:get reel');
 
     // Comment Routes
     Route::post('create_comment', [CommentsController::class, 'create'])->middleware('permission:comments create');
@@ -193,6 +194,18 @@ Route::group(['middleware' => ['api', 'auth:api']], function () {
 
     // Site Settings Routes (Admin Update)
     Route::post('admin/settings', [SettingsController::class, 'update'])->middleware('permission:manage access');
+
+    // Message Routes
+    Route::post('sendmessage', [MessageController::class, 'sendMessage'])->middleware('permission:message send');
+    Route::post('updatemessage', [MessageController::class, 'updateMessage'])->middleware('permission:message update');
+    Route::delete('deletemessage', [MessageController::class, 'deleteMessage'])->middleware('permission:message delete');
+    Route::post('getmessages', [MessageController::class, 'getMessages'])->middleware('permission:get messages');
+
+    Route::get('getconversations', [MessageController::class, 'getConversation'])->middleware('permission:get conversation');
+    Route::get('/users/search', [MessageController::class, 'searchUsers']);
 });
 
+
+
 // Use full namespace for public route to avoid alias issues if valid
+
