@@ -46,12 +46,10 @@ Route::get('/debug-config', function () {
 
 Route::get('/broadcasting/config', function () {
     return response()->json([
-        'key' => env('REVERB_APP_KEY'),
-        // ⚠️ CHANGE: REVERB_HOST ki jagah VITE_REVERB_HOST use karein
-        // Kyunki .env mein VITE_REVERB_HOST="web.kiyanibhai.site" hai
-        'host' => env('VITE_REVERB_HOST'),
-        'port' => env('REVERB_PORT'),
-        'scheme' => env('REVERB_SCHEME', 'http'),
+        'key' => config('broadcasting.connections.reverb.key'),
+        'host' => config('broadcasting.connections.reverb.options.vite_host') ?? config('broadcasting.connections.reverb.options.host'),
+        'port' => config('broadcasting.connections.reverb.options.port'),
+        'scheme' => config('broadcasting.connections.reverb.options.scheme'),
     ]);
 });
 // Register Broadcasting Routes (Auth Endpoint)
