@@ -107,6 +107,26 @@ class BaseController extends Controller
 
         return $model->reels()->create($data);
     }
+
+    public function uploadFile($file, $folder, $model, $extraData = [])
+    {
+        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        $file_size = $file->getSize();
+        $file->move(public_path('storage/' . $folder), $filename);
+        $filepath = 'storage/' . $folder . '/' . $filename;
+        $extension = strtolower($file->getClientOriginalExtension());
+        $type = $this->getFileType($extension);
+        
+        $data = array_merge([
+            'file_name' => $filename,
+            'file_path' => $filepath, 
+            'file_type' => $type,
+            'duration' => null, 
+            'file_size' => $file_size,
+        ], $extraData);
+
+        return $model->files()->create($data);
+    }
     public function Response(bool $success, string $message, $data = null, int $code = 200)
     {
         $response = [

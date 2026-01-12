@@ -134,4 +134,8 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     {
         return $this->belongsToMany(Reel::class, 'saved_reels', 'user_id', 'reel_id')->withTimestamps();
     }
+    public function files()
+    {
+        return $this->hasMany(VoiceMessage::class, 'sender_id');
+    }
 }

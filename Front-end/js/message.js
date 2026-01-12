@@ -392,7 +392,7 @@ async function loadMessages(receiverId) {
     if (!receiverId) return;
 
     const container = document.getElementById('messages-container');
-    const cacheKey = `chat_msg_${currentUserData.id}_${receiverId}`;
+    const cacheKey = `chat_msg_v2_${currentUserData.id}_${receiverId}`; // V2 cache key
 
     // 1. Try Cache
     const cachedData = localStorage.getItem(cacheKey);
@@ -406,39 +406,62 @@ async function loadMessages(receiverId) {
                 container.innerHTML = '<div class="text-center text-slate-500 py-4">Loading messages...</div>';
             }
         } catch (e) {
-            console.error("Cache parse error", e);
             container.innerHTML = '<div class="text-center text-slate-500 py-4">Loading messages...</div>';
         }
     } else {
         container.innerHTML = '<div class="text-center text-slate-500 py-4">Loading messages...</div>';
     }
 
-    // 2. Fetch Fresh Data (Background)
-    const url = `${API_BASE_URL}/fetch_messages`;
+    // 2. Parallel Fetch (Texts + Voice)
     try {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ receiver_id: receiverId })
-        });
+        const [textRes, voiceRes] = await Promise.all([
+             fetch(`${API_BASE_URL}/fetch_messages`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ receiver_id: receiverId })
+             }),
+             fetch(`${API_BASE_URL}/getvoicemsg`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ 
+                    receiver_id: receiverId,
+                    conversation_id: activeChatUser.id // Send conversation ID if available
+                })
+             })
+        ]);
 
-        const result = await response.json();
+        const textResult = await textRes.json();
+        const voiceResult = await voiceRes.json();
+        
+        // Arrays
+        let texts = textResult.success ? textResult.data : [];
+        let voices = voiceResult.success ? voiceResult.data : [];
+        
+        // Normalize Voice Messages to look like Messages for Rendering
+        voices = voices.map(v => ({
+            ...v,
+            type: 'voice',
+            message: null, 
+            attachments: [] 
+        }));
 
-        if (result.success) {
-            // Update Cache
-            localStorage.setItem(cacheKey, JSON.stringify(result.data));
+        // Merge & Sort
+        let allMessages = [...texts, ...voices];
+        allMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
 
-            // Re-render
-            renderMessagesList(result.data);
-
-            // Only scroll to bottom if we are at the bottom? 
-            // For now, always scroll to bottom on load/refresh matches standard behavior
+        // Update Cache
+        if (allMessages.length > 0) {
+            localStorage.setItem(cacheKey, JSON.stringify(allMessages));
+            renderMessagesList(allMessages);
             scrollToBottom();
         } else {
             if (!cachedData) container.innerHTML = '<div class="text-center text-slate-500 py-8">No messages yet</div>';
         }
+
     } catch (error) {
+        console.error("Load Error:", error);
         if (!cachedData) container.innerHTML = '<div class="text-center text-red-500 py-4">Error loading history</div>';
     }
 }
@@ -709,18 +732,261 @@ function renderFilePreviews() {
 
 function updateSendButtonState() {
     const input = document.getElementById('message-input');
-    const sendBtn = document.querySelector('#message-form button[type="submit"]');
-    if (!input || !sendBtn) return;
+    const sendBtn = document.getElementById('send-btn');
+    const micBtn = document.getElementById('mic-btn');
+    
+    if (!input || !sendBtn || !micBtn) return;
 
     const hasText = input.value.trim().length > 0;
     const hasFiles = filesQueue.length > 0;
 
     if (hasText || hasFiles) {
+        // Show Send, Hide Mic
+        sendBtn.classList.remove('hidden');
+        micBtn.classList.add('hidden');
         sendBtn.disabled = false;
         sendBtn.classList.remove('opacity-50', 'cursor-not-allowed');
     } else {
-        sendBtn.disabled = true;
-        sendBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        // Show Mic, Hide Send
+        sendBtn.classList.add('hidden');
+        micBtn.classList.remove('hidden');
+        // Reset Send Button state just in case
+        sendBtn.disabled = true; 
+    }
+}
+
+// --- Voice Recording Logic ---
+// --- Voice Recording Logic ---
+// --- Voice Recording Logic ---
+let voiceRecorder = null;
+let voiceChunks = [];
+let voiceInterval = null;
+let voiceStartTime = 0;
+let voiceMimeType = 'audio/webm';
+let voiceBlob = null; // Store blob for review
+let voiceDuration = 0;
+
+async function startRecording() {
+    if (!activeChatUser) {
+        showToast('Select a chat first', 'error');
+        return;
+    }
+
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        
+        voiceMimeType = 'audio/webm';
+        if (!MediaRecorder.isTypeSupported('audio/webm')) {
+             if (MediaRecorder.isTypeSupported('audio/mp4')) voiceMimeType = 'audio/mp4';
+             else if (MediaRecorder.isTypeSupported('audio/ogg')) voiceMimeType = 'audio/ogg';
+             else voiceMimeType = ''; 
+        }
+
+        const options = voiceMimeType ? { mimeType: voiceMimeType } : {};
+        voiceRecorder = new MediaRecorder(stream, options);
+        voiceChunks = [];
+
+        voiceRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) voiceChunks.push(event.data);
+        };
+
+        voiceRecorder.onstop = () => {
+             stream.getTracks().forEach(track => track.stop());
+        };
+
+        voiceRecorder.start();
+        console.log("Recording started:", voiceMimeType);
+
+        // UI Updates: Show Active Recording
+        const ui = document.getElementById('recording-ui');
+        ui.classList.remove('hidden');
+        ui.classList.add('flex');
+        
+        document.getElementById('recording-active').classList.remove('hidden');
+        document.getElementById('recording-review').classList.add('hidden');
+        
+        // Hide Play Icon reset
+        resetPlayIcon();
+
+        // Timer
+        voiceStartTime = Date.now();
+        const timerEl = document.getElementById('recording-timer');
+        if (timerEl) timerEl.innerText = "00:00";
+        
+        // Clear any existing interval
+        if (voiceInterval) clearInterval(voiceInterval);
+        
+        voiceInterval = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - voiceStartTime) / 1000);
+            const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
+            const secs = String(elapsed % 60).padStart(2, '0');
+            const el = document.getElementById('recording-timer');
+            if (el) {
+                el.innerText = `${mins}:${secs}`;
+            }
+        }, 1000);
+
+        // Hide Mic Button while recording
+        document.getElementById('mic-btn').classList.add('hidden');
+        document.getElementById('send-btn').classList.add('hidden');
+
+    } catch (err) {
+        console.error("Mic Error:", err);
+        showToast("Microphone access denied: " + err.message, "error");
+    }
+}
+
+function stopRecording() {
+    if (!voiceRecorder || voiceRecorder.state === 'inactive') return;
+
+    // Determine duration BEFORE stopping (more accurate visual)
+    voiceDuration = Math.floor((Date.now() - voiceStartTime) / 1000);
+    clearInterval(voiceInterval); // Stop timer immediately
+
+    voiceRecorder.onstop = () => {
+         const type = voiceMimeType || 'audio/webm';
+         voiceBlob = new Blob(voiceChunks, { type: type });
+         
+         console.log("Recording Ready for Review. Size:", voiceBlob.size);
+         
+         if (voiceBlob.size === 0) {
+             showToast("Recording empty", "error");
+             discardRecording();
+             return;
+         }
+
+         // Switch UI to Review Mode
+         document.getElementById('recording-active').classList.add('hidden');
+         document.getElementById('recording-review').classList.remove('hidden');
+         document.getElementById('recording-review').classList.add('flex'); 
+         
+         // Setup Audio Preview
+         const audio = document.getElementById('audio-preview');
+         const url = URL.createObjectURL(voiceBlob);
+         audio.src = url;
+         audio.load();
+    };
+    
+    voiceRecorder.stop();
+}
+
+function togglePlayUrl() {
+    const audio = document.getElementById('audio-preview');
+    const icon = document.getElementById('play-icon');
+    
+    if (audio.paused) {
+        audio.play().then(() => {
+            icon.innerText = 'pause';
+            animateProgress();
+        }).catch(e => console.error(e));
+    } else {
+        audio.pause();
+        icon.innerText = 'play_arrow';
+    }
+}
+
+function resetPlayIcon() {
+    const icon = document.getElementById('play-icon');
+    if (icon) icon.innerText = 'play_arrow';
+    const bar = document.getElementById('audio-progress');
+    if(bar) bar.style.width = '0%';
+}
+
+function animateProgress() {
+    const audio = document.getElementById('audio-preview');
+    const bar = document.getElementById('audio-progress');
+    
+    function step() {
+        if (!audio.paused && !audio.ended) {
+            const pct = (audio.currentTime / audio.duration) * 100;
+            bar.style.width = `${pct}%`;
+            requestAnimationFrame(step);
+        } else if (audio.ended) {
+            bar.style.width = '100%';
+            resetPlayIcon();
+        }
+    }
+    requestAnimationFrame(step);
+}
+
+function discardRecording() {
+    const audio = document.getElementById('audio-preview');
+    if(audio) {
+        audio.pause();
+        audio.src = '';
+    }
+    voiceBlob = null;
+    resetRecordingUI();
+}
+
+async function uploadRecording() {
+    if (!voiceBlob) return;
+    
+    // Disable send button to prevent double tap
+    const btn = document.querySelector('#recording-review button[onclick="uploadRecording()"]');
+    if(btn) btn.disabled = true;
+
+    // Extension
+    let ext = 'webm';
+    if (voiceBlob.type.includes('mp4')) ext = 'mp4';
+    else if (voiceBlob.type.includes('ogg')) ext = 'ogg';
+
+    const filename = `voice_msg_${Date.now()}.${ext}`;
+    const file = new File([voiceBlob], filename, { type: voiceBlob.type });
+    
+    await uploadVoiceMessage(file, voiceDuration);
+    
+    discardRecording();
+    if(btn) btn.disabled = false;
+}
+
+function resetRecordingUI() {
+    clearInterval(voiceInterval);
+    document.getElementById('recording-ui').classList.add('hidden');
+    document.getElementById('recording-ui').classList.remove('flex');
+    
+    // Reset Buttons
+    document.getElementById('mic-btn').classList.remove('hidden');
+    
+    // Check if input has text to show Send, else keep hidden
+    updateSendButtonState();
+    
+    voiceRecorder = null;
+    voiceChunks = [];
+    voiceBlob = null;
+}
+
+async function uploadVoiceMessage(file, duration) {
+    if (!activeChatUser) return;
+    
+    const formData = new FormData();
+    const receiverId = activeChatUser.friend_id || activeChatUser.id;
+    const conversationId = activeChatUser.friend_id ? activeChatUser.id : null; 
+
+    formData.append('receiver_id', receiverId);
+    if (conversationId) formData.append('conversation_id', conversationId);
+    
+    formData.append('file', file);
+    formData.append('duration', duration);
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/voicemsg`, {
+             method: 'POST',
+             headers: { 'Accept': 'application/json' },
+             credentials: 'include',
+             body: formData
+        });
+        const result = await response.json();
+        if (result.success) {
+             showToast('Voice message sent', 'success');
+             loadConversations();
+        } else {
+             console.error("Upload failed:", result);
+             showToast(result.message || 'Failed to send voice', 'error');
+        }
+    } catch(e) {
+        console.error("Upload error:", e);
+        showToast('Error uploading voice', 'error');
     }
 }
 
@@ -769,10 +1035,8 @@ function renderConversations() {
 }
 
 function appendMessage(msg) {
-    console.log("Msg Data:", msg);
-    console.log("Attachments:", msg.attachments);
     // Prevent duplicate messages
-    if (document.getElementById(`msg-${msg.id}`)) {
+    if (document.getElementById(`msg-${msg.id}-${msg.type || 'text'}`)) {
         return;
     }
 
@@ -782,191 +1046,161 @@ function appendMessage(msg) {
     // Check if deleted
     const isDeleted = msg.is_deleted_everyone || msg.message === "This message was deleted"; 
 
-    // Add Date Separator if needed (simple check against last message could be added here)
-
     const wrapper = document.createElement('div');
-    wrapper.id = `msg-${msg.id}`; // Crucial for realtime updates
+    wrapper.id = `msg-${msg.id}-${msg.type || 'text'}`; 
     wrapper.className = isMe
         ? 'flex flex-col items-end gap-1 ml-auto max-w-[80%]'
         : 'flex items-end gap-3 max-w-[80%]';
 
     // Avatar for other
-    let avatarHtml = '';
     if (!isMe) {
         const headerAvatar = document.getElementById('chat-header-avatar');
-        avatarHtml = `<div class="bg-center bg-no-repeat bg-cover rounded-full h-8 w-8 shrink-0 mb-1" style="${headerAvatar.style.backgroundImage}"></div>`;
+        if (headerAvatar) {
+             const style = headerAvatar.style.backgroundImage;
+             const avatarHtml = `<div class="bg-center bg-no-repeat bg-cover rounded-full h-8 w-8 shrink-0 mb-1" style="${style}"></div>`;
+             wrapper.insertAdjacentHTML('afterbegin', avatarHtml); 
+        }
     }
 
-    // Attachments
-    let attachmentsHtml = '';
-    if (!isDeleted && msg.attachments && msg.attachments.length > 0) {
-        const isMultiple = msg.attachments.length > 1;
-        const gridClass = isMultiple ? 'grid grid-cols-2 gap-1.5' : 'flex flex-col gap-1.5';
+    // Content Bubble
+    let contentHtml = '';
+    
+    // --- VOICE MESSAGE ---
+    if (msg.type === 'voice' || (msg.file_path && msg.duration)) {
+        // file_path already includes 'storage/voice_messages/...'
+        const url = `${API_BASE_URL.replace('/api', '')}/${msg.file_path}`; 
         
-        attachmentsHtml += `<div class="${gridClass} mb-2 mt-1">`;
+        const durationDisplay = formatDuration(msg.duration);
+        const uniqueId = `voice-${msg.id}`;
+
+        contentHtml = `
+            <div class="flex items-center gap-3 p-3 rounded-2xl ${isMe ? 'bg-primary text-white rounded-br-none' : 'bg-surface-border text-white rounded-bl-none'} shadow-sm min-w-[200px]">
+                <button id="btn-${uniqueId}" onclick="playVoice('${url}', '${uniqueId}')" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors shrink-0">
+                    <span class="material-symbols-outlined text-[24px]">play_arrow</span>
+                </button>
+                <div class="flex flex-col gap-1 flex-1 min-w-0">
+                    <div class="h-1 bg-black/20 rounded-full overflow-hidden w-full">
+                        <div id="progress-${uniqueId}" class="h-full bg-white/80 w-0 transition-all duration-100"></div>
+                    </div>
+                    <span class="text-[10px] opacity-70 font-mono tracking-wider">${durationDisplay}</span>
+                </div>
+                <!-- Hidden Audio Tag -->
+                <audio id="audio-${uniqueId}" src="${url}" onended="resetVoiceUI('${uniqueId}')" ontimeupdate="updateVoiceProgress('${uniqueId}')"></audio>
+            </div>
+        `;
+    } 
+    // --- TEXT / ATTACHMENT MESSAGE ---
+    else {
+        // Attachments
+        if (!isDeleted && msg.attachments && msg.attachments.length > 0) {
+            const isMultiple = msg.attachments.length > 1;
+            const gridClass = isMultiple ? 'grid grid-cols-2 gap-1.5' : 'flex flex-col gap-1.5';
+            
+            contentHtml += `<div class="${gridClass} mb-2 mt-1">`;
+            msg.attachments.forEach(att => {
+                const url = `${API_BASE_URL.replace('/api', '')}/storage/Messages/${att.file_name}`;
+                const isSingle = !isMultiple;
+                const sizeClass = isSingle ? 'w-64 h-48 sm:w-72 sm:h-56' : 'w-32 h-32 sm:w-40 sm:h-40';
+                
+                if (att.file_type === 'image') {
+                    contentHtml += `<div class="relative ${sizeClass} rounded-2xl overflow-hidden border border-white/10 cursor-pointer group bg-black/20" onclick="viewMedia('${url}', 'image')"><img src="${url}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"></div>`;
+                } else if (att.file_type === 'video') {
+                    contentHtml += `<div class="relative ${sizeClass} rounded-2xl overflow-hidden border border-white/10 cursor-pointer group bg-black/20" onclick="viewMedia('${url}', 'video')"><video src="${url}" class="w-full h-full object-cover pointer-events-none"></video><div class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40"><span class="material-symbols-outlined text-white text-3xl">play_circle</span></div></div>`;
+                } else {
+                    contentHtml += `<a href="${url}" target="_blank" class="col-span-full flex items-center gap-3 p-3 bg-surface-border/50 rounded-xl border border-white/5"><span class="material-symbols-outlined">description</span><span class="truncate text-xs">${att.file_name}</span></a>`;
+                }
+            });
+            contentHtml += `</div>`;
+        }
         
-        msg.attachments.forEach(att => {
-            const url = `${API_BASE_URL.replace('/api', '')}/storage/Messages/${att.file_name}`;
-            const isSingle = !isMultiple;
-            
-            // Custom fixed dimensions for previews
-            const sizeClass = isSingle ? 'w-64 h-48 sm:w-72 sm:h-56' : 'w-32 h-32 sm:w-40 sm:h-40';
-            
-            if (att.file_type === 'image') {
-                attachmentsHtml += `
-                    <div class="relative ${sizeClass} rounded-2xl overflow-hidden border border-white/10 cursor-pointer group bg-black/20" onclick="viewMedia('${url}', 'image')">
-                         <img src="${url}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                    </div>`;
-            } else if (att.file_type === 'video') {
-                attachmentsHtml += `
-                    <div class="relative ${sizeClass} rounded-2xl overflow-hidden border border-white/10 cursor-pointer group bg-black/20" onclick="viewMedia('${url}', 'video')">
-                        <video src="${url}" class="w-full h-full object-cover pointer-events-none"></video>
-                        <div class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
-                            <div class="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <span class="material-symbols-outlined text-white text-2xl">play_arrow</span>
-                            </div>
-                        </div>
-                    </div>`;
-            } else {
-                attachmentsHtml += `
-                    <a href="${url}" target="_blank" class="col-span-full flex items-center gap-3 p-3 bg-surface-border/50 rounded-xl hover:bg-surface-border transition-colors border border-white/5 group">
-                        <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                             <span class="material-symbols-outlined text-2xl">description</span>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm text-white font-medium truncate">${att.file_name}</p>
-                            <p class="text-[10px] text-slate-400 uppercase tracking-wider">File</p>
-                        </div>
-                        <span class="material-symbols-outlined text-slate-500">download</span>
-                    </a>
-                 `;
-            }
-        });
-        attachmentsHtml += `</div>`;
+        // Text Content
+        if (msg.message) {
+             const bubbleClass = isMe 
+                ? 'bg-primary text-white rounded-2xl rounded-tr-none px-4 py-2.5 shadow-sm' 
+                : 'bg-surface-border text-white rounded-2xl rounded-tl-none px-4 py-2.5 shadow-sm';
+             
+             if (isDeleted) {
+                 contentHtml += `<div class="italic text-slate-400 text-sm border border-white/10 px-3 py-2 rounded-xl flex items-center gap-2"><span class="material-symbols-outlined text-[16px]">block</span> Message deleted</div>`;
+             } else {
+                 contentHtml += `<div class="${bubbleClass} text-[15px] leading-relaxed break-words whitespace-pre-wrap">${msg.message} ${(msg.is_edited ? '<span class="text-[9px] opacity-70 ml-1">(edited)</span>' : '')}</div>`;
+             }
+        }
     }
 
     const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
+    let metaHtml = `<div class="flex items-center gap-1 mt-0.5 ${isMe ? 'opacity-70' : 'opacity-50'}">
+        <span class="text-[10px]">${time}</span>`;
+    
     if (isMe) {
-        // Status Icon Logic
         let statusIcon = 'done'; 
-        let statusColor = 'text-[#9da5b9]'; 
-        
+        let statusColor = 'text-white/70'; 
         if (msg.status === 'delivered') { statusIcon = 'done_all'; } 
-        else if (msg.status === 'read') { statusIcon = 'done_all'; statusColor = 'text-blue-400'; } 
-        else if (!msg.status || msg.status === 'sent') { statusIcon = 'done'; }
+        else if (msg.status === 'read') { statusIcon = 'done_all'; statusColor = 'text-blue-300'; } 
+        metaHtml += `<span class="material-symbols-outlined text-[14px] ${statusColor}">${statusIcon}</span>`;
+    }
+    metaHtml += `</div>`;
 
-        // DELETED STYLE
-        let messageContent = '';
-        let messageClasses = '';
-        
-        if (isDeleted) {
-            messageClasses = 'bg-surface-border/50 px-4 py-3 rounded-2xl rounded-br-none text-slate-400 text-sm leading-relaxed italic border border-white/5 flex items-center gap-2';
-            messageContent = '<span class="material-symbols-outlined text-[16px]">block</span> This message was deleted';
-        } else {
-            const text = msg.message || '';
-            if (text.trim() === '') {
-                 messageClasses = 'hidden'; // Hide bubble if empty
-            } else {
-                 messageClasses = 'bg-primary px-4 py-3 rounded-2xl rounded-br-none text-white text-sm leading-relaxed shadow-lg shadow-primary/10 relative';
-                 messageContent = text + (msg.is_edited ? '<span class="text-[9px] opacity-70 ml-1">(edited)</span>' : '');
-            }
+    const innerWrapper = document.createElement('div');
+    innerWrapper.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
+    innerWrapper.innerHTML = contentHtml + metaHtml;
+    
+    wrapper.appendChild(innerWrapper);
+    container.appendChild(wrapper);
+}
+
+// Helper: Format Duration (seconds -> 00:00)
+function formatDuration(seconds) {
+    if(!seconds) return '00:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+// --- Voice Playback Logic ---
+let currentAudioId = null;
+
+function playVoice(url, uniqueId) {
+    const audio = document.getElementById(`audio-${uniqueId}`);
+    const btn = document.getElementById(`btn-${uniqueId}`);
+    
+    if (!audio) return;
+
+    // Stop Other Audios
+    if (currentAudioId && currentAudioId !== uniqueId) {
+        const otherAudio = document.getElementById(`audio-${currentAudioId}`);
+        if(otherAudio) {
+            otherAudio.pause();
+            otherAudio.currentTime = 0;
+            resetVoiceUI(currentAudioId);
         }
-
-        // Menu Logic (Sender)
-        let menuButtons = '';
-        if (isDeleted) {
-            menuButtons = `
-                <button onclick="deleteMsg(${msg.id}, 'me')" class="w-full text-left px-4 py-2 text-xs text-slate-400 hover:bg-white/5 hover:text-white flex items-center gap-2">
-                     <span class="material-symbols-outlined text-[14px]">delete</span> Delete for me
-                </button>
-            `;
-        } else {
-            menuButtons = `
-                <button onclick="editMsg(${msg.id}, '${(msg.message || '').replace(/'/g, "\\'")}')" class="w-full text-left px-4 py-2 text-xs text-slate-300 hover:bg-white/5 hover:text-white flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[14px]">edit</span> Edit
-                </button>
-                <button onclick="deleteMsg(${msg.id}, 'everyone')" class="w-full text-left px-4 py-2 text-xs text-red-400 hover:bg-red-500/10 hover:text-red-300 flex items-center gap-2">
-                        <span class="material-symbols-outlined text-[14px]">delete_forever</span> Delete for everyone
-                </button>
-                <button onclick="deleteMsg(${msg.id}, 'me')" class="w-full text-left px-4 py-2 text-xs text-slate-400 hover:bg-white/5 hover:text-white flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[14px]">delete</span> Delete for me
-                </button>
-            `;
-        }
-
-        const menuHtml = `
-            <div class="opacity-0 group-hover/msg:opacity-100 transition-opacity absolute right-full mr-2 z-10 bottom-0">
-                <button onclick="toggleMessageMenu(${msg.id})" class="p-1 rounded-full hover:bg-white/10 text-slate-400 hover:text-white">
-                    <span class="material-symbols-outlined text-[18px]">more_vert</span>
-                </button>
-                <div id="msg-menu-${msg.id}" class="hidden absolute right-0 bottom-full mb-1 w-40 bg-[#1e2532] border border-surface-border rounded-xl shadow-xl overflow-hidden z-20">
-                    ${menuButtons}
-                </div>
-            </div>`;
-
-        wrapper.innerHTML = `
-            ${attachmentsHtml}
-            <div class="group/msg relative flex items-end gap-2 ml-auto">
-                 ${menuHtml}
-                <div class="${messageClasses}">
-                    ${messageContent}
-                </div>
-            </div>
-            <div class="flex items-center gap-1 mr-1">
-                <span class="text-[#9da5b9] text-[11px]">${time}</span>
-                <span id="status-${msg.id}" class="material-symbols-outlined text-[16px] ${statusColor}">${statusIcon}</span>
-            </div>
-        `;
-    } else {
-        // INCOMING
-        let messageContent = '';
-
-        let messageClasses = '';
-        
-        if (isDeleted) {
-            messageClasses = 'bg-surface-border/50 px-4 py-3 rounded-2xl rounded-bl-none text-slate-400 text-sm leading-relaxed italic border border-white/5 flex items-center gap-2';
-            messageContent = '<span class="material-symbols-outlined text-[16px]">block</span> This message was deleted';
-        } else {
-             const text = msg.message || '';
-             if (text.trim() === '') {
-                 messageClasses = 'hidden';
-             } else {
-                 messageClasses = 'bg-surface-border px-4 py-3 rounded-2xl rounded-bl-none text-white text-sm leading-relaxed';
-                 messageContent = text + (msg.is_edited ? '<span class="text-[9px] opacity-70 ml-1">(edited)</span>' : '');
-             }
-        }
-
-        // Menu Logic (Receiver)
-        // Always show "Delete for me" even if deleted
-        const menuHtml = `
-            <div class="opacity-0 group-hover/msg:opacity-100 transition-opacity relative z-10">
-                <button onclick="toggleMessageMenu(${msg.id})" class="p-1 rounded-full hover:bg-white/10 text-slate-400 hover:text-white">
-                    <span class="material-symbols-outlined text-[18px]">more_vert</span>
-                </button>
-                <div id="msg-menu-${msg.id}" class="hidden absolute left-0 bottom-full mb-1 w-32 bg-[#1e2532] border border-surface-border rounded-xl shadow-xl overflow-hidden z-20">
-                        <button onclick="deleteMsg(${msg.id}, 'me')" class="w-full text-left px-4 py-2 text-xs text-slate-400 hover:bg-white/5 hover:text-white flex items-center gap-2">
-                            <span class="material-symbols-outlined text-[14px]">delete</span> Delete for me
-                    </button>
-                </div>
-            </div>`;
-
-        wrapper.innerHTML = `
-            ${avatarHtml}
-            <div class="flex flex-col gap-1 items-start group/msg relative">
-                 ${attachmentsHtml}
-                <div class="flex items-end gap-2">
-                    <div class="${messageClasses}">
-                        ${messageContent}
-                    </div>
-                    ${menuHtml}
-                </div>
-                <span class="text-[#9da5b9] text-[11px] ml-1">${time}</span>
-            </div>
-        `;
     }
 
-    container.appendChild(wrapper);
+    if (audio.paused) {
+        audio.play().then(() => {
+            currentAudioId = uniqueId;
+            btn.innerHTML = '<span class="material-symbols-outlined text-[24px]">pause</span>';
+        }).catch(e => console.error("Play error", e));
+    } else {
+        audio.pause();
+        btn.innerHTML = '<span class="material-symbols-outlined text-[24px]">play_arrow</span>';
+    }
+}
+
+function updateVoiceProgress(uniqueId) {
+    const audio = document.getElementById(`audio-${uniqueId}`);
+    const bar = document.getElementById(`progress-${uniqueId}`);
+    if(audio && bar) {
+        const pct = (audio.currentTime / audio.duration) * 100;
+        bar.style.width = `${pct}%`;
+    }
+}
+
+function resetVoiceUI(uniqueId) {
+    const btn = document.getElementById(`btn-${uniqueId}`);
+    const bar = document.getElementById(`progress-${uniqueId}`);
+    if(btn) btn.innerHTML = '<span class="material-symbols-outlined text-[24px]">play_arrow</span>';
+    if(bar) bar.style.width = '0%';
+    currentAudioId = null;
 }
 
 // --- Message Actions ---

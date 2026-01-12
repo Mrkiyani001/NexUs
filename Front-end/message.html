@@ -362,15 +362,64 @@
                     <span class="material-symbols-outlined text-[24px] rotate-45">attach_file</span>
                 </button>
                 
+                <!-- Recording UI (Above Input) -->
+                <!-- Recording UI Container -->
+                <div id="recording-ui" class="absolute bottom-full mb-2 left-0 w-full flex flex-col gap-2 bg-surface-border rounded-xl hidden z-20 shadow-lg border border-white/5 backdrop-blur-md overflow-hidden transition-all">
+                     
+                     <!-- State 1: Recording Active -->
+                     <div id="recording-active" class="flex items-center justify-between px-4 py-3 w-full">
+                        <div class="flex items-center gap-3">
+                            <span class="relative flex h-3 w-3">
+                              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                              <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                            </span>
+                            <span id="recording-timer" class="text-white font-mono text-sm tracking-wider">00:00</span>
+                        </div>
+                        <button type="button" onclick="stopRecording()" class="flex items-center gap-1 text-red-400 hover:text-red-300 text-xs uppercase font-bold tracking-wider px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-colors">
+                            <span class="material-symbols-outlined text-[18px]">stop_circle</span> Stop
+                        </button>
+                     </div>
+
+                     <!-- State 2: Review (Hidden Initially) -->
+                     <div id="recording-review" class="hidden flex items-center justify-between px-3 py-2 w-full gap-2">
+                        <button type="button" onclick="discardRecording()" class="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-full transition-colors" title="Delete">
+                            <span class="material-symbols-outlined text-[20px]">delete</span>
+                        </button>
+                        
+                        <div class="flex-1 h-8 bg-black/20 rounded-full overflow-hidden flex items-center px-3 relative group cursor-pointer" onclick="togglePlayUrl()">
+                            <!-- Audio Element (Hidden) -->
+                            <audio id="audio-preview" class="hidden" onended="resetPlayIcon()"></audio>
+                            <span id="play-icon" class="material-symbols-outlined text-white text-[20px]">play_arrow</span>
+                            <!-- Progress Bar (Fake for now or linked) -->
+                            <div class="ml-2 w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                                <div id="audio-progress" class="h-full bg-primary w-0 transition-all duration-100"></div>
+                            </div>
+                        </div>
+
+                        <button type="button" onclick="uploadRecording()" class="p-2 text-white bg-primary hover:bg-primary/90 rounded-full shadow-lg shadow-primary/20 transition-transform hover:scale-105" title="Send">
+                            <span class="material-symbols-outlined text-[20px]">send</span>
+                        </button>
+                     </div>
+                </div>
+
                 <!-- Input Pill -->
-                <div class="flex-1 bg-surface-border/50 backdrop-blur-md rounded-[24px] border border-white/5 focus-within:border-white/10 transition-colors flex items-center px-2 py-1 relative">
+                <div class="flex-1 bg-surface-border/50 backdrop-blur-md rounded-[24px] border border-white/5 focus-within:border-white/10 transition-colors flex items-center px-2 py-1 relative z-10">
                     <textarea id="message-input" class="w-full bg-transparent border-none text-white placeholder-slate-400 focus:ring-0 resize-none max-h-32 text-[15px] leading-relaxed py-2.5 px-3 no-scrollbar" placeholder="Type a message..." rows="1"></textarea>
                 </div>
 
-                <!-- Send Button (Standalone) -->
-                <button type="submit" class="w-11 h-11 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary/90 transition-all transform hover:scale-105 shadow-lg shadow-primary/25 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none mb-0.5">
+                <!-- Send Button (Initially Hidden) -->
+                <button type="submit" id="send-btn" class="hidden w-11 h-11 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary/90 transition-all transform hover:scale-105 shadow-lg shadow-primary/25 shrink-0 mb-0.5 z-10">
                     <span class="material-symbols-outlined text-[22px] ml-0.5">send</span>
                 </button>
+                
+                <!-- Mic Button (Initially Visible) -->
+                <button type="button" id="mic-btn" onclick="startRecording()" class="w-11 h-11 flex items-center justify-center rounded-full bg-surface-border text-white hover:bg-white/10 transition-all shrink-0 mb-0.5 z-10">
+                    <span class="material-symbols-outlined text-[24px]">mic</span>
+                </button>
+                
+                <!-- Send Recording Button (Hidden, replaces Mic when recording stops/is ready? No, Mic acts as Hold or Toggle) -->
+                <!-- We will use a separate button for "Stop & Send" or just tap mic to stop. -->
+                <!-- Let's stick to standard: Tap Mic -> Start, Tap Send (which appears) -> Send. -->
             </form>
         </div>
     </div>

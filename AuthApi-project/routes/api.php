@@ -16,6 +16,7 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ReelsController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\ShareController;
+use App\Http\Controllers\VoiceMessageController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Broadcast;
 use Prism\Prism\Facades\Prism;
@@ -225,6 +226,10 @@ Route::group(['middleware' => ['api', 'auth:api']], function () {
     Route::post('block_user', [BlockController::class, 'blockuser'])->middleware('permission:block user');
     Route::post('unblock_user', [BlockController::class, 'unblockuser'])->middleware('permission:unblock user');
     Route::get('get_blocked_users', [BlockController::class, 'getBlockedUsers'])->middleware('permission:get blocked users');
+
+    // Voice Message Routes
+    Route::post('voicemsg', [VoiceMessageController::class, 'sendVoiceMessage'])->middleware('permission:send voicemsg');
+    Route::post('getvoicemsg', [VoiceMessageController::class, 'getVoiceMessages'])->middleware('permission:get voicemsg');
 });
 
 
