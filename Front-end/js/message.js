@@ -28,6 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 sendMessage();
             }
         });
+        // Update Button State on Input
+        msgInput.addEventListener('input', updateSendButtonState);
     }
 
     // Attach File Input Listeners
@@ -61,6 +63,11 @@ function handleFileSelect(event) {
         // Hide menu
         const menu = document.getElementById('media-menu');
         if(menu) menu.classList.add('hidden');
+
+        // Enable Send Button
+        const sendBtn = document.querySelector('#message-form button[type="submit"]');
+        if(sendBtn) sendBtn.disabled = false;
+        if(sendBtn) sendBtn.classList.remove('opacity-50', 'cursor-not-allowed');
     }
 }
 
@@ -499,7 +506,7 @@ async function sendMessage() {
     formData.append('receiver_id', receiverId);
     if (text) formData.append('message', text);
 
-    // Append files from Queue
+// Append files from Queue
     filesQueue.forEach(file => {
         formData.append('attachments[]', file);
     });
@@ -521,6 +528,9 @@ async function sendMessage() {
         const response = await fetch(`${API_BASE_URL}/sendmessage`, {
             method: 'POST',
             credentials: 'include',
+            headers: {
+                 // Explicitly DO NOT set Content-Type for FormData, browser does it
+            },
             body: formData
         });
 
@@ -529,7 +539,7 @@ async function sendMessage() {
             // Message sent (Event listener will append it, or we can do it here)
             loadConversations(); // Refresh list to move chat to top
         } else {
-            showToast(result.message, 'error');
+            showToast(result.message || 'Send failed', 'error');
         }
     } catch (error) {
         showToast('Failed to send message', 'error');
@@ -634,88 +644,7 @@ function toggleRecording() {
     }
 }
 
-function startRecording() {
-    if (!stream) return;
-    
-    recordedChunks = [];
-    try {
-        mediaRecorder = new MediaRecorder(stream);
-    } catch (e) {
-        console.error(e);
-        showToast("MediaRecorder not supported", "error");
-        return;
-    }
 
-    mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-            recordedChunks.push(event.data);
-        }
-    };
-
-    mediaRecorder.onstop = () => {
-        const blob = new Blob(recordedChunks, { type: 'video/webm' });
-        const fileName = `video_${Date.now()}.webm`;
-        const file = new File([blob], fileName, { type: 'video/webm' });
-        
-        filesQueue.push(file);
-        renderFilePreviews();
-        closeCamera();
-    };
-
-    mediaRecorder.start();
-    isRecording = true;
-    recordingStartTime = Date.now();
-    
-    // UI Updates
-    document.getElementById('recording-indicator').classList.remove('hidden');
-    document.getElementById('record-btn').innerHTML = '<span class="material-symbols-outlined text-2xl">stop_circle</span>';
-    document.getElementById('snap-btn').classList.add('opacity-50', 'pointer-events-none'); // Disable photo snap
-    
-    timerInterval = setInterval(updateTimer, 1000);
-}
-
-function stopRecording() {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        mediaRecorder.stop();
-        isRecording = false;
-        clearInterval(timerInterval);
-        
-        // UI Reset (Handled mostly by closeCamera, but good to reset logic)
-        document.getElementById('recording-indicator').classList.add('hidden');
-        document.getElementById('record-btn').innerHTML = '<span class="material-symbols-outlined text-2xl">videocam</span>';
-        document.getElementById('snap-btn').classList.remove('opacity-50', 'pointer-events-none');
-    }
-}
-
-function updateTimer() {
-    const diff = Math.floor((Date.now() - recordingStartTime) / 1000);
-    const mins = Math.floor(diff / 60).toString().padStart(2, '0');
-    const secs = (diff % 60).toString().padStart(2, '0');
-    document.getElementById('recording-timer').innerText = `${mins}:${secs}`;
-}
-
-
-function handleFileSelect(event) {
-    const currentInput = event.target;
-    // Clear other inputs to ensure WYSIWYG
-    ['camera-input', 'gallery-input', 'doc-input', 'other-input'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el && el !== currentInput) {
-            el.value = '';
-        }
-    });
-
-    const newFiles = Array.from(currentInput.files);
-    if (newFiles.length > 0) {
-        // Add to queue
-        filesQueue.push(...newFiles);
-        renderFilePreviews();
-        
-        // Hide menu
-        const menu = document.getElementById('media-menu');
-        if(menu) menu.classList.add('hidden');
-    }
-}
 
 function renderFilePreviews() {
     const previewArea = document.getElementById('file-preview-area');
@@ -774,6 +703,24 @@ function renderFilePreviews() {
         previewArea.classList.add('hidden');
         previewArea.style.display = 'none';
         previewArea.innerHTML = '';
+    }
+    updateSendButtonState();
+}
+
+function updateSendButtonState() {
+    const input = document.getElementById('message-input');
+    const sendBtn = document.querySelector('#message-form button[type="submit"]');
+    if (!input || !sendBtn) return;
+
+    const hasText = input.value.trim().length > 0;
+    const hasFiles = filesQueue.length > 0;
+
+    if (hasText || hasFiles) {
+        sendBtn.disabled = false;
+        sendBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    } else {
+        sendBtn.disabled = true;
+        sendBtn.classList.add('opacity-50', 'cursor-not-allowed');
     }
 }
 
@@ -853,24 +800,49 @@ function appendMessage(msg) {
     // Attachments
     let attachmentsHtml = '';
     if (!isDeleted && msg.attachments && msg.attachments.length > 0) {
+        const isMultiple = msg.attachments.length > 1;
+        const gridClass = isMultiple ? 'grid grid-cols-2 gap-1.5' : 'flex flex-col gap-1.5';
+        
+        attachmentsHtml += `<div class="${gridClass} mb-2 mt-1">`;
+        
         msg.attachments.forEach(att => {
             const url = `${API_BASE_URL.replace('/api', '')}/storage/Messages/${att.file_name}`;
+            const isSingle = !isMultiple;
+            
+            // Custom fixed dimensions for previews
+            const sizeClass = isSingle ? 'w-64 h-48 sm:w-72 sm:h-56' : 'w-32 h-32 sm:w-40 sm:h-40';
+            
             if (att.file_type === 'image') {
-                attachmentsHtml += `<img src="${url}" class="rounded-xl max-w-full mb-2 cursor-pointer hover:opacity-90 transition-opacity aspect-auto object-contain bg-black/20" onclick="window.open('${url}', '_blank')">`;
+                attachmentsHtml += `
+                    <div class="relative ${sizeClass} rounded-2xl overflow-hidden border border-white/10 cursor-pointer group bg-black/20" onclick="viewMedia('${url}', 'image')">
+                         <img src="${url}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                    </div>`;
             } else if (att.file_type === 'video') {
                 attachmentsHtml += `
-                    <div class="relative max-w-full mb-2 rounded-xl overflow-hidden bg-black/20">
-                        <video src="${url}" controls class="w-full max-h-[300px]"></video>
+                    <div class="relative ${sizeClass} rounded-2xl overflow-hidden border border-white/10 cursor-pointer group bg-black/20" onclick="viewMedia('${url}', 'video')">
+                        <video src="${url}" class="w-full h-full object-cover pointer-events-none"></video>
+                        <div class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
+                            <div class="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <span class="material-symbols-outlined text-white text-2xl">play_arrow</span>
+                            </div>
+                        </div>
                     </div>`;
             } else {
                 attachmentsHtml += `
-                    <a href="${url}" target="_blank" class="flex items-center gap-3 p-3 bg-black/20 rounded-xl mb-2 hover:bg-black/30 transition-colors">
-                        <span class="material-symbols-outlined text-white">description</span>
-                        <span class="text-sm text-white underline truncate">${att.file_name}</span>
+                    <a href="${url}" target="_blank" class="col-span-full flex items-center gap-3 p-3 bg-surface-border/50 rounded-xl hover:bg-surface-border transition-colors border border-white/5 group">
+                        <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                             <span class="material-symbols-outlined text-2xl">description</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm text-white font-medium truncate">${att.file_name}</p>
+                            <p class="text-[10px] text-slate-400 uppercase tracking-wider">File</p>
+                        </div>
+                        <span class="material-symbols-outlined text-slate-500">download</span>
                     </a>
                  `;
             }
         });
+        attachmentsHtml += `</div>`;
     }
 
     const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -1104,32 +1076,7 @@ function backToConversations() {
     activeOpenChatUserId = null; // Clear active chat
 }
 
-function handleFileSelect(event) {
-    const files = event.target.files;
-    const previewArea = document.getElementById('file-preview-area');
 
-    if (files.length > 0) {
-        previewArea.classList.remove('hidden');
-        previewArea.innerHTML = '';
-
-        Array.from(files).forEach(file => {
-            const div = document.createElement('div');
-            div.className = 'relative shrink-0 w-16 h-16 bg-surface-border rounded-lg overflow-hidden flex items-center justify-center';
-
-            if (file.type.startsWith('image/')) {
-                const img = document.createElement('img');
-                img.src = URL.createObjectURL(file);
-                img.className = 'w-full h-full object-cover';
-                div.appendChild(img);
-            } else {
-                div.innerHTML = '<span class="material-symbols-outlined text-white">description</span>';
-            }
-            previewArea.appendChild(div);
-        });
-    } else {
-        previewArea.classList.add('hidden');
-    }
-}
 
 function setupUserSearch() {
     const input = document.getElementById('user-search-input');
@@ -1511,12 +1458,71 @@ async function markAsDelivered(messageId) {
     try {
         await fetch(`${API_BASE_URL}/message/delivered`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Accept': 'application/json',
+                'X-XSRF-TOKEN': decodeURIComponent(document.cookie.split('; ').find(row => row.startsWith('XSRF-TOKEN='))?.split('=')[1] || '')
+            },
             credentials: 'include',
             body: JSON.stringify({ message_id: messageId })
         });
         console.log("Marked as delivered:", messageId);
     } catch (e) {
         console.error("Failed to mark delivered", e);
+    }
+}
+
+// --- Lightbox / Media Viewer ---
+window.viewMedia = function(url, type) {
+    let modal = document.getElementById('media-lightbox');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'media-lightbox';
+        modal.className = 'fixed inset-0 z-[100] hidden bg-black/95 flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in duration-200';
+        modal.onclick = (e) => {
+            if(e.target === modal) closeMediaLightbox();
+        };
+        modal.innerHTML = `
+            <button onclick="closeMediaLightbox()" class="absolute top-6 right-6 text-white/50 hover:text-white transition-colors p-2 z-50 rounded-full hover:bg-white/10">
+                <span class="material-symbols-outlined text-4xl">close</span>
+            </button>
+            <div id="media-content" class="w-full h-full flex items-center justify-center overflow-hidden relative"></div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+             if (e.key === 'Escape') closeMediaLightbox();
+        });
+    }
+
+    const content = modal.querySelector('#media-content');
+    content.innerHTML = ''; // Clear previous
+
+    if (type === 'image') {
+        const img = document.createElement('img');
+        img.src = url;
+        img.className = 'max-w-full max-h-full object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-300';
+        content.appendChild(img);
+    } else if (type === 'video') {
+         const video = document.createElement('video');
+         video.src = url;
+         video.controls = true;
+         video.autoplay = true;
+         video.className = 'max-w-full max-h-full object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-300';
+         content.appendChild(video);
+    }
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+window.closeMediaLightbox = function() {
+    const modal = document.getElementById('media-lightbox');
+    if (modal) {
+        const video = modal.querySelector('video');
+        if (video) video.pause(); 
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
     }
 }

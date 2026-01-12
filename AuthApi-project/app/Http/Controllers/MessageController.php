@@ -22,11 +22,6 @@ class MessageController extends BaseController
 {
     public function sendMessage(Request $request)
     {
-        Log::info('SendMessage HIT - Raw Request:', [
-            'all' => $request->all(),
-            'files_raw' => $request->allFiles(),
-            'has_attachments' => $request->hasFile('attachments'),
-        ]);
         $allowedMimes = 'jpg,jpeg,png,gif,webp,bmp,svg,heic,heif,pdf,doc,docx,xls,xlsx,csv,ppt,pptx,txt,rtf,json,mp4,avi,mov,wmv,flv,mkv,webm,3gp,mp3,wav,aac,ogg,m4a,wma,amr,zip,rar,7z';
         $this->validateRequest($request, [
             'receiver_id' => 'integer|required|exists:users,id',
@@ -36,13 +31,7 @@ class MessageController extends BaseController
             'attachment' => 'array|nullable',
             'attachment.*' => 'file|mimes:' . $allowedMimes . ',max:102400',
         ]);
-        try {
-            Log::info('SendMessage Request:', [
-                'all' => $request->all(),
-                'files_raw' => $request->allFiles(), // Check raw files
-                'has_file_attachments' => $request->hasFile('attachments'),
-                'has_file_attachment' => $request->hasFile('attachment'),
-            ]);
+        try {  
             $user = auth('api')->user();
             if (!$user) {
                 return $this->unauthorized();
@@ -73,6 +62,13 @@ class MessageController extends BaseController
                     'updated_by' => $sender_Id,
                 ]);
             }
+            Log::info('MessageController: Message Request Received', [
+                'sender' => $sender_Id, 
+                'receiver' => $receiver_Id,
+                'has_attachments' => $request->hasFile('attachments'),
+                'has_attachment' => $request->hasFile('attachment'),
+                'all' => $request->all()
+            ]);
             try {
                 $attachments = [];
                 $files = [];
@@ -89,6 +85,8 @@ class MessageController extends BaseController
                         $attachments[] = $filename;
                     }
                 }
+                
+
             } catch (Exception $e) {
                 return $this->Response(false, $e->getMessage(), null, 500);
             }

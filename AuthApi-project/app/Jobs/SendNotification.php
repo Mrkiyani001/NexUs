@@ -48,7 +48,12 @@ class SendNotification implements ShouldQueue
             $notification->title = $this->title;
             $notification->text = $this->text;
             if ($this->notifiable) {
-                $notification->notifiable()->associate($this->notifiable);
+                if (is_array($this->notifiable) && isset($this->notifiable['type'], $this->notifiable['id'])) {
+                    $notification->notifiable_type = $this->notifiable['type'];
+                    $notification->notifiable_id = $this->notifiable['id'];
+                } else {
+                    $notification->notifiable()->associate($this->notifiable);
+                }
             }
             $notification->user_id = $this->user_id;
             $notification->for_admin = $this->for_admin;

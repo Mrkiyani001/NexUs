@@ -143,7 +143,11 @@ async function markAsDeliveredGlobal(messageId) {
     try {
         await fetch(`${API_BASE_URL}/message/delivered`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Accept': 'application/json',
+                'X-XSRF-TOKEN': decodeURIComponent(document.cookie.split('; ').find(row => row.startsWith('XSRF-TOKEN='))?.split('=')[1] || '')
+            },
             credentials: 'include',
             body: JSON.stringify({ message_id: messageId }) // Updated param name
         });

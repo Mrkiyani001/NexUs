@@ -572,27 +572,6 @@
     </script>
     <script src="js/config.js"></script>
     <script src="js/site_branding.js"></script>
-    <script>
-        // Check if user is already logged in via HttpOnly cookie
-        document.addEventListener('DOMContentLoaded', async () => {
-            try {
-                const response = await fetch(`${API_BASE_URL}/me`, {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: { 'Content-Type': 'application/json' }
-                });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success) {
-                        // User is authenticated, redirect to dashboard
-                        window.location.href = 'homefeed-dashboard.html';
-                    }
-                }
-            } catch (e) {
-                // Ignore errors, stay on landing page
-            }
-        });
-    </script>
 </body>
 </html>

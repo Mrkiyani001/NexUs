@@ -111,39 +111,49 @@ const NotificationService = {
         console.log("Notification Clicked:", notification); // Debug Log
         await this.markOneAsRead(notification.id);
 
-        // Determine redirect path based on notifiable_type or content
+        if (!notification.notifiable_type) {
+            console.error("Notification missing notifiable_type:", notification);
+            // Fallback based on text if possible, or just go home
+            if (notification.title.includes('Message')) window.location.href = 'message.html';
+            return;
+        }
+
+        // --- POSTS ---
         if (notification.notifiable_type.includes('Post')) {
             // Admin Redirect for Flagged Posts
             if (notification.title.includes('Flagged') || notification.title.includes('Review')) {
                 const targetUrl = 'admin%20panel/moderation-queue.html';
-                console.log("Redirecting to Admin Queue:", targetUrl);
                 window.location.href = targetUrl;
             } else {
-                const targetUrl = `post-detail-veiw.html?id=${notification.notifiable_id}`;
-                console.log("Redirecting to Post:", targetUrl);
-                window.location.href = targetUrl;
+                window.location.href = `post-detail-veiw.html?id=${notification.notifiable_id}`;
             }
-            // Handle Follow Request redirects
+
+        // --- USERS / FRIEND REQ ---
         } else if (notification.notifiable_type.includes('User')) {
             if (notification.title.includes('Request') || notification.title.includes('New Follower')) {
-                if (notification.title.includes('Accepted')) {
-                    // If accepted, view their profile
-                    window.location.href = `profile.html?id=${notification.notifiable_id}`;
-                } else {
-                    // If incoming request, go to requests page
-                    window.location.href = 'friendreq.html';
-                }
+                window.location.href = 'friendreq.html';
             } else {
                 window.location.href = `profile.html?id=${notification.notifiable_id}`;
             }
-        } else if (notification.notifiable_type.includes('Comment')) {
-            // If it's a comment, we usually want to view the post it belongs to
-            // This might need more data from backend or a separate fetch
-            // For now, let's assume notifiable_id is the relevant entity
-            if (notification.text.toLowerCase().includes('post') || notification.title.toLowerCase().includes('post')) {
-                // Try to guess if it's related to a post
-                // Ideally backend should provide the post_id in data
-            }
+
+        // --- MESSAGES ---
+        } else if (notification.notifiable_type.includes('Message')) {
+            window.location.href = 'message.html';
+
+        // --- REELS ---
+        } else if (notification.notifiable_type.includes('Reel')) {
+             window.location.href = 'reels.html';
+
+        // --- COMMENTS / REPLIES ---
+        } else if (notification.notifiable_type.includes('Comment') || notification.title.toLowerCase().includes('comment')) {
+             // Redirect to the Comment ID (Assuming post-detail can handle it or just load the page)
+             // Ideally we need PostID, but if not available, we send the comment ID.
+             window.location.href = `post-detail-veiw.html?id=${notification.notifiable_id}`;
+             
+        } else {
+             console.log("Unknown Notification Type:", notification.notifiable_type);
+             // Safety default?
+             // window.location.href = 'homefeed-dashboard.html';
         }
     }
 };

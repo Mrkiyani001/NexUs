@@ -85,10 +85,13 @@ public $updated_by;
 
         SendNotification::dispatch(
             $this->sender_Id,           // CreatorId
-            $title,                     // Title (Sender Name)
+            $title,                   // Title (Sender Name)
             $this->message ?? 'Sent an attachment', // Text
             $this->receiver_Id,         // User ID (Recipient)
-            null,                       // Notifiable (Optional)
+            [
+                'type' => $Message->getMorphClass(),
+                'id' => $Message->id,
+            ],                          // Notifiable (Array for Safety)
             false                       // For Admin
         );
     }catch(Exception $e){
