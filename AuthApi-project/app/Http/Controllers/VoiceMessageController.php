@@ -75,7 +75,34 @@ catch(Exception $e){
     Log::error('Voice Message Error: ' . $e->getMessage());
     return $this->Response(false, $e->getMessage(), null, 500);
 }
+}
+public function delvoiceMessage(Request $request){
+    $this->validateRequest($request, [
+        'id' => 'required|exists:voice_messages,id',
+    ]);
+    try{
+        $user = auth('api')->user();
+        if(!$user){
+            return $this->Unauthorized();
+        }
+        
+        $voicemsg = VoiceMessage::find($request->id);
+        if(!$voicemsg){
+            return $this->Response(false, 'Voice message not found', null, 404);
+        }
 
+        // Check ownership against the ACTUAL record, not the request input
+        if($user->id != $voicemsg->sender_id){
+             return $this->NotAllowed();
+        }
+
+        $voicemsg->delete();
+        return $this->Response(true, 'Voice message deleted successfully', null, 200);
+    }
+    catch(Exception $e){
+        Log::error('Voice Message Error: ' . $e->getMessage());
+        return $this->Response(false, $e->getMessage(), null, 500);
+    }
 }
 public function getVoiceMessages(Request $request){
     $this->validateRequest($request, [

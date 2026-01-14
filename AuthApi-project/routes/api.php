@@ -230,6 +230,7 @@ Route::group(['middleware' => ['api', 'auth:api']], function () {
     // Voice Message Routes
     Route::post('voicemsg', [VoiceMessageController::class, 'sendVoiceMessage'])->middleware('permission:send voicemsg');
     Route::post('getvoicemsg', [VoiceMessageController::class, 'getVoiceMessages'])->middleware('permission:get voicemsg');
+    Route::delete('delvoicemsg', [VoiceMessageController::class, 'delvoiceMessage'])->middleware('permission:del voicemsg');
 });
 
 

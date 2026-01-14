@@ -38,7 +38,11 @@ class AddReel implements ShouldQueue
     {
         Log::info("AddReel Job Started for User ID: {$this->user_id}");
         $Db_reel_path = $this->reel->video_path;
-        $Original_reel_path = storage_path('app/public/' . $Db_reel_path);
+        Log::info("DB Path: {$Db_reel_path}");
+        $relative_path = str_replace('storage/','', $Db_reel_path);
+        Log::info("Relative Path: {$relative_path}");
+        $Original_reel_path = storage_path('app/public/' . $relative_path);
+        Log::info("Original Path: {$Original_reel_path}");
         if(!file_exists($Original_reel_path)){
             Log::error("Original Reel not found at path: {$Original_reel_path}");
             return;

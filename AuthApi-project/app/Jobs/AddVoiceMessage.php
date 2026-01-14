@@ -41,19 +41,27 @@ class AddVoiceMessage implements ShouldQueue
     {
         Log::info('AddVoiceMessage Job started');
         $Db_voice_message_path = $this->file->file_path;
-        $Original_voice_message_path = storage_path('app/public/' . $Db_voice_message_path);
+        Log::info("DB Path: {$Db_voice_message_path}");
+        
+        // Fix: DB path has 'storage/' prefix. storage_path('app/public') needs relative path inside public.
+        // So we strip 'storage/' to get 'voice_messages/filename.webm'
+        // Then storage_path('app/public/voice_messages/settings.webm') -> Correct absolute path.
+        $relative_path = str_replace('storage/', '', $Db_voice_message_path);
+        Log::info("Relative Path: {$relative_path}");
+        $Original_voice_message_path = storage_path('app/public/' . $relative_path);
+        Log::info("Original Path: {$Original_voice_message_path}");
         if (!file_exists($Original_voice_message_path)) {
             Log::error("Original Voice Message not found at path: {$Original_voice_message_path}");
             return;
         }
-        Log::info("Original Voice Message found at path: {$Original_voice_message_path}");
         Log::info("FFMpeg::create() started");
         $ffmpeg = FFMpeg::create();
         $voice = $ffmpeg->open($Original_voice_message_path);
+        // FFMpeg hama duration key deta ha is lya key ma duration likhna if coloum ka name likha ga to null aya ga.
         $duration = (int) $voice->getFormat()->get('duration');
-        $this->file->duration = $duration;
+        $this->file->file_duration = $duration;
         $this->file->update([
-            'duration' => $duration,
+            'file_duration' => $duration,
         ]);
         VoiceMsgEvent::dispatch($this->file);
         Log::info("AddVoiceMessage Job Completed for User ID: {$this->user_id}");
